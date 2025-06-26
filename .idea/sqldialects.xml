@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/src/routes/auth.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/chief/options.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/chief/project.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/chief/task.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/employee/activity.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/employee/project.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/notification.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/timeKeeper/activity.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/timeKeeper/employee.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/timeKeeper/history.js" dialect="GenericSQL" />
+  </component>
+</project>
