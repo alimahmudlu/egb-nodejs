@@ -1,5 +1,5 @@
 // const {Pool} = require("pg");
-
+import "dotenv/config";
 import {Pool} from "pg";
 
 const db = new Pool({
@@ -8,8 +8,8 @@ const db = new Pool({
     password: process.env.PGPASSWORD,
     database: process.env.PGDATABASE,
     port: 5432,
-    // ssl: { rejectUnauthorized: false }
-    ssl: true
+    ssl: { rejectUnauthorized: false }
+    // ssl: true
 });
 
 export default db;

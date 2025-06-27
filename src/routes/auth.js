@@ -28,16 +28,6 @@ router.post('/', async (req, res) => {
         return res.status(400).json({error: 'Email and password are required'});
     }
 
-    console.log({
-        host: process.env.PGHOST,
-        user: process.env.PGUSER,
-        password: process.env.PGPASSWORD,
-        database: process.env.PGDATABASE,
-        port: 5432,
-        // ssl: { rejectUnauthorized: false }
-        ssl: true
-    }, db, 'env')
-
     const {rows: userAuthRows} = await db.query('SELECT * FROM employee_auth WHERE employee_id = $1', [id])
 
     if(userAuthRows.length > 0 && isValidPassword(password, userAuthRows?.[0]?.password)) {
