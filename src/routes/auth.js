@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
 
     const {rows: userAuthRows} = await db.query('SELECT * FROM employee_auth WHERE employee_id = $1', [id])
 
-    if(isValidPassword(password, userAuthRows[0].password)) {
+    if(userAuthRows.length > 0 && isValidPassword(password, userAuthRows?.[0]?.password)) {
         const {rows: userDataRows} =
             await db.query(`
                 SELECT
@@ -56,6 +56,13 @@ router.post('/', async (req, res) => {
             token: {accessToken: token},
             user: userDataRows[0]
         }));
+    }
+    else {
+        return res.status(500).json({
+            success: false,
+            message: 'Password or id is incorrect ',
+            data: null
+        });
     }
 
 })
