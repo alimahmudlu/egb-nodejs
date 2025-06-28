@@ -15,12 +15,12 @@ router.get('/list', checkAuth, async (req, res) => {
 
     if (start_date) {
         filters.push(`review_time >= $${idx}`);
-        values.push(start_date)
+        values.push(moment(start_date).format())
         idx++
     }
     if (end_date) {
         filters.push(`review_time <= $${idx}`);
-        values.push(end_date)
+        values.push(moment(end_date).format())
         idx++
     }
     const {rows} = await db.query(`
