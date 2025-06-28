@@ -36,7 +36,7 @@ router.get('/list', checkAuth, async (req, res) => {
                                             LEFT JOIN employees e ON e.id = ea.employee_id
                                             LEFT JOIN employee_roles er ON e.id = er.employee_id
                                             LEFT JOIN roles r ON r.id = er.role
-                                   WHERE ${filters.length > 0 ? `AND ${filters.join(' AND ')}` : ''}
+                                   ${filters.length > 0 ? `WHERE ${filters.join(' AND ')}` : ''}
         ORDER BY ea.id DESC;
         `, [...values])
 
