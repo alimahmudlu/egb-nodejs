@@ -11,6 +11,8 @@ router.get('/list', checkAuth, async (req, res) => {
     const values = [];
     let idx = 1;
 
+    console.log(start_date, end_date, req.query)
+
     if (start_date) {
         filters.push(`review_time >= $${idx}`);
         values.push(start_date)
