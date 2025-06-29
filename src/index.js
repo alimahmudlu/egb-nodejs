@@ -6,6 +6,7 @@ import cors from 'cors';
 import auth from './routes/auth.js';
 
 import notification from './routes/notification.js';
+import upload from './routes/upload.js';
 
 import project from './routes/employee/project.js';
 import activity from "./routes/employee/activity.js";
@@ -47,7 +48,9 @@ app.use('/api/timekeeper/history', timeKeeperHistory)
 app.use('/api/chief/project', chiefProject)
 app.use('/api/chief/task', chiefTask)
 app.use('/api/chief/options', chiefOptions)
+
 app.use('/api/notification', notification)
+app.use('/api/upload', upload)
 
 initSocket(server);
 
