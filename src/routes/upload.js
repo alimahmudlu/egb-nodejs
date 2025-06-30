@@ -1,22 +1,38 @@
-import upload from 'multer';
+import multer from 'multer';
 import express from "express";
 import {put} from "@vercel/blob";
 import dotenv from "dotenv";
+import db from "../helper/db.js";
+
+const upload = multer();
 const router = express.Router();
 
+
 router.post('/file', upload.single('file'), async (req, res) => {
+    console.log('adasdasd2')
     try {
+        console.log(req.file, req.body, 'ASASA')
         const { originalname, mimetype, buffer } = req.file;
-        console.log(originalname, mimetype, buffer, 'AAAAAABBBBBCCCCC file upload')
 
         const blob = await put(originalname, buffer, {
             access: 'public',
             contentType: mimetype,
             token: process.env.VERCEL_BLOB_READ_WRITE_TOKEN,
+            addRandomSuffix: true
         });
-        console.log(blob.url, 'AAAAAABBBBBCCCCCDDDDDDDDDDDDDDD file upload blob')
 
-        res.json({ url: blob.url });
+        const {rows} = await db.query(
+            'INSERT INTO employee_uploads (filename, filepath, mimetype, filesize) VALUES ($1, $2, $3, $4) RETURNING *',
+            [originalname, blob.url, mimetype, 100]
+        );
+
+        console.log(rows)
+
+        res.json({
+            success: true,
+            message: 'File upload successfull',
+            data: rows?.[0]
+        });
     } catch (error) {
         console.error(error);
         console.error('Yükləmə zamanı xəta baş verdi');

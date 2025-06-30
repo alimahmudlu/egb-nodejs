@@ -91,4 +91,52 @@ router.get('/item/:id/tasks/item/:task_id', checkAuth, async (req, res) => {
     })
 })
 
+router.post('/item/:id/tasks/item/:task_id/status', checkAuth, async (req, res) => {
+    const {task_id} = req.params;
+    const {date, status, files} = req.body;
+
+    const {rows} = await db.query(`
+                INSERT INTO task_activities
+                (
+                    task_id,
+                    status_id,
+                    created_at,
+                    created_employee_id
+                )
+                VALUES ($1, $2, $3, $4) RETURNING *
+        `,
+        [task_id, status, date, req.currentUserId])
+
+    if (files.length > 0) {
+        const valuesClause = files.map(
+            (row, i) => `($${i * row.length + 1}, $${i * row.length + 2}), $${i * row.length + 3}), $${i * row.length + 4})`
+        ).join(', ');
+
+        const values = files.map((row, i) => (
+            [rows?.[0]?.id, row.id, date, req.currentUserId]
+        )).flat()
+
+
+        const {rows: createFileRows} = await db.query(`
+            INSERT INTO task_files
+            (
+                task_activity_id,
+                upload_id,
+                created_at,
+                created_employee_id
+            )
+            VALUES ${valuesClause} RETURNING *
+    `,
+            values)
+    }
+
+
+
+    res.json({
+        success: true,
+        message: 'Project task status change successful',
+        data: rows?.[0] || {}
+    })
+})
+
 export default router
