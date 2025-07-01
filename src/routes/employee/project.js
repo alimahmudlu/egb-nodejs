@@ -32,7 +32,7 @@ router.get('/list', checkAuth, async (req, res) => {
     ) AS members
                                    FROM project_members pm
                                        LEFT JOIN projects p ON p.id = pm.project_id
-                                   WHERE pm.employee_id = $1`, [req.currentUserId])
+                                   WHERE pm.employee_id = $1`, [6])
 
     res.json({
         success: true,
@@ -56,8 +56,17 @@ router.get('/item/:id/tasks', checkAuth, async (req, res) => {
     const {id} = req.params;
 
     const {rows} = await db.query(`SELECT *,
-                                          (SELECT json_build_object('id', ts.id, 'name', ts.name)
-                                           FROM task_statuses ts WHERE status = ts.id LIMIT 1) as status,
+      (SELECT json_build_object('id', ts.id, 'name', ts.name)
+       FROM task_statuses ts
+       WHERE ts.id = COALESCE((
+                                  SELECT ta.status_id
+                                  FROM task_activities ta
+                                  WHERE ta.task_id = t.id
+                                  ORDER BY ta.created_at DESC
+                              LIMIT 1
+           ), 1)
+          LIMIT 1
+        ) as status,
        (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
         FROM employees e WHERE id = t.assigned_employee_id LIMIT 1) as assigned_employee,
        (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
@@ -75,13 +84,22 @@ router.get('/item/:id/tasks/item/:task_id', checkAuth, async (req, res) => {
     const {id, task_id} = req.params;
 
     const {rows} = await db.query(`SELECT *,
-                                          (SELECT json_build_object('id', ts.id, 'name', ts.name)
-                                           FROM task_statuses ts WHERE status = ts.id LIMIT 1) as status,
-       (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
-        FROM employees e WHERE id = t.assigned_employee_id LIMIT 1) as assigned_employee,
-       (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
-        FROM employees e WHERE id = t.reporter_employee_id LIMIT 1) as reporter_employee
-                                   FROM tasks t WHERE t.project_id = $1 AND t.assigned_employee_id = $2 AND t.id = $3`, [id, req?.currentUserId, task_id])
+        (SELECT json_build_object('id', ts.id, 'name', ts.name)
+            FROM task_statuses ts
+            WHERE ts.id = COALESCE((
+                                      SELECT ta.status_id
+                                      FROM task_activities ta
+                                      WHERE ta.task_id = t.id
+                                      ORDER BY ta.created_at DESC
+                                  LIMIT 1
+               ), 1)
+              LIMIT 1
+        ) as status,
+        (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
+            FROM employees e WHERE id = t.assigned_employee_id LIMIT 1) as assigned_employee,
+        (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
+            FROM employees e WHERE id = t.reporter_employee_id LIMIT 1) as reporter_employee
+        FROM tasks t WHERE t.project_id = $1 AND t.assigned_employee_id = $2 AND t.id = $3`, [id, req?.currentUserId, task_id])
 
 
     res.json({
@@ -107,15 +125,15 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, async (req, res) 
         `,
         [task_id, status, date, req.currentUserId])
 
-    if (files.length > 0) {
+
+    if (files?.length > 0) {
         const valuesClause = files.map(
-            (row, i) => `($${i * row.length + 1}, $${i * row.length + 2}), $${i * row.length + 3}), $${i * row.length + 4})`
+            (row, i) => `($${i * 4 + 1}, $${i * 4 + 2}, $${i * 4 + 3}, $${i * 4 + 4})`
         ).join(', ');
 
         const values = files.map((row, i) => (
-            [rows?.[0]?.id, row.id, date, req.currentUserId]
+            [rows?.[0]?.id, row, date, req.currentUserId]
         )).flat()
-
 
         const {rows: createFileRows} = await db.query(`
             INSERT INTO task_files
