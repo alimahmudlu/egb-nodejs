@@ -1,6 +1,8 @@
 import express from 'express'
 import db from '../../helper/db.js'
 import checkAuth from '../../middleware/checkAuth.js'
+import {getIO, userSocketMap} from "../../socketManager.js";
+import sendPushNotification from "../../helper/sendPushNotification.js";
 
 const router = express.Router()
 
@@ -71,7 +73,7 @@ router.get('/item/:id/tasks', checkAuth, async (req, res) => {
         FROM employees e WHERE id = t.assigned_employee_id LIMIT 1) as assigned_employee,
        (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
         FROM employees e WHERE id = t.reporter_employee_id LIMIT 1) as reporter_employee
-                                   FROM tasks t WHERE t.project_id = $1 AND t.assigned_employee_id = $2`, [id, req?.currentUserId])
+                                   FROM tasks t WHERE t.project_id = $1 AND t.assigned_employee_id = $2 AND deleted_at IS NULL`, [id, req?.currentUserId])
 
     res.json({
         success: true,
@@ -147,6 +149,21 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, async (req, res) 
     `,
             values)
     }
+
+    const io = getIO();
+    const socketId = userSocketMap.get(assigned_employee_id);
+
+    if (socketId) {
+        io.to(socketId).emit("change_task__by_employee", {
+            success: true,
+            from: req.currentUserId,
+            message: 'You have been changed to a new task.',
+            data: 'insertedRow[0]'
+        });
+    }
+
+    sendPushNotification(assigned_employee_id, 'Assign new task', 'You have been added to a new task.')
+
 
 
 
