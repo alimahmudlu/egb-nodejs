@@ -39,7 +39,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 const server = http.createServer(app);
 
 app.get("/", (req, res) => {
-    res.send("Backend çalışıyor");
+    res.status(307).redirect("https://egb-panel.entergreenbuildings.com/signin")
 });
 
 
@@ -70,5 +70,5 @@ app.use('/api/position', position)
 initSocket(server);
 
 server.listen(3000, () => {
-    console.log("Server 3000 portunda çalışıyor");
+    console.log("APP IS RUNNING ON PORT 3000");
 });
