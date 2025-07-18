@@ -34,7 +34,7 @@ router.get('/list', checkAuth, async (req, res) => {
     ) AS members
                                    FROM project_members pm
                                        LEFT JOIN projects p ON p.id = pm.project_id
-                                   WHERE pm.employee_id = $1`, [6])
+                                   WHERE pm.employee_id = $1`, [req.currentUserId])
 
     res.json({
         success: true,
@@ -97,6 +97,28 @@ router.get('/item/:id/tasks/item/:task_id', checkAuth, async (req, res) => {
                ), 1)
               LIMIT 1
         ) as status,
+                                       (
+         SELECT COALESCE(
+           jsonb_agg(
+             jsonb_build_object(
+               'id', tf.id,
+               'upload_id', tf.upload_id,
+               'created_at', tf.created_at,
+               'created_employee_id', tf.created_employee_id,
+               'upload', json_build_object(
+                 'id', eu.id,
+                 'filename', eu.filename,
+                 'filepath', eu.filepath,
+                 'mimetype', eu.mimetype,
+                 'filesize', eu.filesize
+               )
+             )
+           ), '[]'::jsonb
+         )
+         FROM task_files tf
+         JOIN uploads eu ON eu.id = tf.upload_id
+         WHERE tf.task_id = t.id
+       ) AS files,
         (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
             FROM employees e WHERE id = t.assigned_employee_id LIMIT 1) as assigned_employee,
         (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
@@ -112,8 +134,10 @@ router.get('/item/:id/tasks/item/:task_id', checkAuth, async (req, res) => {
 })
 
 router.post('/item/:id/tasks/item/:task_id/status', checkAuth, async (req, res) => {
-    const {task_id} = req.params;
+    const {task_id, id} = req.params;
     const {date, status, files} = req.body;
+
+    console.log(task_id, id)
 
     const {rows} = await db.query(`
                 INSERT INTO task_activities
@@ -130,47 +154,87 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, async (req, res) 
 
     if (files?.length > 0) {
         const valuesClause = files.map(
-            (row, i) => `($${i * 4 + 1}, $${i * 4 + 2}, $${i * 4 + 3}, $${i * 4 + 4})`
+            (row, i) => `($${i * 4 + 1}, $${i * 4 + 2}, $${i * 4 + 3}, $${i * 4 + 4}, $${i * 4 + 5})`
         ).join(', ');
 
         const values = files.map((row, i) => (
-            [rows?.[0]?.id, row, date, req.currentUserId]
+            [rows?.[0]?.id, row, date, req.currentUserId, task_id]
         )).flat()
 
         const {rows: createFileRows} = await db.query(`
-            INSERT INTO task_files
-            (
-                task_activity_id,
-                upload_id,
-                created_at,
-                created_employee_id
-            )
-            VALUES ${valuesClause} RETURNING *
-    `,
+                    INSERT INTO task_files
+                    (
+                        task_activity_id,
+                        upload_id,
+                        created_at,
+                        created_employee_id,
+                        task_id
+                    )
+                    VALUES ${valuesClause} RETURNING *
+            `,
             values)
     }
+    
+    const {rows: returnedTask} = await db.query(`
+        SELECT t.*,
+               (SELECT json_build_object('id', ts.id, 'name', ts.name)
+                FROM task_statuses ts
+                WHERE ts.id = COALESCE((SELECT ta.status_id
+                                        FROM task_activities ta
+                                        WHERE ta.task_id = t.id
+                                        ORDER BY ta.created_at DESC
+                                       LIMIT 1 ), 1)
+                   LIMIT 1 ) as status,
+                                       (
+         SELECT COALESCE(
+           jsonb_agg(
+             jsonb_build_object(
+               'id', tf.id,
+               'upload_id', tf.upload_id,
+               'created_at', tf.created_at,
+               'created_employee_id', tf.created_employee_id,
+               'upload', json_build_object(
+                 'id', eu.id,
+                 'filename', eu.filename,
+                 'filepath', eu.filepath,
+                 'mimetype', eu.mimetype,
+                 'filesize', eu.filesize
+               )
+             )
+           ), '[]'::jsonb
+         )
+         FROM task_files tf
+         JOIN uploads eu ON eu.id = tf.upload_id
+         WHERE tf.task_id = t.id
+       ) AS files,
+       (SELECT json_build_object('id', e.id, 'full_name', e.full_name) FROM employees e WHERE assigned_employee_id = e.id LIMIT 1) as assigned_employee,
+       (SELECT json_build_object('id', e.id, 'full_name', e.full_name) FROM employees e WHERE reporter_employee_id = e.id LIMIT 1) as reporter_employee
+        FROM tasks t
+        WHERE t.project_id = $1 AND t.id = $2
+    `, [id, task_id])
 
-    const io = getIO();
-    const socketId = userSocketMap.get(assigned_employee_id);
+    if (returnedTask.length > 0) {
+        const io = getIO();
+        const socketId = userSocketMap.get(returnedTask?.[0]?.reporter_employee_id);
 
-    if (socketId) {
-        io.to(socketId).emit("change_task__by_employee", {
-            success: true,
-            from: req.currentUserId,
-            message: 'You have been changed to a new task.',
-            data: 'insertedRow[0]'
-        });
+        console.log(returnedTask?.[0]?.reporter_employee_id, socketId, returnedTask)
+
+        if (socketId) {
+            io.to(socketId).emit("change_task__by_employee", {
+                success: true,
+                from: req.currentUserId,
+                message: 'You have been changed to a new task.',
+                data: returnedTask?.[0]
+            });
+        }
+
+        sendPushNotification(returnedTask?.[0]?.reporter_employee_id, 'Task status change', 'You have been added to a new task.')
     }
-
-    sendPushNotification(assigned_employee_id, 'Assign new task', 'You have been added to a new task.')
-
-
-
 
     res.json({
         success: true,
         message: 'Project task status change successful',
-        data: rows?.[0] || {}
+        data: returnedTask?.[0] || {}
     })
 })
 

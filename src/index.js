@@ -7,24 +7,33 @@ import auth from './routes/auth.js';
 
 import notification from './routes/notification.js';
 import upload from './routes/upload.js';
+import position from './routes/position.js';
 
 import project from './routes/employee/project.js';
 import activity from "./routes/employee/activity.js";
+import docEmployee from "./routes/employee/doc.js";
 
 import timeKeeperActivity from "./routes/timeKeeper/activity.js";
 import timeKeeperEmployee from "./routes/timeKeeper/employee.js";
 import timeKeeperHistory from "./routes/timeKeeper/history.js";
+import docTimeKeeper from "./routes/timeKeeper/doc.js";
+import manualTimeKeeper from "./routes/timeKeeper/manual.js";
 
 import chiefProject from './routes/chief/project.js';
 import chiefTask from './routes/chief/task.js';
 import chiefOptions from './routes/chief/options.js';
+import docChief from "./routes/chief/doc.js";
+import chiefEmployee from "./routes/chief/employee.js";
+
+
 import { init as initSocket } from "./socketManager.js";
 
 import 'dotenv/config';
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 
 const server = http.createServer(app);
@@ -41,16 +50,22 @@ app.use('/api/upload', upload)
 
 app.use('/api/employee/project', project)
 app.use('/api/employee/activity', activity)
+app.use('/api/employee/doc', docEmployee)
 
 app.use('/api/timekeeper/activity', timeKeeperActivity)
 app.use('/api/timekeeper/employee', timeKeeperEmployee)
 app.use('/api/timekeeper/history', timeKeeperHistory)
+app.use('/api/timekeeper/doc', docTimeKeeper)
+app.use('/api/timekeeper/manual', manualTimeKeeper)
 
 app.use('/api/chief/project', chiefProject)
 app.use('/api/chief/task', chiefTask)
 app.use('/api/chief/options', chiefOptions)
+app.use('/api/chief/doc', docChief)
+app.use('/api/chief/employee', chiefEmployee)
 
 app.use('/api/notification', notification)
+app.use('/api/position', position)
 
 initSocket(server);
 

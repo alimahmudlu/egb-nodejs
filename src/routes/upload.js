@@ -4,14 +4,19 @@ import {put} from "@vercel/blob";
 import dotenv from "dotenv";
 import db from "../helper/db.js";
 
-const upload = multer();
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 50 * 1024 * 1024,     // 50MB fayl ölçüsü limiti
+        fieldSize: 10 * 1024 * 1024     // 10MB text sahələr (string) limiti
+    }
+});
 const router = express.Router();
 
 
 router.post('/file', upload.single('file'), async (req, res) => {
-    console.log('adasdasd2')
     try {
-        console.log(req.file, req.body, 'ASASA')
+        console.log(req.file, 'req.file');
         const { originalname, mimetype, buffer } = req.file;
 
         const blob = await put(originalname, buffer, {
@@ -22,7 +27,7 @@ router.post('/file', upload.single('file'), async (req, res) => {
         });
 
         const {rows} = await db.query(
-            'INSERT INTO employee_uploads (filename, filepath, mimetype, filesize) VALUES ($1, $2, $3, $4) RETURNING *',
+            'INSERT INTO uploads (filename, filepath, mimetype, filesize) VALUES ($1, $2, $3, $4) RETURNING *',
             [originalname, blob.url, mimetype, 100]
         );
 

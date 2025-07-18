@@ -28,6 +28,7 @@ router.get('/list', checkAuth, async (req, res) => {
                 'id', e.id,
                 'full_name', e.full_name,
                 'email', e.email,
+                'manual', e.dont_have_phone,
                 'role', json_build_object(
                         'id', er.id,
                         'name', r.name

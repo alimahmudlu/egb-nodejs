@@ -236,9 +236,19 @@ router.post('/checkout', checkAuth, async (req, res) => {
 })
 
 router.get('/', checkAuth, async (req, res) => {
-    const {rows} = await db.query(`SELECT * FROM employee_activities
+    const {rows} = await db.query(`SELECT *, (
+        SELECT json_build_object(
+                       'id', e.id,
+                       'full_name', e.full_name
+               )
+        FROM employees e
+        WHERE e.id = ea.reviewer_employee_id
+        LIMIT 1
+                                       ) AS reviewer FROM employee_activities ea
                                    WHERE employee_id = $1 AND completed_status = 0
                                    ORDER BY id DESC LIMIT 2`, [req.currentUserId]);
+
+    console.log(rows)
 
     return res.status(200).json({
         success: true,

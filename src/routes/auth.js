@@ -42,7 +42,14 @@ router.post('/', async (req, res) => {
                                  LEFT JOIN roles r ON r.id = er.role
                         WHERE er.employee_id = e.id
                         LIMIT 1
-                    ) AS role
+                    ) AS role,
+                    (SELECT sum(t.points) FROM tasks t WHERE assigned_employee_id = e.id OR reporter_employee_id = e.id) AS rating,
+                    (
+                        SELECT to_jsonb(p.*) FROM positions p WHERE p.id = e.position
+                    ) AS position,
+                    (
+                        SELECT flow_id FROM applications a WHERE a.id = e.application_id LIMIT 1
+                    ) AS flow
                 FROM employees e
                 WHERE e.id = $1;
             `, [id])

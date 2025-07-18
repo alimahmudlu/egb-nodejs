@@ -70,7 +70,21 @@ router.get('/list/:user_id', checkAuth, async (req, res) => {
     const {user_id} = req.params;
     const {type} = req.query;
 
-    const whereClause = type === 'active' ? 'AND status < 5' : type === 'completed' ? 'AND status = 5' : '';
+    const whereClause = type === 'active' ? `
+     AND COALESCE((
+        SELECT ta.status_id
+        FROM task_activities ta
+        WHERE ta.task_id = t.id
+        ORDER BY ta.created_at DESC
+        LIMIT 1
+    ), 1) < 5` : type === 'completed' ? `
+                                        AND COALESCE((
+        SELECT ta.status_id
+        FROM task_activities ta
+        WHERE ta.task_id = t.id
+        ORDER BY ta.created_at DESC
+        LIMIT 1
+    ), 1) = 5` : '';
 
     const {rows} = await db.query(`SELECT
                                         t.*,
