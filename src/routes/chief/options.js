@@ -44,7 +44,6 @@ router.get('/projects', checkAuth, async (req, res) => {
 
 router.get('/employees/:project_id', checkAuth, async (req, res) => {
     const projectId = req.params.project_id;
-    console.log(projectId, 'req params project_id')
     const {rows} = await db.query(`SELECT e.*,
                                           (
                                               SELECT to_jsonb(p.*) FROM positions p WHERE p.id = e.position
