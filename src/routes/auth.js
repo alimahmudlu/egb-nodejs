@@ -43,7 +43,12 @@ router.post('/', async (req, res) => {
                         WHERE er.employee_id = e.id
                         LIMIT 1
                     ) AS role,
-                    (SELECT sum(t.points) FROM tasks t WHERE assigned_employee_id = e.id OR reporter_employee_id = e.id) AS rating,
+                    (SELECT sum(t.points) FROM tasks t WHERE (assigned_employee_id = e.id OR reporter_employee_id = e.id) AND EXISTS (
+                SELECT 1
+                FROM task_activities ta
+                WHERE ta.task_id = t.id
+                  AND ta.status_id = 5
+            )) AS rating,
                     (
                         SELECT to_jsonb(p.*) FROM positions p WHERE p.id = e.position
                     ) AS position,
