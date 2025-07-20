@@ -52,7 +52,7 @@ router.get('/item/:id', checkAuth, async (req, res) => {
                    FROM project_members pm
                    WHERE pm.project_id = p.id
                ) AS members
-        FROM projects
+        FROM projects p
         WHERE id = $1`, [id])
 
     res.json({
