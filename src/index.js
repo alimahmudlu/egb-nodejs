@@ -4,7 +4,6 @@ import {Server} from 'socket.io';
 import cors from 'cors';
 
 import auth from './routes/auth.js';
-import currentUser from './routes/currentUser.js';
 
 import notification from './routes/notification.js';
 import upload from './routes/upload.js';
@@ -46,7 +45,6 @@ app.get("/", (req, res) => {
 
 
 app.use('/api/auth', auth)
-app.use('/api/currentUser', currentUser)
 
 app.use('/api/upload', upload)
 

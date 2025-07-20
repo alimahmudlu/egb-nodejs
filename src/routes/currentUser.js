@@ -1,7 +1,5 @@
 import express from 'express'
 import db from '../helper/db.js'
-import isValidPassword from '../helper/isValidPassword.js'
-import generateJWT from "../helper/generateJWT.js";
 import checkAuth from "../middleware/checkAuth.js";
 
 const router = express.Router()
