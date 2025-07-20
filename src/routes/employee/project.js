@@ -45,7 +45,15 @@ router.get('/list', checkAuth, async (req, res) => {
 
 router.get('/item/:id', checkAuth, async (req, res) => {
     const {id} = req.params;
-    const {rows} = await db.query(`SELECT * FROM projects WHERE id = $1`, [id])
+    const {rows} = await db.query(`
+        SELECT *,
+               (
+                   SELECT json_agg(pm)
+                   FROM project_members pm
+                   WHERE pm.project_id = p.id
+               ) AS members
+        FROM projects 
+        WHERE id = $1`, [id])
 
     res.json({
         success: true,
