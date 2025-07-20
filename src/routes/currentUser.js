@@ -30,7 +30,7 @@ router.get('/', checkAuth, async (req, res) => {
                     ) AS flow
                 FROM employees e
                 WHERE e.id = $1;
-            `, [id])
+            `, [req.currentUserId])
 
     return res.json({
         success: true,
