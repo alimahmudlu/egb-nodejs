@@ -40,4 +40,26 @@ router.get('/', checkAuth, async (req, res) => {
 
 })
 
+router.get('/rating', checkAuth, async (req, res) => {
+    const {rows: userDataRows} =
+        await db.query(`
+                SELECT
+                    (SELECT sum(t.points) FROM tasks t WHERE (assigned_employee_id = e.id OR reporter_employee_id = e.id) AND EXISTS (
+                SELECT 1
+                FROM task_activities ta
+                WHERE ta.task_id = t.id
+                  AND ta.status_id = 5
+            )) AS rating
+                FROM employees e
+                WHERE e.id = $1;
+            `, [req.currentUserId])
+
+    return res.json({
+        success: true,
+        message: 'Current user data fetched successfully',
+        data: userDataRows[0]
+    })
+
+})
+
 export default router
