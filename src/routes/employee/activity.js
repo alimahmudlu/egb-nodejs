@@ -353,13 +353,13 @@ router.post('/checkout', checkAuth, async (req, res) => {
                     sendPushNotification(el?.employee_id, 'test', 'salam')
                 })
             }
-        }
 
-        // return res.status(201).json({
-        //     success: true,
-        //     message: 'Activity created successfully',
-        //     data: rows[0]
-        // })
+            return res.status(201).json({
+                success: true,
+                message: 'Activity created successfully',
+                data: rows[0]
+            })
+        }
     }
     else {
         return res.status(400).json({
