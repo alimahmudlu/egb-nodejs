@@ -99,6 +99,7 @@ router.post('/checkin', checkAuth, async (req, res) => {
     }
 })
 
+/*
 router.post('/checkout', checkAuth, async (req, res) => {
     const {time, timezone, latitude, longitude, activity_id} = req.body;
     const status = 1;
@@ -234,9 +235,9 @@ router.post('/checkout', checkAuth, async (req, res) => {
     //
     // res.json({success: true, message: 'Activity created successfully', data: thisInsertedRow[0]});
 })
+*/
 
 
-/*
 
 
 router.post('/checkout', checkAuth, async (req, res) => {
@@ -356,7 +357,7 @@ router.post('/checkout', checkAuth, async (req, res) => {
             return res.status(201).json({
                 success: true,
                 message: 'Activity created successfully',
-                data: rows[0]
+                data: thisInsertedRow[0]
             })
         }
     }
@@ -371,7 +372,6 @@ router.post('/checkout', checkAuth, async (req, res) => {
 
 
 
-*/
 
 
 
