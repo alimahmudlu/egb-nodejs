@@ -137,15 +137,15 @@ router.post('/checkout', checkAuth, async (req, res) => {
                     data: returnedRow?.[0]
                 });
             }
+            res.status(201).json({
+                success: true,
+                message: 'Activity created successfully',
+                data: returnedRow?.[0]
+            })
 
             sendPushNotification(employee_id, 'test', 'salam')
         }
 
-        res.status(201).json({
-            success: true,
-            message: 'Activity created successfully',
-            data: rows[0]
-        })
     }
     else {
         res.status(400).json({
