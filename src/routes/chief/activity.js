@@ -56,8 +56,9 @@ router.post('/checkout', checkAuth, async (req, res) => {
             const employee_id = req.currentUserId;
             const activity_id = rows?.[0]?.id;
             const confirm_time = time;
+            const type2 = 1;
 
-            if (!activity_id || !employee_id || !type) {
+            if (!activity_id || !employee_id || !type2) {
                 return res.status(400).json({
                     success: false,
                     message: 'Activity ID, Employee ID and type are required'
@@ -93,7 +94,7 @@ router.post('/checkout', checkAuth, async (req, res) => {
             RETURNING *;
     `, [1, employee_id, 2, 0, 1, `${diff?.hours}:${diff?.minutes}`])
 
-            const {rows} = await db.query(`
+            const {rows: newRow} = await db.query(`
         UPDATE employee_activities 
         SET reviewer_employee_id = $1, reviewer_timezone = $2, review_time = $3, completed_status = $4, status = $9
         WHERE id = $5 and employee_id = $6 and status = $7 and type = $8
@@ -101,7 +102,7 @@ router.post('/checkout', checkAuth, async (req, res) => {
     `, [req.currentUserId, timezone, confirm_time, type === 1 ? 0 : 1, activity_id, employee_id, 1,  type, 2])
 
 
-            if (rows.length === 0 && (type === 2 ? checkInRow.length === 0 : false)) {
+            if (newRow.length === 0 && (type === 2 ? checkInRow.length === 0 : false)) {
                 return res.status(404).json({
                     success: false,
                     message: 'Activity not found or already accepted'
@@ -120,7 +121,7 @@ router.post('/checkout', checkAuth, async (req, res) => {
                     LIMIT 1
              ) AS reviewer
          FROM employee_activities ea
-         WHERE ea.id = $1`, [rows?.[0]?.id]
+         WHERE ea.id = $1`, [newRow?.[0]?.id]
             )
 
 
@@ -140,11 +141,17 @@ router.post('/checkout', checkAuth, async (req, res) => {
             res.status(201).json({
                 success: true,
                 message: 'Activity created successfully',
-                data: returnedRow?.[0]
+                data: newRow?.[0]
             })
 
             sendPushNotification(employee_id, 'test', 'salam')
         }
+
+        /*res.status(201).json({
+            success: true,
+            message: 'Activity created successfully',
+            data: rows[0]
+        })*/
 
     }
     else {
