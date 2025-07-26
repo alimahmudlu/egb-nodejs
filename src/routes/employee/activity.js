@@ -316,7 +316,17 @@ router.post('/checkout', checkAuth, async (req, res) => {
                                 'id', er.id,
                                 'name', r.name
                                 )
-                             ) as employee FROM employee_activities ea
+                             ) as employee,
+                       (
+                           SELECT json_build_object(
+                                          'id', e.id,
+                                          'full_name', e.full_name
+                                  )
+                           FROM employees e
+                           WHERE e.id = ea.reviewer_employee_id
+                                  LIMIT 1
+                    ) AS reviewer
+                FROM employee_activities ea
                                                     LEFT JOIN employees e ON e.id = ea.employee_id
                                                     LEFT JOIN employee_roles er ON e.id = er.employee_id
                                                     LEFT JOIN roles r ON r.id = er.role
@@ -333,7 +343,7 @@ router.post('/checkout', checkAuth, async (req, res) => {
                     const socketId = userSocketMap.get(el?.employee_id);
 
                     if (socketId) {
-                        io.to(socketId).emit("new_activity", {
+                        io.to(socketId).emit("update_activity", {
                             success: true,
                             from: req.currentUserId,
                             message: 'Activity status changed successfully',
@@ -345,11 +355,11 @@ router.post('/checkout', checkAuth, async (req, res) => {
             }
         }
 
-        return res.status(201).json({
-            success: true,
-            message: 'Activity created successfully',
-            data: rows[0]
-        })
+        // return res.status(201).json({
+        //     success: true,
+        //     message: 'Activity created successfully',
+        //     data: rows[0]
+        // })
     }
     else {
         return res.status(400).json({
