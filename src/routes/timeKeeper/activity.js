@@ -196,10 +196,23 @@ router.post('/reject', checkAuth, async (req, res) => {
 })
 
 router.get('/checkin', checkAuth, async (req, res) => {
-
     const {start_date, end_date} = req.query;
-    console.log(start_date, end_date, 'start_date, end_date')
+    const filters = [];
+    const values = [];
+    let idx = 1;
 
+    console.log(start_date, end_date, req.query)
+
+    if (start_date) {
+        filters.push(`review_time >= $${idx}`);
+        values.push(start_date)
+        idx++
+    }
+    if (end_date) {
+        filters.push(`review_time <= $${idx}`);
+        values.push(end_date)
+        idx++
+    }
 
     const {rows} = await db.query(`
         SELECT ea.*, json_build_object(
@@ -214,7 +227,7 @@ router.get('/checkin', checkAuth, async (req, res) => {
                                             LEFT JOIN employees e ON e.id = ea.employee_id
                                             LEFT JOIN employee_roles er ON e.id = er.employee_id
                                             LEFT JOIN roles r ON r.id = er.role
-        WHERE ea.type = 1 AND ea.status > 0
+        WHERE ea.type = 1 AND ea.status > 0 AND ${filters.join(' AND ')}
         ORDER BY ea.id DESC;
         `)
 
