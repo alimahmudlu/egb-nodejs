@@ -198,7 +198,7 @@ router.post('/reject', checkAuth, async (req, res) => {
 router.get('/checkin', checkAuth, async (req, res) => {
 
     const {start_date, end_date} = req.query;
-    console.log(start_date, moment(start_date).format())
+    console.log(start_date, end_date, 'start_date, end_date')
 
 
     const {rows} = await db.query(`
