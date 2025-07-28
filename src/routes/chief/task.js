@@ -83,7 +83,12 @@ router.get('/list/active', checkAuth, async (req, res) => {
                                         (SELECT json_build_object('id', e.id, 'full_name', e.full_name) FROM employees e WHERE assigned_employee_id = e.id LIMIT 1) as assigned_employee,
                                         (SELECT json_build_object('id', e.id, 'full_name', e.full_name) FROM employees e WHERE reporter_employee_id = e.id LIMIT 1) as reporter_employee
                                     FROM tasks t
-                                    WHERE project_id IN (SELECT project_id FROM project_members WHERE employee_id = $1) AND deleted_at IS NULL`, [req.currentUserId]);
+                                    WHERE project_id IN (SELECT project_id FROM project_members WHERE employee_id = $1) AND deleted_at IS NULL AND NOT EXISTS (
+                                       SELECT 1
+                                       FROM task_activities ta
+                                       WHERE ta.task_id = t.id
+                                      AND ta.status_id = 5
+                                       )`, [req.currentUserId]);
 
 
 
