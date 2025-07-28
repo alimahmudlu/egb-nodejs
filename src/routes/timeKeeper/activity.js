@@ -27,14 +27,14 @@ router.get('/list', checkAuth, async (req, res) => {
                           )
                    FROM employees e
                    WHERE e.id = ea.reviewer_employee_id
-                   LIMIT 1
+                          LIMIT 1
             ) AS reviewer
-            FROM employee_activities ea
-                                            LEFT JOIN employees e ON e.id = ea.employee_id
-                                            LEFT JOIN employee_roles er ON e.id = er.employee_id
-                                            LEFT JOIN roles r ON r.id = er.role
+        FROM employee_activities ea
+            LEFT JOIN employees e ON e.id = ea.employee_id
+            LEFT JOIN employee_roles er ON e.id = er.employee_id
+            LEFT JOIN roles r ON r.id = er.role
         ORDER BY ea.id DESC;
-        `)
+    `)
 
     res.status(200).json({
         success: true,
@@ -83,10 +83,10 @@ router.post('/accept', checkAuth, async (req, res) => {
     `, [1, employee_id, 2, 0, 1, `${diff?.hours}:${diff?.minutes}`])
 
     const {rows} = await db.query(`
-        UPDATE employee_activities 
+        UPDATE employee_activities
         SET reviewer_employee_id = $1, reviewer_timezone = $2, review_time = $3, completed_status = $4, status = $9
         WHERE id = $5 and employee_id = $6 and status = $7 and type = $8
-        RETURNING *;
+            RETURNING *;
     `, [req.currentUserId, timezone, confirm_time, type === 1 ? 0 : 1, activity_id, employee_id, 1,  type, 2])
 
 
@@ -147,11 +147,11 @@ router.post('/reject', checkAuth, async (req, res) => {
     }
 
     const {rows} = await db.query(`
-        UPDATE employee_activities 
-        SET reviewer_employee_id = $1, reviewer_timezone = $2, review_time = $3, status = $4, completed_status = $5, reject_reason = $6
-        WHERE id = $7 and employee_id = $8 and status = $9
-        RETURNING *;
-    `,
+                UPDATE employee_activities
+                SET reviewer_employee_id = $1, reviewer_timezone = $2, review_time = $3, status = $4, completed_status = $5, reject_reason = $6
+                WHERE id = $7 and employee_id = $8 and status = $9
+                    RETURNING *;
+        `,
         [req.currentUserId, timezone, confirm_time, 3, 1, reject_reason, activity_id, employee_id, 1])
 
     if (rows.length === 0) {
@@ -201,8 +201,6 @@ router.get('/checkin', checkAuth, async (req, res) => {
     const values = [];
     let idx = 1;
 
-    console.log(start_date, end_date, req.query)
-
     if (start_date) {
         filters.push(`review_time >= $${idx}`);
         values.push(start_date)
@@ -229,7 +227,7 @@ router.get('/checkin', checkAuth, async (req, res) => {
                                             LEFT JOIN roles r ON r.id = er.role
         WHERE ea.type = 1 AND ea.status > 0 AND ${filters.join(' AND ')}
         ORDER BY ea.id DESC;
-        `)
+    `, [...values])
 
     res.status(200).json({
         success: true,
@@ -239,6 +237,22 @@ router.get('/checkin', checkAuth, async (req, res) => {
 })
 
 router.get('/checkout', checkAuth, async (req, res) => {
+    const {start_date, end_date} = req.query;
+    const filters = [];
+    const values = [];
+    let idx = 1;
+
+    if (start_date) {
+        filters.push(`review_time >= $${idx}`);
+        values.push(start_date)
+        idx++
+    }
+    if (end_date) {
+        filters.push(`review_time <= $${idx}`);
+        values.push(end_date)
+        idx++
+    }
+
     const {rows} = await db.query(`
         SELECT ea.*, json_build_object(
                 'id', e.id,
@@ -252,9 +266,9 @@ router.get('/checkout', checkAuth, async (req, res) => {
                                             LEFT JOIN employees e ON e.id = ea.employee_id
                                             LEFT JOIN employee_roles er ON e.id = er.employee_id
                                             LEFT JOIN roles r ON r.id = er.role
-        WHERE ea.type = 2 AND ea.status > 0
+        WHERE ea.type = 2 AND ea.status > 0 AND ${filters.join(' AND ')}
         ORDER BY ea.id DESC;
-        `)
+    `, [...values])
 
     res.status(200).json({
         success: true,
