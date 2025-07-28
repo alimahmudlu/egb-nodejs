@@ -196,6 +196,11 @@ router.post('/reject', checkAuth, async (req, res) => {
 })
 
 router.get('/checkin', checkAuth, async (req, res) => {
+
+    const {start_date, end_date} = req.query;
+    console.log(start_date, end_date, req.query)
+
+
     const {rows} = await db.query(`
         SELECT ea.*, json_build_object(
                 'id', e.id,
