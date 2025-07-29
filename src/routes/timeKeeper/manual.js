@@ -68,9 +68,10 @@ router.post('/checkin', checkAuth, async (req, res) => {
             status,
             completed_status,
             reject_reason,
-            work_time
+            work_time,
+         is_manual
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
     `,
         [
             null,
@@ -86,7 +87,8 @@ router.post('/checkin', checkAuth, async (req, res) => {
             2,
             0,
             null,
-            null
+            null,
+            true
         ]);
 
         const {rows: thisInsertedRow} = await db.query(`
@@ -171,9 +173,10 @@ router.post('/checkout', checkAuth, async (req, res) => {
             status,
             completed_status,
             reject_reason,
-            work_time
+            work_time,
+         is_manual
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
     `,
         [
             activity_id ?? null,
@@ -189,7 +192,8 @@ router.post('/checkout', checkAuth, async (req, res) => {
             2,
             1,
             null,
-            `${diff?.hours}:${diff?.minutes}`
+            `${diff?.hours}:${diff?.minutes}`,
+            true
         ]);
 
     const {rows: thisInsertedRow} = await db.query(`

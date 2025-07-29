@@ -38,11 +38,12 @@ router.post('/checkin', checkAuth, async (req, res) => {
                             status,
                             completed_status,
                             reject_reason,
-                            work_time
+                            work_time,
+                         is_manual
                         )
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
                 `,
-                [null, req.currentUserId, timezone, time, type, longitude, latitude, null, null, null, status, 0, null, null])
+                [null, req.currentUserId, timezone, time, type, longitude, latitude, null, null, null, status, 0, null, null, false])
 
         if (rows.length > 0) {
             const {rows: thisInsertedRow} = await db.query(`
@@ -300,11 +301,12 @@ router.post('/checkout', checkAuth, async (req, res) => {
                             status,
                             completed_status,
                             reject_reason,
-                            work_time
+                            work_time,
+                         is_manual
                         )
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
                 `,
-                [activity_id, req.currentUserId, timezone, time, type, longitude, latitude, req.currentUserId, timezone, time, 2, 1, null, null])
+                [activity_id, req.currentUserId, timezone, time, type, longitude, latitude, req.currentUserId, timezone, time, 2, 1, null, null, false])
 
         if (rows.length > 0) {
             const {rows: thisInsertedRow} = await db.query(`
