@@ -218,7 +218,7 @@ router.post('/checkout', checkAuth, async (req, res) => {
             FROM employees e
                 LEFT JOIN employee_roles er ON e.id = er.employee_id
                 LEFT JOIN roles r ON r.id = er.role
-            WHERE e.dont_have_phone = true AND e.id = $1
+            WHERE e.id = $1
         `, [employee_id])
 
 

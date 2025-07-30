@@ -5,7 +5,7 @@ import checkAuth from '../../middleware/checkAuth.js'
 const router = express.Router()
 
 router.get('/list', checkAuth, async (req, res) => {
-    const {rows} = await db.query(`SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, u.id, au.type, au.employee_id
+    const {rows} = await db.query(`SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, au.id, au.type, au.employee_id
                                    FROM application_uploads au
                                             JOIN uploads u ON u.id = au.upload_id
                                    WHERE au.application_id IN (SELECT application_id FROM employees WHERE id = $1) and (au.date_of_expiry > now() OR au.date_of_expiry IS NULL) AND deleted_at IS NULL AND status = 1;
@@ -46,12 +46,15 @@ router.post('/add', checkAuth, async (req, res) => {
 router.post('/remove', checkAuth, async (req, res) => {
     const {file, application_id} = req.body;
 
+    console.log(file, application_id)
+
     const {rows: InsertedRow} = await db.query(
         `UPDATE application_uploads
-        SET deleted_at = now(), status = 0
-        WHERE application_id = $1 AND upload_id = $2 AND employee_id = $3`,
+         SET deleted_at = now(), status = 0
+         WHERE application_id = $1 AND id = $2 AND employee_id = $3`,
         [application_id, file, req.currentUserId]
     )
+    console.log(InsertedRow)
 
     res.json({
         success: true,
