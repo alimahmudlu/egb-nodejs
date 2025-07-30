@@ -21,18 +21,18 @@ router.get('/list', checkAuth, async (req, res) => {
 router.post('/add', checkAuth, async (req, res) => {
     const {document, date_of_issue, date_of_expiry, file, application_id} = req.body;
 
-    const {rows: InsertedRow} = await db.query(
-        `INSERT INTO application_uploads
-             (application_id, upload_id, type, date_of_issue, date_of_expiry, employee_id)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [application_id, file, document?.id, date_of_issue || null, date_of_expiry || null, req.currentUserId]
-    )
-
     const {rows} = await db.query(
         `UPDATE application_uploads
-        SET status = 0
-        WHERE application_id = $1 AND type = $2`,
+         SET status = 0
+         WHERE application_id = $1 AND type = $2`,
         [application_id, document?.id]
+    )
+
+    const {rows: InsertedRow} = await db.query(
+        `INSERT INTO application_uploads
+             (application_id, upload_id, type, date_of_issue, date_of_expiry, employee_id, status)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [application_id, file, document?.id, date_of_issue || null, date_of_expiry || null, req.currentUserId, 1]
     )
 
     res.json({
