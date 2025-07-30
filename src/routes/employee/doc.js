@@ -30,9 +30,9 @@ router.post('/add', checkAuth, async (req, res) => {
 
     const {rows} = await db.query(
         `UPDATE application_uploads
-        SET status = 0
-        WHERE application_id = $1 AND upload_id = $2`,
-        [application_id, file]
+         SET status = 0
+         WHERE application_id = $1 AND type = $2`,
+        [application_id, document?.id]
     )
 
     res.json({
