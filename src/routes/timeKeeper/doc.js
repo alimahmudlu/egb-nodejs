@@ -31,7 +31,7 @@ router.post('/add', checkAuth, async (req, res) => {
     const {rows} = await db.query(
         `UPDATE application_uploads
         SET status = 0
-        WHERE application_id = $1 AND upload_id = file`,
+        WHERE application_id = $1 AND upload_id = $2`,
         [application_id, file]
     )
 
@@ -48,7 +48,7 @@ router.post('/remove', checkAuth, async (req, res) => {
     const {rows: InsertedRow} = await db.query(
         `UPDATE application_uploads
         SET deleted_at = now(), status = 0
-        WHERE application_id = $1 AND upload_id = file AND employee_id = $3`,
+        WHERE application_id = $1 AND upload_id = $2 AND employee_id = $3`,
         [application_id, file, req.currentUserId]
     )
 
