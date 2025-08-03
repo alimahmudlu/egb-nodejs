@@ -8,7 +8,7 @@ router.get('/list', checkAuth, async (req, res) => {
     const {rows} = await db.query(`SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, au.id, au.type, au.employee_id
                                    FROM application_uploads au
                                             JOIN uploads u ON u.id = au.upload_id
-                                            JOIN employees e ON e.application_id = au.application_id
+                                            JOIN employees e ON e.id = $1
                                    WHERE au.application_id IN (SELECT application_id FROM employees WHERE id = $1) and (au.date_of_expiry > now() OR au.date_of_expiry IS NULL) AND deleted_at IS NULL AND status = 1 AND NOT (
                                        e.country_id = 219 AND au.type = 'contract'
                                        );
