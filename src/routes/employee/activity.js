@@ -101,6 +101,8 @@ router.post('/checkin', checkAuth, async (req, res) => {
 })
 
 /*
+* CHECKOUT: with Timekeeper control
+* */
 router.post('/checkout', checkAuth, async (req, res) => {
     const {time, timezone, latitude, longitude, activity_id} = req.body;
     const status = 1;
@@ -236,11 +238,13 @@ router.post('/checkout', checkAuth, async (req, res) => {
     //
     // res.json({success: true, message: 'Activity created successfully', data: thisInsertedRow[0]});
 })
-*/
 
 
 
-
+/*
+* CHECKOUT: without Timekeeper control
+* */
+/*
 router.post('/checkout', checkAuth, async (req, res) => {
     const {time, timezone, latitude, longitude, activity_id} = req.body;
     const status = 1;
@@ -371,6 +375,7 @@ router.post('/checkout', checkAuth, async (req, res) => {
         })
     }
 })
+*/
 
 
 
