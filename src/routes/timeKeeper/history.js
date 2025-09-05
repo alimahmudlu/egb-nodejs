@@ -9,7 +9,7 @@ router.get('/list', checkAuth, async (req, res) => {
     const {start_date, end_date} = req.query;
     const filters = [];
     const values = [];
-    let idx = 1;
+    let idx = 2;
 
     console.log(start_date, end_date, req.query)
 
@@ -43,11 +43,11 @@ router.get('/list', checkAuth, async (req, res) => {
             FROM project_members pm1
                      JOIN project_members pm2 ON pm1.project_id = pm2.project_id
             WHERE pm1.employee_id = ea.employee_id
-              AND pm2.employee_id = 726
+              AND pm2.employee_id = $1
         )
                                    ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         ORDER BY ea.id DESC;
-        `, [...values])
+        `, [req.currentUserId, ...values])
 
     res.status(200).json({
         success: true,

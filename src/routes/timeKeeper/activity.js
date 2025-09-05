@@ -38,10 +38,10 @@ router.get('/list', checkAuth, async (req, res) => {
             FROM project_members pm1
             JOIN project_members pm2 ON pm1.project_id = pm2.project_id
             WHERE pm1.employee_id = ea.employee_id
-          AND pm2.employee_id = 726
+          AND pm2.employee_id = $1
             )
         ORDER BY ea.id DESC;
-    `)
+    `, [req.currentUserId])
 
     res.status(200).json({
         success: true,
@@ -206,7 +206,7 @@ router.get('/checkin', checkAuth, async (req, res) => {
     const {start_date, end_date} = req.query;
     const filters = [];
     const values = [];
-    let idx = 1;
+    let idx = 2;
 
     if (start_date) {
         filters.push(`review_time >= $${idx}`);
@@ -232,9 +232,16 @@ router.get('/checkin', checkAuth, async (req, res) => {
                                             LEFT JOIN employees e ON e.id = ea.employee_id
                                             LEFT JOIN employee_roles er ON e.id = er.employee_id
                                             LEFT JOIN roles r ON r.id = er.role
-        WHERE ea.type = 1 AND ea.status > 0 AND ${filters.join(' AND ')}
+        WHERE EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+              AND pm2.employee_id = $1
+        )
+        AND ea.type = 1 AND ea.status > 0 AND ${filters.join(' AND ')}
         ORDER BY ea.id DESC;
-    `, [...values])
+    `, [req.currentUserId, ...values])
 
     res.status(200).json({
         success: true,
@@ -247,7 +254,7 @@ router.get('/checkout', checkAuth, async (req, res) => {
     const {start_date, end_date} = req.query;
     const filters = [];
     const values = [];
-    let idx = 1;
+    let idx = 2;
 
     if (start_date) {
         filters.push(`review_time >= $${idx}`);
@@ -273,9 +280,17 @@ router.get('/checkout', checkAuth, async (req, res) => {
                                             LEFT JOIN employees e ON e.id = ea.employee_id
                                             LEFT JOIN employee_roles er ON e.id = er.employee_id
                                             LEFT JOIN roles r ON r.id = er.role
-        WHERE ea.type = 2 AND ea.status > 0 AND ${filters.join(' AND ')}
+
+        WHERE EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+              AND pm2.employee_id = $1
+        )
+        AND ea.type = 2 AND ea.status > 0 AND ${filters.join(' AND ')}
         ORDER BY ea.id DESC;
-    `, [...values])
+    `, [req.currentUserId, ...values])
 
     res.status(200).json({
         success: true,
