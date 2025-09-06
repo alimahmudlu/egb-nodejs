@@ -372,7 +372,7 @@ router.post('/checkin', checkAuth, async (req, res) => {
                     WHERE pm1.employee_id = er.employee_id
                       AND pm1.role_id = 2
                       AND pm2.employee_id = $1
-                      AND pm2.role_id = 1
+                      AND pm2.role_id = 2
 
                 );`, [req.currentUserId]);
 
@@ -659,7 +659,7 @@ router.post('/checkout', checkAuth, async (req, res) => {
                     WHERE pm1.employee_id = er.employee_id
                       AND pm1.role_id = 2
                       AND pm2.employee_id = $1
-                      AND pm2.role_id = 1
+                      AND pm2.role_id = 2
 
                 );`, [req.currentUserId]);
 
