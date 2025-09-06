@@ -255,8 +255,6 @@ router.post('/checkout', checkAuth, async (req, res) => {
     // res.json({success: true, message: 'Activity created successfully', data: thisInsertedRow[0]});
 })
 
-
-
 /*
 * CHECKOUT: without Timekeeper control
 * */
@@ -394,16 +392,6 @@ router.post('/checkout', checkAuth, async (req, res) => {
 */
 
 
-
-
-
-
-
-
-
-
-
-
 router.get('/', checkAuth, async (req, res) => {
     const {rows} = await db.query(`SELECT *, (
         SELECT json_build_object(
@@ -427,26 +415,4 @@ router.get('/', checkAuth, async (req, res) => {
 })
 
 
-
-
-
-
-
-router.post('/test', async (req, res) => {
-    const {time} = req.body;
-
-    const {rows} = await db.query(`INSERT INTO date_test
-                                       (time, time_tz, raw_time, raw_time_tz)
-                                   VALUES ($1, $2, $3, $4) RETURNING * `,
-        [
-            moment(`${time}-07:00`), moment(`${time}-07:00`),
-            time, time
-        ])
-
-    return res.status(200).json({
-        data: rows,
-        raw: time,
-        moment: moment(time).format()
-    })
-})
 export default router
