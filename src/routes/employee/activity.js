@@ -175,7 +175,18 @@ router.post('/checkout', checkAuth, async (req, res) => {
                 ORDER BY ea.id DESC;
             `, [rows?.[0]?.id])
 
-            const {rows: timeKeepersList} = await db.query(`SELECT * FROM employee_roles WHERE role = 2`);
+            const {rows: timeKeepersList} = await db.query(`SELECT * FROM employee_roles er WHERE er.role = 2
+                                                                                              AND EXISTS (
+                    SELECT *
+                    FROM project_members pm1
+                             JOIN project_members pm2
+                                  ON pm1.project_id = pm2.project_id
+                    WHERE pm1.employee_id = er.employee_id
+                      AND pm1.role_id = 2
+                      AND pm2.employee_id = $1
+                      AND pm2.role_id = 1
+
+                );`, [req.currentUserId]);
 
             if (timeKeepersList.length > 0) {
                 timeKeepersList.map(el => {
