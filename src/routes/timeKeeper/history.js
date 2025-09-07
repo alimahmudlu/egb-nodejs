@@ -6,7 +6,7 @@ import moment from "moment/moment.js";
 const router = express.Router()
 
 router.get('/list', checkAuth, async (req, res) => {
-    const {start_date, end_date, full_name} = req.query;
+    const {start_date, end_date, full_name, project} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -19,6 +19,16 @@ router.get('/list', checkAuth, async (req, res) => {
     if (end_date) {
         filters.push(`review_time <= $${idx}`);
         values.push(moment(end_date).format())
+        idx++
+    }
+    if (project) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.project_id = $${idx}
+        )`);
+        values.push(project)
         idx++
     }
     if (full_name) {
