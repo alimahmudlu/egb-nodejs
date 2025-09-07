@@ -267,33 +267,6 @@ router.get('/checkout', checkAuth, async (req, res) => {
         idx++
     }
 
-
-
-    console.log(`
-        SELECT ea.*, json_build_object(
-                'id', e.id,
-                'full_name', e.full_name,
-                'email', e.email,
-                'role', json_build_object(
-                        'id', er.id,
-                        'name', r.name
-                        )
-                     ) as employee FROM employee_activities ea
-                                            LEFT JOIN employees e ON e.id = ea.employee_id
-                                            LEFT JOIN employee_roles er ON e.id = er.employee_id
-                                            LEFT JOIN roles r ON r.id = er.role
-
-        WHERE EXISTS (
-            SELECT 1
-            FROM project_members pm1
-                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-            WHERE pm1.employee_id = ea.employee_id
-              AND pm2.employee_id = $1
-        )
-        AND ea.type = 2 AND ea.status > 0 AND ${filters.join(' AND ')}
-        ORDER BY ea.id DESC;
-    `, values)
-
     const {rows} = await db.query(`
         SELECT ea.*, json_build_object(
                 'id', e.id,
