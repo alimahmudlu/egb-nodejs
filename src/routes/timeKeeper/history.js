@@ -6,12 +6,10 @@ import moment from "moment/moment.js";
 const router = express.Router()
 
 router.get('/list', checkAuth, async (req, res) => {
-    const {start_date, end_date} = req.query;
+    const {start_date, end_date, full_name} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
-
-    console.log(start_date, end_date, req.query)
 
     if (start_date) {
         filters.push(`review_time >= $${idx}`);
@@ -21,6 +19,11 @@ router.get('/list', checkAuth, async (req, res) => {
     if (end_date) {
         filters.push(`review_time <= $${idx}`);
         values.push(moment(end_date).format())
+        idx++
+    }
+    if (full_name) {
+        filters.push(`e.full_name = $${idx}`);
+        values.push(full_name)
         idx++
     }
     const {rows} = await db.query(`
