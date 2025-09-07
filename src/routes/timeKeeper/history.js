@@ -22,8 +22,8 @@ router.get('/list', checkAuth, async (req, res) => {
         idx++
     }
     if (full_name) {
-        filters.push(`e.full_name = $${idx}`);
-        values.push(full_name)
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
         idx++
     }
     const {rows} = await db.query(`
