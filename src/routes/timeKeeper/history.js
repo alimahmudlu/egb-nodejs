@@ -86,7 +86,7 @@ router.get('/list', checkAuth, async (req, res) => {
         )
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         ORDER BY ea.id DESC;
-`, [req.currentUserId, ...values])
+`, [req.currentUserId, ...values], req.query, req.query?.project, req.query?.project?.id)
 
     res.status(200).json({
         success: true,
