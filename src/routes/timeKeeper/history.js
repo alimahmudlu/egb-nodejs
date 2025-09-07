@@ -21,14 +21,14 @@ router.get('/list', checkAuth, async (req, res) => {
         values.push(moment(end_date).format())
         idx++
     }
-    if (project) {
+    if (project?.id) {
         filters.push(`EXISTS (
             SELECT 1
             FROM project_members pm1
                      JOIN project_members pm2 ON pm1.project_id = pm2.project_id
             WHERE pm1.project_id = $${idx}
         )`);
-        values.push(project)
+        values.push(project?.id)
         idx++
     }
     if (full_name) {
