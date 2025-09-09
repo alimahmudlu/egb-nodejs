@@ -50,7 +50,7 @@ router.get('/list', checkAuth, async (req, res) => {
         FROM employees e
             LEFT JOIN employee_roles er ON e.id = er.employee_id
             LEFT JOIN roles r ON r.id = er.role
-        WHERE e.dont_have_phone = true OR e.is_draft = true
+        WHERE (e.dont_have_phone = true OR e.is_draft = true)
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         `)
 
