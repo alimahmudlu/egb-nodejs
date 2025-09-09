@@ -52,7 +52,7 @@ router.get('/list', checkAuth, async (req, res) => {
             LEFT JOIN roles r ON r.id = er.role
         WHERE (e.dont_have_phone = true OR e.is_draft = true)
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-        `)
+        `, values)
 
     res.status(200).json({
         success: true,
