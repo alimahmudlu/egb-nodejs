@@ -37,6 +37,8 @@ router.get('/list', checkAuth, async (req, res) => {
         values.push(`%${full_name}%`);
         idx++
     }
+
+
     const {rows} = await db.query(`
         SELECT ea.*, json_build_object(
                 'id', e.id,
