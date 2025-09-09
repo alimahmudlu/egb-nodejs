@@ -11,16 +11,6 @@ router.get('/list', checkAuth, async (req, res) => {
     const values = [];
     let idx = 2;
 
-    if (start_date) {
-        filters.push(`review_time >= $${idx}`);
-        values.push(moment(start_date).format())
-        idx++
-    }
-    if (end_date) {
-        filters.push(`review_time <= $${idx}`);
-        values.push(moment(end_date).format())
-        idx++
-    }
     if (project) {
         filters.push(`EXISTS (
             SELECT 1

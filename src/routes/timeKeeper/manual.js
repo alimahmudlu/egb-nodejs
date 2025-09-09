@@ -6,10 +6,10 @@ import moment from "moment/moment.js";
 const router = express.Router()
 
 router.get('/list', checkAuth, async (req, res) => {
-    const {start_date, end_date, full_name, project} = req.query;
+    const {full_name, project} = req.query;
     const filters = [];
     const values = [];
-    let idx = 2;
+    let idx = 1;
 
     if (project) {
         filters.push(`EXISTS (
