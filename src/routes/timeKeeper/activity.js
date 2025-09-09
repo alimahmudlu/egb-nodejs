@@ -203,7 +203,7 @@ router.post('/reject', checkAuth, async (req, res) => {
 })
 
 router.get('/checkin', checkAuth, async (req, res) => {
-    const {start_date, end_date} = req.query;
+    const {start_date, end_date, project, full_name} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -216,6 +216,22 @@ router.get('/checkin', checkAuth, async (req, res) => {
     if (end_date) {
         filters.push(`review_time <= $${idx}`);
         values.push(end_date)
+        idx++
+    }
+    if (project) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = $${idx}
+        )`);
+        values.push(project)
+        idx++
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
         idx++
     }
 
@@ -251,7 +267,7 @@ router.get('/checkin', checkAuth, async (req, res) => {
 })
 
 router.get('/checkout', checkAuth, async (req, res) => {
-    const {start_date, end_date} = req.query;
+    const {start_date, end_date, full_name, project} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -264,6 +280,22 @@ router.get('/checkout', checkAuth, async (req, res) => {
     if (end_date) {
         filters.push(`review_time <= $${idx}`);
         values.push(end_date)
+        idx++
+    }
+    if (project) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = $${idx}
+        )`);
+        values.push(project)
+        idx++
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
         idx++
     }
 
