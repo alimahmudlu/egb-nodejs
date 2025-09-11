@@ -138,12 +138,12 @@ router.get('/activities/work_hours', checkAuth, async (req, res) => {
     let idx = 2;
 
     if (start_date) {
-        filters.push(`ea.review_time >= $${idx}`);
+        filters.push(`entry.review_time >= $${idx}`);
         values.push(moment(start_date).format())
         idx++
     }
     if (end_date) {
-        filters.push(`ea.review_time <= $${idx}`);
+        filters.push(`entry.review_time <= $${idx}`);
         values.push(moment(end_date).format())
         idx++
     }
@@ -219,7 +219,7 @@ router.get('/activities/work_hours', checkAuth, async (req, res) => {
                                                             AND mid.completed_status = 1
                                                             AND mid.review_time > entry.review_time
                                                             AND mid.review_time < exit.review_time)
-                        WHERE entry.employee_id = = $1
+                        WHERE entry.employee_id = $1
                                      ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
                         ORDER BY entry.review_time DESC;`, [req.currentUserId, ...values])
 
