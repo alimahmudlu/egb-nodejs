@@ -70,12 +70,12 @@ router.get('/activities', checkAuth, async (req, res) => {
     let idx = 2;
 
     if (start_date) {
-        filters.push(`review_time >= $${idx}`);
+        filters.push(`ea.review_time >= $${idx}`);
         values.push(moment(start_date).format())
         idx++
     }
     if (end_date) {
-        filters.push(`review_time <= $${idx}`);
+        filters.push(`ea.review_time <= $${idx}`);
         values.push(moment(end_date).format())
         idx++
     }
