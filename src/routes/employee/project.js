@@ -30,11 +30,11 @@ router.get('/list', checkAuth, async (req, res) => {
                  JOIN employees e1 ON e1.id = pm1.employee_id
                  LEFT JOIN employee_roles er ON er.employee_id = e1.id
                  LEFT JOIN roles r ON r.id = er.role
-        WHERE pm1.project_id = p.id
+        WHERE pm1.project_id = p.id and AND pm1.status = 1
     ) AS members
                                    FROM project_members pm
                                        LEFT JOIN projects p ON p.id = pm.project_id
-                                   WHERE pm.employee_id = $1`, [req.currentUserId])
+                                   WHERE pm.employee_id = $1 AND pm.status = 1`, [req.currentUserId])
 
     res.json({
         success: true,

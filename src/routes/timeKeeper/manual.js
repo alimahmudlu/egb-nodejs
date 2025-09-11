@@ -9,7 +9,7 @@ router.get('/list', checkAuth, async (req, res) => {
     const {full_name, project} = req.query;
     const filters = [];
     const values = [];
-    let idx = 1;
+    let idx = 2;
 
     if (project) {
         filters.push(`EXISTS (
@@ -50,9 +50,16 @@ router.get('/list', checkAuth, async (req, res) => {
         FROM employees e
             LEFT JOIN employee_roles er ON e.id = er.employee_id
             LEFT JOIN roles r ON r.id = er.role
-        WHERE (e.dont_have_phone = true OR e.is_draft = true)
+        WHERE (e.dont_have_phone = true OR e.is_draft = true) 
+            AND EXISTS (
+                    SELECT 1
+                    FROM project_members pm1
+                    JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+                    WHERE pm1.employee_id = ea.employee_id
+                    AND pm2.employee_id = $1
+            )
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-        `, values)
+        `, [req.currentUserId, ...values])
 
     res.status(200).json({
         success: true,

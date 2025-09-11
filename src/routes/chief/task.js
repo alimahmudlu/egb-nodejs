@@ -99,6 +99,39 @@ router.get('/list/active', checkAuth, async (req, res) => {
     })
 })
 
+router.get('/list/completed', checkAuth, async (req, res) => {
+    const {rows} = await db.query(`SELECT
+                                        t.*,
+                                        (SELECT json_build_object('id', ts.id, 'name', ts.name)
+                                         FROM task_statuses ts
+                                         WHERE ts.id = COALESCE((
+                                                                    SELECT ta.status_id
+                                                                    FROM task_activities ta
+                                                                    WHERE ta.task_id = t.id
+                                                                    ORDER BY ta.created_at DESC
+                                                                LIMIT 1
+                                             ), 1)
+                                            LIMIT 1
+                                       ) as status,
+                                        (SELECT json_build_object('id', e.id, 'full_name', e.full_name) FROM employees e WHERE assigned_employee_id = e.id LIMIT 1) as assigned_employee,
+                                        (SELECT json_build_object('id', e.id, 'full_name', e.full_name) FROM employees e WHERE reporter_employee_id = e.id LIMIT 1) as reporter_employee
+                                    FROM tasks t
+                                    WHERE project_id IN (SELECT project_id FROM project_members WHERE employee_id = $1) AND deleted_at IS NULL AND EXISTS (
+                                       SELECT 1
+                                       FROM task_activities ta
+                                       WHERE ta.task_id = t.id
+                                      AND ta.status_id = 5
+                                       )`, [req.currentUserId]);
+
+
+
+    res.status(200).json({
+        success: true,
+        message: 'Tasks fetched successfully',
+        data: rows
+    })
+})
+
 router.get('/list/:user_id', checkAuth, async (req, res) => {
     const {user_id} = req.params;
     const {type} = req.query;
