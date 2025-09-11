@@ -1,6 +1,7 @@
 import express from 'express'
 import db from '../helper/db.js'
 import checkAuth from "../middleware/checkAuth.js";
+import moment from "moment";
 
 const router = express.Router()
 
@@ -52,6 +53,53 @@ router.get('/rating', checkAuth, async (req, res) => {
             )) AS rating
                 FROM employees e
                 WHERE e.id = $1;
+            `, [req.currentUserId])
+
+    return res.json({
+        success: true,
+        message: 'Current user data fetched successfully',
+        data: userDataRows[0]
+    })
+
+})
+
+router.get('/activities', checkAuth, async (req, res) => {
+    const {start_date, end_date} = req.query;
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+    if (start_date) {
+        filters.push(`review_time >= $${idx}`);
+        values.push(moment(start_date).format())
+        idx++
+    }
+    if (end_date) {
+        filters.push(`review_time <= $${idx}`);
+        values.push(moment(end_date).format())
+        idx++
+    }
+
+    const {rows: userDataRows} =
+        await db.query(`
+            SELECT ea.*, json_build_object(
+                    'id', e.id,
+                    'full_name', e.full_name,
+                    'email', e.email,
+                    'manual', e.dont_have_phone,
+                    'role', json_build_object(
+                            'id', er.id,
+                            'name', r.name
+                            )
+                         ) as employee FROM employee_activities ea
+                                                LEFT JOIN employees e ON e.id = ea.employee_id
+                                                LEFT JOIN employee_roles er ON e.id = er.employee_id
+                                                LEFT JOIN roles r ON r.id = er.role
+
+            WHERE e.id = $1
+                ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+            ORDER BY ea.id DESC
+                
             `, [req.currentUserId])
 
     return res.json({
