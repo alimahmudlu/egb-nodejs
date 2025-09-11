@@ -63,7 +63,7 @@ router.get('/rating', checkAuth, async (req, res) => {
 
 })
 
-router.get('/activities', checkAuth, async (req, res) => {
+router.get('/activities/list', checkAuth, async (req, res) => {
     const {start_date, end_date} = req.query;
     const filters = [];
     const values = [];
@@ -122,6 +122,69 @@ router.get('/activities', checkAuth, async (req, res) => {
             ORDER BY ea.id DESC
                 
             `, [req.currentUserId, ...values])
+
+    return res.json({
+        success: true,
+        message: 'Current user data fetched successfully',
+        data: userDataRows
+    })
+
+})
+
+router.get('/activities/work_hours', checkAuth, async (req, res) => {
+    const {start_date, end_date} = req.query;
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+    if (start_date) {
+        filters.push(`ea.review_time >= $${idx}`);
+        values.push(moment(start_date).format())
+        idx++
+    }
+    if (end_date) {
+        filters.push(`ea.review_time <= $${idx}`);
+        values.push(moment(end_date).format())
+        idx++
+    }
+
+    const {rows: userDataRows} =
+        await db.query(`SELECT (SELECT full_name
+                                FROM employees e
+                                WHERE e.id = entry.reviewer_employee_id) AS check_in_timekeeper,
+                               (SELECT full_name
+                                FROM employees e
+                                WHERE e.id = exit.reviewer_employee_id)  AS check_out_timekeeper,
+                               entry.employee_id,
+                               entry.review_time                         AS entry_time,
+                               entry.latitude                            AS entry_latitude,
+                               entry.longitude                           AS entry_longitude,
+                               exit.review_time                          AS exit_time,
+                               exit.latitude                             AS exit_latitude,
+                               exit.longitude                            AS exit_longitude,
+                               to_char(
+                                       make_interval(secs := ROUND(EXTRACT(EPOCH FROM (exit.review_time - entry.review_time)))),
+                                       'HH24:MI'
+                               )                                         AS work_duration
+                        FROM employee_activities entry
+                                 JOIN employee_activities exit
+                                      ON entry.employee_id = exit.employee_id
+                                          AND entry.type = 1
+                                          AND exit.type = 2
+                                          AND entry.status = 2 AND entry.completed_status = 1
+                                          AND exit.status = 2 AND exit.completed_status = 1
+                                          AND entry.review_time < exit.review_time
+                                          AND NOT EXISTS (SELECT 1
+                                                          FROM employee_activities mid
+                                                          WHERE mid.employee_id = entry.employee_id
+                                                            AND mid.type = 1
+                                                            AND mid.status = 2
+                                                            AND mid.completed_status = 1
+                                                            AND mid.review_time > entry.review_time
+                                                            AND mid.review_time < exit.review_time)
+                        WHERE entry.employee_id = = $1
+                                     ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+                        ORDER BY entry.review_time DESC;`, [req.currentUserId, ...values])
 
     return res.json({
         success: true,
