@@ -126,7 +126,7 @@ router.get('/activities', checkAuth, async (req, res) => {
     return res.json({
         success: true,
         message: 'Current user data fetched successfully',
-        data: userDataRows[0]
+        data: userDataRows
     })
 
 })
