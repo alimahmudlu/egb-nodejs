@@ -13,8 +13,8 @@ async function checkAuth (req, res, next) {
         }
         req.currentUserId = id;
 
-        console.log(req?.method !== 'GET' || req?.method !== 'get', req?.method, 'req.method')
-        if (req?.method !== 'GET' || req?.method !== 'get') {
+        console.log(!['GET', 'get'].includes(req?.method), req?.method, 'req.method')
+        if (!['GET', 'get'].includes(req?.method)) {
             console.log('ssss')
             const {rows: uploadsDoc} = await db.query(`
                 SELECT au.* 
