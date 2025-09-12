@@ -12,7 +12,17 @@ async function checkAuth (req, res, next) {
         }
         req.currentUserId = id;
 
-        console.log(req?.method, req?.method === 'POST')
+        if (req?.method !== 'GET' || req?.method !== 'get') {
+            const {rows: uploadsDoc} = await db.query(`
+                SELECT * 
+                FROM application_uploads 
+                WHERE employee_id = $1 AND type = $2 AND status = $3 AND deleted_at IS NULL 
+                LIMIT 1
+                ORDER BY id DESC
+            `, [id, 'registration_card', 1])
+
+            console.log(uploadsDoc, uploadsDoc?.[0])
+        }
         next()
     }
     catch (error) {
