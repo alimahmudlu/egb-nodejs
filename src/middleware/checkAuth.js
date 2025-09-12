@@ -12,6 +12,7 @@ async function checkAuth (req, res, next) {
         }
         req.currentUserId = id;
 
+        console.log(req?.method, req?.method === 'POST')
         next()
     }
     catch (error) {
