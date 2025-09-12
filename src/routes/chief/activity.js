@@ -481,9 +481,7 @@ router.get('/', checkAuth, async (req, res) => {
                                    WHERE employee_id = $1 AND completed_status = 0
                                    ORDER BY id DESC LIMIT 2`, [req.currentUserId]);
 
-    console.log(rows)
-
-    return res.status(200).json({
+    return res.status(403).json({
         success: true,
         message: 'Activities fetched successfully',
         data: rows
