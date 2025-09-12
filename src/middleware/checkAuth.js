@@ -17,7 +17,6 @@ async function checkAuth (req, res, next) {
                 SELECT * 
                 FROM application_uploads 
                 WHERE employee_id = $1 AND type = $2 AND status = $3 AND deleted_at IS NULL 
-                LIMIT 1
                 ORDER BY id DESC
             `, [id, 'registration_card', 1])
 
