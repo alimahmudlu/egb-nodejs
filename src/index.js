@@ -47,31 +47,39 @@ app.get("/", (req, res) => {
 
 
 
-app.use('/api/auth', auth)
-app.use('/api/currentUser', currentUser)
+app.use('/api/*', (req, res, next) => {
+    res.status(403).json({
+        success: false,
+        message: 'Permission denied, New errorrr',
+        data: null
+    })
+})
 
-app.use('/api/upload', upload)
-
-app.use('/api/employee/project', project)
-app.use('/api/employee/activity', activity)
-app.use('/api/employee/doc', docEmployee)
-
-app.use('/api/timekeeper/activity', timeKeeperActivity)
-app.use('/api/timekeeper/employee', timeKeeperEmployee)
-app.use('/api/timekeeper/history', timeKeeperHistory)
-app.use('/api/timekeeper/doc', docTimeKeeper)
-app.use('/api/timekeeper/manual', manualTimeKeeper)
-app.use('/api/timekeeper/options', timeKeeperOptions)
-
-app.use('/api/chief/activity', chiefActivity)
-app.use('/api/chief/project', chiefProject)
-app.use('/api/chief/task', chiefTask)
-app.use('/api/chief/options', chiefOptions)
-app.use('/api/chief/doc', docChief)
-app.use('/api/chief/employee', chiefEmployee)
-
-app.use('/api/notification', notification)
-app.use('/api/position', position)
+// app.use('/api/auth', auth)
+// app.use('/api/currentUser', currentUser)
+//
+// app.use('/api/upload', upload)
+//
+// app.use('/api/employee/project', project)
+// app.use('/api/employee/activity', activity)
+// app.use('/api/employee/doc', docEmployee)
+//
+// app.use('/api/timekeeper/activity', timeKeeperActivity)
+// app.use('/api/timekeeper/employee', timeKeeperEmployee)
+// app.use('/api/timekeeper/history', timeKeeperHistory)
+// app.use('/api/timekeeper/doc', docTimeKeeper)
+// app.use('/api/timekeeper/manual', manualTimeKeeper)
+// app.use('/api/timekeeper/options', timeKeeperOptions)
+//
+// app.use('/api/chief/activity', chiefActivity)
+// app.use('/api/chief/project', chiefProject)
+// app.use('/api/chief/task', chiefTask)
+// app.use('/api/chief/options', chiefOptions)
+// app.use('/api/chief/doc', docChief)
+// app.use('/api/chief/employee', chiefEmployee)
+//
+// app.use('/api/notification', notification)
+// app.use('/api/position', position)
 
 initSocket(server);
 
