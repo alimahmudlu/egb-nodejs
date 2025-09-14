@@ -175,7 +175,11 @@ router.get('/activities/work_hours', checkAuth, async (req, res) => {
                 CASE
                     WHEN exit.status = 3 THEN 'Rejected Exit'
                     ELSE 'Completed'
-                    END                     AS activity_status
+                    END                     AS activity_status,
+                CASE
+                    WHEN exit.status = 3 THEN 3
+                    ELSE 4
+                    END                     AS activity_status_id
             FROM employee_activities entry
                      JOIN employee_activities exit
                           ON entry.employee_id = exit.employee_id
@@ -214,7 +218,7 @@ router.get('/activities/work_hours', checkAuth, async (req, res) => {
                 NULL                    AS exit_latitude,
                 NULL                    AS exit_longitude,
                 NULL                    AS work_duration,
-                'No Exit'               AS activity_status
+                2                       AS activity_status
             FROM employee_activities entry
             WHERE entry.type = 1
               AND entry.status = 2
@@ -247,7 +251,7 @@ router.get('/activities/work_hours', checkAuth, async (req, res) => {
                 NULL                    AS exit_latitude,
                 NULL                    AS exit_longitude,
                 NULL                    AS work_duration,
-                'Rejected Entry'        AS activity_status
+                1                       AS activity_status
             FROM employee_activities entry
             WHERE entry.type = 1
               AND entry.status = 3
