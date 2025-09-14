@@ -148,80 +148,152 @@ router.get('/activities/work_hours', checkAuth, async (req, res) => {
         idx++
     }
 
-    console.log(`SELECT (SELECT full_name
-                                FROM employees e
-                                WHERE e.id = entry.reviewer_employee_id) AS check_in_timekeeper,
-                               (SELECT full_name
-                                FROM employees e
-                                WHERE e.id = exit.reviewer_employee_id)  AS check_out_timekeeper,
-                               entry.employee_id,
-                               entry.review_time                         AS entry_time,
-                               entry.latitude                            AS entry_latitude,
-                               entry.longitude                           AS entry_longitude,
-                               exit.review_time                          AS exit_time,
-                               exit.latitude                             AS exit_latitude,
-                               exit.longitude                            AS exit_longitude,
-                               to_char(
-                                       make_interval(secs := ROUND(EXTRACT(EPOCH FROM (exit.review_time - entry.review_time)))),
-                                       'HH24:MI'
-                               )                                         AS work_duration
-                        FROM employee_activities entry
-                                 JOIN employee_activities exit
-                                      ON entry.employee_id = exit.employee_id
-                                          AND entry.type = 1
-                                          AND exit.type = 2
-                                          AND entry.status = 2 AND entry.completed_status = 1
-                                          AND exit.status = 2 AND exit.completed_status = 1
-                                          AND entry.review_time < exit.review_time
-                                          AND NOT EXISTS (SELECT 1
-                                                          FROM employee_activities mid
-                                                          WHERE mid.employee_id = entry.employee_id
-                                                            AND mid.type = 1
-                                                            AND mid.status = 2
-                                                            AND mid.completed_status = 1
-                                                            AND mid.review_time > entry.review_time
-                                                            AND mid.review_time < exit.review_time)
-                        WHERE entry.employee_id = = $1
-                                     ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-                        ORDER BY entry.review_time DESC;`, [req.currentUserId, ...values])
-
     const {rows: userDataRows} =
-        await db.query(`SELECT (SELECT full_name
-                                FROM employees e
-                                WHERE e.id = entry.reviewer_employee_id) AS check_in_timekeeper,
-                               (SELECT full_name
-                                FROM employees e
-                                WHERE e.id = exit.reviewer_employee_id)  AS check_out_timekeeper,
-                               entry.employee_id,
-                               entry.review_time                         AS entry_time,
-                               entry.latitude                            AS entry_latitude,
-                               entry.longitude                           AS entry_longitude,
-                               exit.review_time                          AS exit_time,
-                               exit.latitude                             AS exit_latitude,
-                               exit.longitude                            AS exit_longitude,
-                               to_char(
-                                       make_interval(secs := ROUND(EXTRACT(EPOCH FROM (exit.review_time - entry.review_time)))),
-                                       'HH24:MI'
-                               )                                         AS work_duration
-                        FROM employee_activities entry
-                                 JOIN employee_activities exit
-                                      ON entry.employee_id = exit.employee_id
-                                          AND entry.type = 1
-                                          AND exit.type = 2
-                                          AND entry.status = 2 AND entry.completed_status = 1
-                                          AND exit.status = 2 AND exit.completed_status = 1
-                                          AND entry.review_time < exit.review_time
-                                          AND NOT EXISTS (SELECT 1
-                                                          FROM employee_activities mid
-                                                          WHERE mid.employee_id = entry.employee_id
-                                                            AND mid.type = 1
-                                                            AND mid.status = 2
-                                                            AND mid.completed_status = 1
-                                                            AND mid.review_time > entry.review_time
-                                                            AND mid.review_time < exit.review_time)
-                        WHERE entry.employee_id = $1
-                                     ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-                        ORDER BY entry.review_time DESC;`, [req.currentUserId, ...values])
+        await db.query(`
+            SELECT
+                (SELECT full_name FROM employees e WHERE e.id = entry.reviewer_employee_id) AS check_in_timekeeper,
+                (SELECT full_name FROM employees e WHERE e.id = exit.reviewer_employee_id)  AS check_out_timekeeper,
+                entry.employee_id,
+                entry.review_time       AS entry_time,
+                entry.latitude          AS entry_latitude,
+                entry.longitude         AS entry_longitude,
+                entry.status            AS entry_status,
+                exit.status             AS exit_status,
+                entry.reject_reason     AS entry_reject_reason,
+                exit.reject_reason      AS exit_reject_reason,
+                exit.review_time        AS exit_time,
+                exit.latitude           AS exit_latitude,
+                exit.longitude          AS exit_longitude,
+                CASE
+                    WHEN exit.status = 2 THEN
+                        to_char(
+                                make_interval(secs := ROUND(EXTRACT(EPOCH FROM (exit.review_time - entry.review_time)))),
+                                'HH24:MI'
+                        )
+                    ELSE NULL
+                    END                     AS work_duration,
+                CASE
+                    WHEN exit.status = 3 THEN 'Rejected Exit'
+                    ELSE 'Completed'
+                    END                     AS activity_status
+            FROM employee_activities entry
+                     JOIN employee_activities exit
+                          ON entry.employee_id = exit.employee_id
+                              AND entry.type = 1
+                              AND exit.type = 2
+                              AND entry.status = 2 AND entry.completed_status = 1
+                              AND exit.completed_status = 1
+                              AND entry.review_time < exit.review_time
+                              AND NOT EXISTS (
+                                  SELECT 1
+                                  FROM employee_activities mid
+                                  WHERE mid.employee_id = entry.employee_id
+                                    AND mid.type = 1
+                                    AND mid.status = 2
+                                    AND mid.completed_status = 1
+                                    AND mid.review_time > entry.review_time
+                                    AND mid.review_time < exit.review_time
+                              )
+            WHERE entry.employee_id = $1
+                ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+
+            UNION ALL
+
+            SELECT
+                (SELECT full_name FROM employees e WHERE e.id = entry.reviewer_employee_id) AS check_in_timekeeper,
+                NULL                                    AS check_out_timekeeper,
+                entry.employee_id,
+                entry.review_time       AS entry_time,
+                entry.latitude          AS entry_latitude,
+                entry.longitude         AS entry_longitude,
+                entry.status            AS entry_status,
+                NULL                    AS exit_status,
+                entry.reject_reason     AS entry_reject_reason,
+                NULL                    AS exit_reject_reason,
+                NULL                    AS exit_time,
+                NULL                    AS exit_latitude,
+                NULL                    AS exit_longitude,
+                NULL                    AS work_duration,
+                'No Exit'               AS activity_status
+            FROM employee_activities entry
+            WHERE entry.type = 1
+              AND entry.status = 2
+              AND entry.completed_status = 1
+              AND entry.employee_id = $1
+                ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+              AND NOT EXISTS (
+                SELECT 1
+                FROM employee_activities exit
+                WHERE exit.employee_id = entry.employee_id
+              AND exit.type = 2
+              AND exit.completed_status = 1
+              AND exit.review_time > entry.review_time
+                )
+
+            UNION ALL
+
+            SELECT
+                (SELECT full_name FROM employees e WHERE e.id = entry.reviewer_employee_id) AS check_in_timekeeper,
+                NULL                                    AS check_out_timekeeper,
+                entry.employee_id,
+                entry.review_time       AS entry_time,
+                entry.latitude          AS entry_latitude,
+                entry.longitude         AS entry_longitude,
+                entry.status            AS entry_status,
+                NULL                    AS exit_status,
+                entry.reject_reason     AS entry_reject_reason,
+                NULL                    AS exit_reject_reason,
+                NULL                    AS exit_time,
+                NULL                    AS exit_latitude,
+                NULL                    AS exit_longitude,
+                NULL                    AS work_duration,
+                'Rejected Entry'        AS activity_status
+            FROM employee_activities entry
+            WHERE entry.type = 1
+              AND entry.status = 3
+              AND entry.completed_status = 1
+              AND entry.employee_id = $1
+                ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+
+            ORDER BY entry_time DESC;
+        `, [req.currentUserId, ...values])
+    // const {rows: userDataRows} =
+    //     await db.query(`SELECT (SELECT full_name
+    //                             FROM employees e
+    //                             WHERE e.id = entry.reviewer_employee_id) AS check_in_timekeeper,
+    //                            (SELECT full_name
+    //                             FROM employees e
+    //                             WHERE e.id = exit.reviewer_employee_id)  AS check_out_timekeeper,
+    //                            entry.employee_id,
+    //                            entry.review_time                         AS entry_time,
+    //                            entry.latitude                            AS entry_latitude,
+    //                            entry.longitude                           AS entry_longitude,
+    //                            exit.review_time                          AS exit_time,
+    //                            exit.latitude                             AS exit_latitude,
+    //                            exit.longitude                            AS exit_longitude,
+    //                            to_char(
+    //                                    make_interval(secs := ROUND(EXTRACT(EPOCH FROM (exit.review_time - entry.review_time)))),
+    //                                    'HH24:MI'
+    //                            )                                         AS work_duration
+    //                     FROM employee_activities entry
+    //                              JOIN employee_activities exit
+    //                                   ON entry.employee_id = exit.employee_id
+    //                                       AND entry.type = 1
+    //                                       AND exit.type = 2
+    //                                       AND entry.status = 2 AND entry.completed_status = 1
+    //                                       AND exit.status = 2 AND exit.completed_status = 1
+    //                                       AND entry.review_time < exit.review_time
+    //                                       AND NOT EXISTS (SELECT 1
+    //                                                       FROM employee_activities mid
+    //                                                       WHERE mid.employee_id = entry.employee_id
+    //                                                         AND mid.type = 1
+    //                                                         AND mid.status = 2
+    //                                                         AND mid.completed_status = 1
+    //                                                         AND mid.review_time > entry.review_time
+    //                                                         AND mid.review_time < exit.review_time)
+    //                     WHERE entry.employee_id = $1
+    //                                  ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+    //                     ORDER BY entry.review_time DESC;`, [req.currentUserId, ...values])
 
     return res.json({
         success: true,
