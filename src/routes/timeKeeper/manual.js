@@ -56,7 +56,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                     SELECT 1
                     FROM project_members pm1
                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-                    WHERE pm1.employee_id = ea.employee_id
+                    WHERE pm1.employee_id = e.id
                     AND pm2.employee_id = $1
             )
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
