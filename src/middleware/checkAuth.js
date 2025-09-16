@@ -8,14 +8,14 @@ async function checkAuth (req, res, next) {
     try {
         const {id} = verifyJWT(access_token);
         const {rows: userAuthRows} = await db.query('SELECT * FROM employee_auth WHERE employee_id = $1', [id])
+        const {rows: userRole} = await db.query('SELECT * FROM employee_roles WHERE employee_id = $1', [id])
         if (!userAuthRows || userAuthRows.length === 0) {
             throw new Error('User not found');
         }
         req.currentUserId = id;
 
         console.log(!['GET', 'get'].includes(req?.method), req?.method, 'req.method')
-        if (!['GET', 'get'].includes(req?.method)) {
-            console.log('ssss')
+        if (!['GET', 'get'].includes(req?.method) && userRole?.[0]?.role === 1) {
             const {rows: uploadsDoc} = await db.query(`
                 SELECT au.* 
                 FROM application_uploads au
