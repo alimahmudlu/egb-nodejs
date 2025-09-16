@@ -1,11 +1,12 @@
 import checkAuth from "../../middleware/checkAuth.js";
 import db from "../../helper/db.js";
 import express from "express";
+import userPermission from "../../middleware/userPermission.js";
 
 const router = express.Router()
 
 // OPTIONS
-router.get('/projects', checkAuth, async (req, res) => {
+router.get('/projects', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT
                                        p.*,
                                        (SELECT json_build_object('id', r.id, 'name', r.name)  FROM roles r
@@ -42,7 +43,7 @@ router.get('/projects', checkAuth, async (req, res) => {
     })
 })
 
-router.get('/employees/:project_id', checkAuth, async (req, res) => {
+router.get('/employees/:project_id', checkAuth, userPermission, async (req, res) => {
     const projectId = req.params.project_id;
     const {rows} = await db.query(`SELECT e.*,
                                           (
@@ -59,7 +60,7 @@ router.get('/employees/:project_id', checkAuth, async (req, res) => {
     })
 })
 
-router.get('/task_statuses', checkAuth, async (req, res) => {
+router.get('/task_statuses', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT * FROM task_statuses`)
 
     res.json({

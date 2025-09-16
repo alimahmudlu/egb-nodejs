@@ -4,10 +4,11 @@ import db from "../../helper/db.js";
 import {getIO, userSocketMap} from "../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
 import moment from "moment";
+import userPermission from "../../middleware/userPermission.js";
 
 const router = express.Router()
 
-router.get('/list', checkAuth, async (req, res) => {
+router.get('/list', checkAuth, userPermission, async (req, res) => {
     const {status, score_min, score_max, deadline_min, deadline_max} = req.query;
     const filters = [];
     const values = [];
@@ -66,7 +67,7 @@ router.get('/list', checkAuth, async (req, res) => {
     })
 })
 
-router.get('/list/active', checkAuth, async (req, res) => {
+router.get('/list/active', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT
                                         t.*,
                                         (SELECT json_build_object('id', ts.id, 'name', ts.name)
@@ -99,7 +100,7 @@ router.get('/list/active', checkAuth, async (req, res) => {
     })
 })
 
-router.get('/list/completed', checkAuth, async (req, res) => {
+router.get('/list/completed', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT
                                         t.*,
                                         (SELECT json_build_object('id', ts.id, 'name', ts.name)
@@ -132,7 +133,7 @@ router.get('/list/completed', checkAuth, async (req, res) => {
     })
 })
 
-router.get('/list/:user_id', checkAuth, async (req, res) => {
+router.get('/list/:user_id', checkAuth, userPermission, async (req, res) => {
     const {user_id} = req.params;
     const {type} = req.query;
 
@@ -177,7 +178,7 @@ router.get('/list/:user_id', checkAuth, async (req, res) => {
     })
 })
 
-router.post('/create', checkAuth, async (req, res) => {
+router.post('/create', checkAuth, userPermission, async (req, res) => {
     const {title, deadline, point, description, assigned_employee_id, project_id} = req.body;
 
     const {rows: createdRows} = await db.query(`INSERT INTO tasks 
@@ -225,7 +226,7 @@ router.post('/create', checkAuth, async (req, res) => {
     })
 })
 
-router.delete('/:id', checkAuth, async (req, res) => {
+router.delete('/:id', checkAuth, userPermission, async (req, res) => {
     const {id} = req.params;
 
     const {rows} = await db.query(`UPDATE tasks SET deleted_at = $1 WHERE id = $2 RETURNING *`, [new Date(), id])
@@ -257,4 +258,5 @@ router.delete('/:id', checkAuth, async (req, res) => {
         data: rows[0]
     })
 })
+
 export default router

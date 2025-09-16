@@ -3,6 +3,7 @@ import db from '../../helper/db.js'
 import checkAuth from '../../middleware/checkAuth.js'
 import {getIO, userSocketMap} from "../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
+import userPermission from "../../middleware/userPermission.js";
 
 const router = express.Router()
 
@@ -10,7 +11,7 @@ const router = express.Router()
 * OLD
 * */
 /*
-router.post('/checkin', checkAuth, async (req, res) => {
+router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const {time, latitude, longitude} = req.body;
 
     // type: 1- checkin, 2 - checkout
@@ -72,7 +73,7 @@ router.post('/checkout', checkAuth, async (req, res) => {
 */
 
 
-router.post('/checkin', checkAuth, async (req, res) => {
+router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude} = req.body;
     const status = 1;
     const type = 1;
@@ -184,7 +185,7 @@ router.post('/checkin', checkAuth, async (req, res) => {
 /*
 * CHECKOUT: with Timekeeper control
 * */
-router.post('/checkout', checkAuth, async (req, res) => {
+router.post('/checkout', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude, activity_id} = req.body;
     const status = 1;
     const type = 2;
@@ -335,7 +336,7 @@ router.post('/checkout', checkAuth, async (req, res) => {
 * CHECKOUT: without Timekeeper control
 * */
 /*
-router.post('/checkout', checkAuth, async (req, res) => {
+router.post('/checkout', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude, activity_id} = req.body;
     const status = 1;
     const type = 2;
@@ -468,7 +469,7 @@ router.post('/checkout', checkAuth, async (req, res) => {
 */
 
 
-router.get('/', checkAuth, async (req, res) => {
+router.get('/', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT *, (
         SELECT json_build_object(
                        'id', e.id,

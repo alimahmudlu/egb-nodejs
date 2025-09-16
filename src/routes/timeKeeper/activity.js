@@ -5,11 +5,12 @@ import moment from 'moment'
 
 import { getIO, userSocketMap } from "./../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
+import userPermission from "../../middleware/userPermission.js";
 
 
 const router = express.Router()
 
-router.get('/list', checkAuth, async (req, res) => {
+router.get('/list', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`
         SELECT ea.*, json_build_object(
                 'id', e.id,
@@ -50,7 +51,7 @@ router.get('/list', checkAuth, async (req, res) => {
     })
 })
 
-router.post('/accept', checkAuth, async (req, res) => {
+router.post('/accept', checkAuth, userPermission, async (req, res) => {
     const {activity_id, employee_id, type, confirm_time, timezone} = req.body
 
     if (!activity_id || !employee_id || !type) {
@@ -143,7 +144,7 @@ router.post('/accept', checkAuth, async (req, res) => {
     })
 })
 
-router.post('/reject', checkAuth, async (req, res) => {
+router.post('/reject', checkAuth, userPermission, async (req, res) => {
     const {activity_id, employee_id, type, confirm_time, timezone, reject_reason} = req.body
 
     if (!activity_id || !employee_id || !type || !reject_reason) {
@@ -202,7 +203,7 @@ router.post('/reject', checkAuth, async (req, res) => {
     })
 })
 
-router.get('/checkin', checkAuth, async (req, res) => {
+router.get('/checkin', checkAuth, userPermission, async (req, res) => {
     const {start_date, end_date, project, full_name} = req.query;
     const filters = [];
     const values = [];
@@ -266,7 +267,7 @@ router.get('/checkin', checkAuth, async (req, res) => {
     })
 })
 
-router.get('/checkout', checkAuth, async (req, res) => {
+router.get('/checkout', checkAuth, userPermission, async (req, res) => {
     const {start_date, end_date, full_name, project} = req.query;
     const filters = [];
     const values = [];
@@ -331,9 +332,7 @@ router.get('/checkout', checkAuth, async (req, res) => {
     })
 })
 
-
-
-router.post('/checkin', checkAuth, async (req, res) => {
+router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude} = req.body;
     const status = 1;
     const type = 1;
@@ -446,7 +445,7 @@ router.post('/checkin', checkAuth, async (req, res) => {
 * CHECKOUT: with Timekeeper control
 * */
 /*
-router.post('/checkout', checkAuth, async (req, res) => {
+router.post('/checkout', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude, activity_id} = req.body;
     const status = 1;
     const type = 2;
@@ -586,7 +585,7 @@ router.post('/checkout', checkAuth, async (req, res) => {
 /*
 * CHECKOUT: without Timekeeper control
 * */
-router.post('/checkout', checkAuth, async (req, res) => {
+router.post('/checkout', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude, activity_id} = req.body;
     const status = 1;
     const type = 2;
@@ -728,8 +727,7 @@ router.post('/checkout', checkAuth, async (req, res) => {
     }
 })
 
-
-router.get('/', checkAuth, async (req, res) => {
+router.get('/', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT *, (
         SELECT json_build_object(
                        'id', e.id,
@@ -750,6 +748,5 @@ router.get('/', checkAuth, async (req, res) => {
         data: rows
     })
 })
-
 
 export default router

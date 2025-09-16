@@ -1,10 +1,11 @@
 import express from 'express'
 import db from '../../helper/db.js'
 import checkAuth from '../../middleware/checkAuth.js'
+import userPermission from "../../middleware/userPermission.js";
 
 const router = express.Router()
 
-router.get('/list', checkAuth, async (req, res) => {
+router.get('/list', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, au.id, au.type, au.employee_id
                                    FROM application_uploads au
                                             JOIN uploads u ON u.id = au.upload_id
@@ -21,7 +22,7 @@ router.get('/list', checkAuth, async (req, res) => {
     })
 })
 
-router.post('/add', checkAuth, async (req, res) => {
+router.post('/add', checkAuth, userPermission, async (req, res) => {
     const {document, date_of_issue, date_of_expiry, file, application_id} = req.body;
 
     const {rows} = await db.query(
@@ -46,7 +47,7 @@ router.post('/add', checkAuth, async (req, res) => {
     })
 })
 
-router.post('/remove', checkAuth, async (req, res) => {
+router.post('/remove', checkAuth, userPermission, async (req, res) => {
     const {file, application_id} = req.body;
 
     console.log(file, application_id)
@@ -66,8 +67,7 @@ router.post('/remove', checkAuth, async (req, res) => {
     })
 })
 
-
-router.get('/history', checkAuth, async (req, res) => {
+router.get('/history', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, u.id, au.type
                                    FROM application_uploads au
                                             JOIN uploads u ON u.id = au.upload_id

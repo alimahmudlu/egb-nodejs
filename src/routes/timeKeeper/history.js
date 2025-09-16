@@ -2,10 +2,11 @@ import express from 'express'
 import db from '../../helper/db.js'
 import checkAuth from '../../middleware/checkAuth.js'
 import moment from "moment/moment.js";
+import userPermission from "../../middleware/userPermission.js";
 
 const router = express.Router()
 
-router.get('/list', checkAuth, async (req, res) => {
+router.get('/list', checkAuth, userPermission, async (req, res) => {
     const {start_date, end_date, full_name, project} = req.query;
     const filters = [];
     const values = [];

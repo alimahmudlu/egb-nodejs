@@ -2,10 +2,11 @@ import express from 'express'
 import db from '../../helper/db.js'
 import checkAuth from '../../middleware/checkAuth.js'
 import moment from "moment/moment.js";
+import userPermission from "../../middleware/userPermission.js";
 
 const router = express.Router()
 
-router.get('/list', checkAuth, async (req, res) => {
+router.get('/list', checkAuth, userPermission, async (req, res) => {
     const {full_name, project} = req.query;
     const filters = [];
     const values = [];
@@ -68,7 +69,7 @@ router.get('/list', checkAuth, async (req, res) => {
     })
 })
 
-router.post('/checkin', checkAuth, async (req, res) => {
+router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const { employee_id, employee_timezone, request_time, longitude, latitude, work_time } = req.body;
 
     const {rows: checkedInRows} =
@@ -153,7 +154,7 @@ router.post('/checkin', checkAuth, async (req, res) => {
     }
 })
 
-router.post('/checkout', checkAuth, async (req, res) => {
+router.post('/checkout', checkAuth, userPermission, async (req, res) => {
     const { activity_id, employee_id, employee_timezone, request_time, longitude, latitude, work_time } = req.body;
 
     const {rows: checkInControlRow} = await db.query(`

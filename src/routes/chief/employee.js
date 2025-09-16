@@ -1,10 +1,11 @@
 import express from 'express'
 import db from '../../helper/db.js'
 import checkAuth from '../../middleware/checkAuth.js'
+import userPermission from "../../middleware/userPermission.js";
 
 const router = express.Router()
 
-router.get('/details/:employee_id', checkAuth, async (req, res) => {
+router.get('/details/:employee_id', checkAuth, userPermission, async (req, res) => {
     const {employee_id} = req.params;
 
     console.log(employee_id)

@@ -1,10 +1,11 @@
 import express from 'express'
 import db from '../../helper/db.js'
 import checkAuth from '../../middleware/checkAuth.js'
+import userPermission from "../../middleware/userPermission.js";
 
 const router = express.Router()
 
-router.get('/details/:employee_id', checkAuth, async (req, res) => {
+router.get('/details/:employee_id', checkAuth, userPermission, async (req, res) => {
     const {employee_id} = req.params;
 
     const {rows} = await db.query(`
@@ -67,7 +68,7 @@ router.get('/details/:employee_id', checkAuth, async (req, res) => {
     })
 })
 
-router.get('/history/:employee_id/checkin', checkAuth, async (req, res) => {
+router.get('/history/:employee_id/checkin', checkAuth, userPermission, async (req, res) => {
     const {employee_id} = req.params;
 
     const {rows} = await db.query(`
@@ -94,7 +95,7 @@ router.get('/history/:employee_id/checkin', checkAuth, async (req, res) => {
     })
 })
 
-router.get('/history/:employee_id/checkout', checkAuth, async (req, res) => {
+router.get('/history/:employee_id/checkout', checkAuth, userPermission, async (req, res) => {
     const {employee_id} = req.params;
 
     const {rows} = await db.query(`

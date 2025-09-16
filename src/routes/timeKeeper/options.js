@@ -1,11 +1,12 @@
 import checkAuth from "../../middleware/checkAuth.js";
 import db from "../../helper/db.js";
 import express from "express";
+import userPermission from "../../middleware/userPermission.js";
 
 const router = express.Router()
 
 // OPTIONS
-router.get('/projects', checkAuth, async (req, res) => {
+router.get('/projects', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT
                                        p.*,
                                        (

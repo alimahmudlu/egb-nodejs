@@ -3,10 +3,11 @@ import db from '../../helper/db.js'
 import checkAuth from '../../middleware/checkAuth.js'
 import {getIO, userSocketMap} from "../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
+import userPermission from "../../middleware/userPermission.js";
 
 const router = express.Router()
 
-router.get('/list', checkAuth, async (req, res) => {
+router.get('/list', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT
                                        p.*,
                                        (SELECT json_build_object('id', r.id, 'name', r.name)  FROM roles r
@@ -43,7 +44,7 @@ router.get('/list', checkAuth, async (req, res) => {
     })
 })
 
-router.get('/item/:id', checkAuth, async (req, res) => {
+router.get('/item/:id', checkAuth, userPermission, async (req, res) => {
     const {id} = req.params;
     const {rows} = await db.query(`
         SELECT *,
@@ -78,7 +79,7 @@ router.get('/item/:id', checkAuth, async (req, res) => {
     })
 })
 
-router.get('/item/:id/tasks', checkAuth, async (req, res) => {
+router.get('/item/:id/tasks', checkAuth, userPermission, async (req, res) => {
     const {id} = req.params;
 
     // const {rows} = await db.query(`SELECT *,
@@ -114,7 +115,7 @@ router.get('/item/:id/tasks', checkAuth, async (req, res) => {
     })
 })
 
-router.get('/item/:id/tasks/item/:task_id', checkAuth, async (req, res) => {
+router.get('/item/:id/tasks/item/:task_id', checkAuth, userPermission, async (req, res) => {
     const {id, task_id} = req.params;
 
     const {rows} = await db.query(`SELECT t.*,
@@ -174,8 +175,7 @@ router.get('/item/:id/tasks/item/:task_id', checkAuth, async (req, res) => {
     })
 })
 
-
-router.post('/item/:id/tasks/item/:task_id/status', checkAuth, async (req, res) => {
+router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, async (req, res) => {
     const {task_id, id} = req.params;
     const {date, status} = req.body;
 
