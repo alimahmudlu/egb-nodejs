@@ -14,7 +14,6 @@ async function checkAuth (req, res, next) {
         }
         req.currentUserId = id;
 
-        console.log(!['GET', 'get'].includes(req?.method), req?.method, 'req.method')
         if (!['GET', 'get'].includes(req?.method) && userRole?.[0]?.role === 1) {
             const {rows: uploadsDoc} = await db.query(`
                 SELECT au.* 
