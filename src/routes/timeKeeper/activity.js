@@ -610,6 +610,49 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             hours: Math.floor(duration.asHours()),
             minutes: duration.minutes()
         }
+
+        const startHourMinute = start.format("HH:mm");
+        const endHourMinute = end.format("HH:mm");
+
+        if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("19:31", "HH:mm")) &&
+            duration.asHours() < 24
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("19:59", "HH:mm"), moment("20:31", "HH:mm")) &&
+            duration.asHours() < 24
+        ) {
+            diff = {
+                hours: 11,
+                minutes: 30
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("20:59", "HH:mm"), moment("21:31", "HH:mm")) &&
+            duration.asHours() < 24
+        ) {
+            diff = {
+                hours: 13,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm"))
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
     }
 
     const {rows: checkInRow} = await db.query(`
