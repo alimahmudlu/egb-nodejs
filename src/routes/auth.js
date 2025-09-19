@@ -138,9 +138,9 @@ router.post('/logout', async (req, res) => {
     //     }
     // })
     const access_token = req.headers?.authorization;
-    const verify = await verifyJWT(access_token);
-    console.log(verify, 'verify')
-    const {rows: authActivityRows} = await db.query(``)
+    const {authActivityId} = await verifyJWT(access_token);
+
+    const {rows: authActivityRows} = await db.query(`UPDATE auth_activity SET logout_date = NOW() WHERE id = $1 RETURNING id`, [authActivityId])
 
     res.json({success: true, message: 'Logout successful'})
 })
