@@ -7,6 +7,7 @@ import express from 'express'
 import db from '../helper/db.js'
 import isValidPassword from '../helper/isValidPassword.js'
 import generateJWT from "../helper/generateJWT.js";
+import verifyJWT from "../helper/verifyJWT.js";
 
 const router = express.Router()
 /**
@@ -61,14 +62,38 @@ router.post('/', async (req, res) => {
                 WHERE e.id = $1;
             `, [id])
 
+        const userAgent = JSON.parse(req.headers?.['user-agent'])
+
+        const {rows: authActivity} = await db.query(`INSERT INTO auth_activity (
+                           employee_id, 
+                           brand,
+                           model_name,
+                           as_name,
+                           os_version,
+                           login_date
+        ) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id`,
+            [
+                userDataRows[0].id,
+                userAgent?.brand,
+                userAgent?.modelName,
+                userAgent?.asName,
+                userAgent?.osVersion
+            ]
+        )
+
         const token = generateJWT({
             id: userDataRows[0].id,
+            authActivityId: authActivity?.[0].id,
             full_name: userDataRows[0].full_name,
         });
+
         return res.json(JSON.stringify({
             success: true,
             message: 'Login successful',
-            token: {accessToken: token},
+            token: {
+                accessToken: token,
+                authActivityId: authActivity?.[0].id
+            },
             user: userDataRows[0]
         }));
     }
@@ -97,7 +122,7 @@ router.post('/', async (req, res) => {
  * @apiError (500 Internal Server Error) InternalServerError The server encountered an internal error
  *
  */
-router.post('/logout', (req, res) => {
+router.post('/logout', async (req, res) => {
     // const header = req.headers.authorization;
     // let token, id
     // if (header) {
@@ -112,7 +137,12 @@ router.post('/logout', (req, res) => {
     //         res.json({success: false, message: 'Xəta baş verdi.'})
     //     }
     // })
-            res.json({success: true, message: 'Logout successful'})
+    const access_token = req.headers?.authorization;
+    const verify = await verifyJWT(access_token);
+    console.log(verify, 'verify')
+    const {rows: authActivityRows} = await db.query(``)
+
+    res.json({success: true, message: 'Logout successful'})
 })
 
 
