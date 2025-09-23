@@ -117,6 +117,115 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     }
 })
 
+router.post('/overtime', checkAuth, userPermission, async (req, res) => {
+    const {time, timezone, latitude, longitude} = req.body;
+    const status = 1;
+    const type = 3;
+
+    const {rows: checkedInRows} =
+        await db.query(`
+            SELECT * FROM employee_activities
+            WHERE employee_id = $1 AND status != 3 AND type = 3 AND completed_status = 0
+            ORDER BY id DESC
+                LIMIT 1
+        `, [req.currentUserId])
+
+    if (checkedInRows.length === 0) {
+        const {rows} =
+            await db.query(`
+                        INSERT INTO employee_activities
+                        (
+                            activity_id,
+                            employee_id,
+                            employee_timezone,
+                            request_time,
+                            type,
+                            longitude,
+                            latitude,
+                            reviewer_employee_id,
+                            reviewer_timezone,
+                            review_time,
+                            status,
+                            completed_status,
+                            reject_reason,
+                            work_time,
+                         is_manual
+                        )
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
+                `,
+                [null, req.currentUserId, timezone, time, type, longitude, latitude, null, null, null, status, 0, null, null, false])
+
+        if (rows.length > 0) {
+            const {rows: thisInsertedRow} = await db.query(`
+            SELECT ea.*, json_build_object(
+                    'id', e.id,
+                    'full_name', e.full_name,
+                    'email', e.email,
+                    'role', json_build_object(
+                            'id', er.id,
+                            'name', r.name
+                            )
+                         ) as employee FROM employee_activities ea
+                                                LEFT JOIN employees e ON e.id = ea.employee_id
+                                                LEFT JOIN employee_roles er ON e.id = er.employee_id
+                                                LEFT JOIN roles r ON r.id = er.role
+
+                                       WHERE ea.id = $1
+            ORDER BY ea.id DESC;
+        `, [rows?.[0]?.id])
+
+
+            // BUTUN TIMEKEEPERLER
+            // const {rows: timeKeepersList} = await db.query(`SELECT * FROM employee_roles WHERE role = 2`);
+
+            // QOSULU OLDUGU PROJECTLERIN TIMEKEEPERLERI
+            const {rows: timeKeepersList} = await db.query(`SELECT * FROM employee_roles er WHERE er.role = 2
+                                                                                              AND EXISTS (
+                    SELECT *
+                    FROM project_members pm1
+                             JOIN project_members pm2
+                                  ON pm1.project_id = pm2.project_id
+                    WHERE pm1.employee_id = er.employee_id
+                      AND pm1.role_id = 2
+                      AND pm2.employee_id = $1
+                      AND pm2.role_id = 1
+
+                );`, [req.currentUserId]);
+
+
+            if (timeKeepersList.length > 0) {
+                timeKeepersList.map(el => {
+                    const io = getIO();
+                    const socketId = userSocketMap.get(el?.employee_id);
+
+                    if (socketId) {
+                        io.to(socketId).emit("new_activity", {
+                            success: true,
+                            from: req.currentUserId,
+                            message: 'Activity status changed successfully',
+                            data: thisInsertedRow[0]
+                        });
+                    }
+                    sendPushNotification(el?.employee_id, 'test', 'salam')
+                })
+            }
+        }
+
+        return res.status(201).json({
+            success: true,
+            message: 'Activity created successfully',
+            data: rows[0]
+        })
+    }
+    else {
+        return res.status(400).json({
+            success: false,
+            message: 'activity already exists for this status',
+            data: null
+        })
+    }
+})
+
 /*
 * CHECKOUT: with Timekeeper control
 * */
