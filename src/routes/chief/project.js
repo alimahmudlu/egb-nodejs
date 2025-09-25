@@ -165,7 +165,7 @@ router.get('/item/:id/tasks/item/:task_id', checkAuth, userPermission, async (re
         LIMIT 1
       )) FROM employees e WHERE reporter_employee_id = e.id LIMIT 1) as reporter_employee
         FROM tasks t
-        WHERE  t.project_id = $1 AND created_employee_id = $2 AND t.id = $3`, [id, req?.currentUserId, task_id])
+        WHERE  t.project_id = $1 AND /*created_employee_id = $2 AND*/ t.id = $3`, [id, req?.currentUserId, task_id])
 
 
     res.json({
