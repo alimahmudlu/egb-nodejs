@@ -74,7 +74,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
 
     if (checkInControlRow?.[0]?.review_time && type === 4) {
         const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
-        const end = moment(confirm_time, 'YYYY-MM-DD HH:mm');
+        const end = moment(confirm_time, 'YYYY-MM-DD HH:mm').endOf('minute');
 
         console.log({
             start: {
