@@ -202,7 +202,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
     if (checkInControlRow?.[0].review_time) {
 
         const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
-        const end = moment(request_time, 'YYYY-MM-DD HH:mm');
+        const end = moment(request_time, 'YYYY-MM-DD HH:mm').endOf('minute');
 
         const duration = moment.duration(end.diff(start));
 

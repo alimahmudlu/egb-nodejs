@@ -76,7 +76,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
 
     if (checkInControlRow?.[0]?.review_time && type === 2) {
         const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
-        const end = moment(confirm_time, 'YYYY-MM-DD HH:mm');
+        const end = moment(confirm_time, 'YYYY-MM-DD HH:mm').endOf('minute');
 
         const duration = moment.duration(end.diff(start));
 
@@ -671,7 +671,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
 
     if (checkInControlRow?.[0]?.review_time && type === 2) {
         const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
-        const end = moment(time, 'YYYY-MM-DD HH:mm');
+        const end = moment(time, 'YYYY-MM-DD HH:mm').endOf('minute');
 
         const duration = moment.duration(end.diff(start));
 
