@@ -41,7 +41,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
             WHERE pm1.employee_id = ea.employee_id
           AND pm2.employee_id = $1
             )
-        AND ea.type = 3
+        AND ea.type IN (3, 4)
         ORDER BY ea.id DESC;
     `, [req.currentUserId])
 

@@ -670,7 +670,7 @@ router.get('/', checkAuth, userPermission, async (req, res) => {
         LIMIT 1
                                        ) AS reviewer FROM employee_activities ea
                                    WHERE employee_id = $1 AND completed_status = 0
-                                   ORDER BY id DESC LIMIT 3`, [req.currentUserId]);
+                                   ORDER BY id DESC LIMIT 4`, [req.currentUserId]);
     
     return res.status(200).json({
         success: true,
