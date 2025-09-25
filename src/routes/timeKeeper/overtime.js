@@ -6,7 +6,6 @@ import moment from 'moment'
 import { getIO, userSocketMap } from "./../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
 import userPermission from "../../middleware/userPermission.js";
-import timeKeeperActivityAccept from "../../fn/timeKeeperActivityAccept.js";
 
 
 const router = express.Router()
@@ -54,29 +53,8 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
 })
 
 router.post('/accept', checkAuth, userPermission, async (req, res) => {
-    const {activity_id, checkActivityId, employee_id, type, confirm_time, timezone, confirm_type} = req.body
+    const {activity_id, employee_id, type, confirm_time, timezone, confirm_type} = req.body
 
-    if (type === 3) {
-        const returnedRow = await timeKeeperActivityAccept({
-            activity_id: checkActivityId,
-            employee_id: employee_id,
-            type: 2,
-            confirm_time,
-            timezone,
-            confirm_type,
-            overTime: true,
-            currentUserId: req.currentUserId,
-        }, res)
-    }
-
-    res.status(200).json({
-        success: true,
-        message: 'Activity accepted successfully',
-        data: {}
-    })
-
-
-/*
     if (!activity_id || !employee_id || !type) {
         return res.status(400).json({
             success: false,
@@ -84,9 +62,9 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         })
     }
 
-    // const {rows: checkInControlRow} = await db.query(`
-    //     SELECT * FROM employee_activities ea WHERE employee_id = $1 and status = $2 and completed_status = $3 and type = $4
-    // `, [employee_id, 2, 0, 3])
+    const {rows: checkInControlRow} = await db.query(`
+        SELECT * FROM employee_activities ea WHERE employee_id = $1 and status = $2 and completed_status = $3 and type = $4
+    `, [employee_id, 2, 0, 3])
 
 
     let diff = {
@@ -94,18 +72,18 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         minutes: 0
     }
 
-    // if (checkInControlRow?.[0]?.review_time && type === 2) {
-    //     const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
-    //     const end = moment(confirm_time, 'YYYY-MM-DD HH:mm');
-    //
-    //     const duration = moment.duration(end.diff(start));
-    //     const newDuration = moment.duration(duration.asMilliseconds() * 1.5);
-    //
-    //     diff = {
-    //         hours: Math.floor(newDuration.asHours()),
-    //         minutes: newDuration.minutes()
-    //     }
-    // }
+    if (checkInControlRow?.[0]?.review_time && type === 4) {
+        const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
+        const end = moment(confirm_time, 'YYYY-MM-DD HH:mm');
+
+        const duration = moment.duration(end.diff(start));
+        const newDuration = moment.duration(duration.asMilliseconds() * 1.5);
+
+        diff = {
+            hours: Math.floor(newDuration.asHours()),
+            minutes: newDuration.minutes()
+        }
+    }
 
     const {rows: checkInRow} = await db.query(`
         UPDATE employee_activities ea
@@ -119,10 +97,21 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         SET reviewer_employee_id = $1, reviewer_timezone = $2, review_time = $3, completed_status = $4, status = $9, confirm_type = $10
         WHERE id = $5 and employee_id = $6 and status = $7 and type = $8
             RETURNING *;
-    `, [req.currentUserId, timezone, confirm_time, type === 1 ? 0 : 1, activity_id, employee_id, 1,  type, 2, confirm_type])
+    `, [
+        req.currentUserId,
+        timezone,
+        confirm_time,
+        type === 3 ? 0 : 1,
+        activity_id,
+        employee_id,
+        1,
+        type,
+        2,
+        confirm_type
+    ])
 
 
-    if (rows.length === 0 && (type === 2 ? checkInRow.length === 0 : false)) {
+    if (rows.length === 0 && (type === 4 ? checkInRow.length === 0 : false)) {
         return res.status(404).json({
             success: false,
             message: 'Activity not found or already accepted'
@@ -166,7 +155,6 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         message: 'Activity accepted successfully',
         data: returnedRow?.[0]
     })
-    */
 })
 
 router.post('/reject', checkAuth, userPermission, async (req, res) => {
