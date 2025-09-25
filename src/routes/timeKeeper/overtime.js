@@ -6,6 +6,7 @@ import moment from 'moment'
 import { getIO, userSocketMap } from "./../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
 import userPermission from "../../middleware/userPermission.js";
+import timeKeeperActivityAccept from "../../fn/timeKeeperActivityAccept.js";
 
 
 const router = express.Router()
@@ -52,9 +53,24 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     })
 })
 
-/*router.post('/accept', checkAuth, userPermission, async (req, res) => {
-    const {activity_id, employee_id, type, confirm_time, timezone, confirm_type} = req.body
+router.post('/accept', checkAuth, userPermission, async (req, res) => {
+    const {activity_id, checkActivityId, employee_id, type, confirm_time, timezone, confirm_type} = req.body
 
+    if (type === 3) {
+        const returnedRow = await timeKeeperActivityAccept({
+            activity_id: checkActivityId,
+            employee_id: employee_id,
+            type: 2,
+            confirm_time,
+            timezone,
+            confirm_type,
+            overTime: true,
+            currentUserId: req.currentUserId,
+        }, res)
+    }
+
+
+/*
     if (!activity_id || !employee_id || !type) {
         return res.status(400).json({
             success: false,
@@ -62,9 +78,9 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         })
     }
 
-    const {rows: checkInControlRow} = await db.query(`
-        SELECT * FROM employee_activities ea WHERE employee_id = $1 and status = $2 and completed_status = $3 and type = $4
-    `, [employee_id, 2, 0, 1])
+    // const {rows: checkInControlRow} = await db.query(`
+    //     SELECT * FROM employee_activities ea WHERE employee_id = $1 and status = $2 and completed_status = $3 and type = $4
+    // `, [employee_id, 2, 0, 3])
 
 
     let diff = {
@@ -72,81 +88,16 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         minutes: 0
     }
 
-    if (checkInControlRow?.[0]?.review_time && type === 2) {
-        const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
-        const end = moment(confirm_time, 'YYYY-MM-DD HH:mm');
-
-        const duration = moment.duration(end.diff(start));
-
-        diff = {
-            hours: Math.floor(duration.asHours()),
-            minutes: duration.minutes()
-        }
-
-        const startHourMinute = start.format("HH:mm");
-        const endHourMinute = end.format("HH:mm");
-
-        if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
-            duration.asHours() < 24 &&
-            confirm_type === 1
-        ) {
-            diff = {
-                hours: 10,
-                minutes: 0
-            };
-        }
-        /!*else if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("19:59", "HH:mm"), moment("20:31", "HH:mm")) &&
-            duration.asHours() < 24
-        ) {
-            diff = {
-                hours: 11,
-                minutes: 30
-            };
-        }
-        else if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("20:59", "HH:mm"), moment("21:31", "HH:mm")) &&
-            duration.asHours() < 24
-        ) {
-            diff = {
-                hours: 13,
-                minutes: 0
-            };
-        }*!/
-        else if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
-            duration.asHours() < 24
-        ) {
-            diff = {
-                hours: 10,
-                minutes: 0
-            };
-        }
-        else if (
-            confirm_type === 3
-        ) {
-            diff = {
-                hours: 0,
-                minutes: 0
-            }
-        }
-    }
-
     // if (checkInControlRow?.[0]?.review_time && type === 2) {
-    //
     //     const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
     //     const end = moment(confirm_time, 'YYYY-MM-DD HH:mm');
     //
     //     const duration = moment.duration(end.diff(start));
+    //     const newDuration = moment.duration(duration.asMilliseconds() * 1.5);
     //
     //     diff = {
-    //         hours: Math.floor(duration.asHours()),
-    //         minutes: duration.minutes()
+    //         hours: Math.floor(newDuration.asHours()),
+    //         minutes: newDuration.minutes()
     //     }
     // }
 
@@ -155,7 +106,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         SET completed_status = $1, work_time = $6
         WHERE employee_id = $2 and status = $3 and completed_status = $4 and type = $5
             RETURNING *;
-    `, [1, employee_id, 2, 0, 1, `${diff?.hours}:${diff?.minutes}`])
+    `, [1, employee_id, 2, 0, 3, `${diff?.hours}:${diff?.minutes}`])
 
     const {rows} = await db.query(`
         UPDATE employee_activities
@@ -209,6 +160,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         message: 'Activity accepted successfully',
         data: returnedRow?.[0]
     })
+    */
 })
 
 router.post('/reject', checkAuth, userPermission, async (req, res) => {
@@ -270,7 +222,7 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
     })
 })
 
-router.get('/checkin', checkAuth, userPermission, async (req, res) => {
+/*router.get('/checkin', checkAuth, userPermission, async (req, res) => {
     const {start_date, end_date, project, full_name} = req.query;
     const filters = [];
     const values = [];
@@ -332,9 +284,9 @@ router.get('/checkin', checkAuth, userPermission, async (req, res) => {
         message: 'Activity fetched successfully',
         data: rows || []
     })
-})
+})*/
 
-router.get('/checkout', checkAuth, userPermission, async (req, res) => {
+/*router.get('/checkout', checkAuth, userPermission, async (req, res) => {
     const {start_date, end_date, full_name, project} = req.query;
     const filters = [];
     const values = [];
@@ -397,9 +349,9 @@ router.get('/checkout', checkAuth, userPermission, async (req, res) => {
         message: 'Activity fetched successfully',
         data: rows || []
     })
-})
+})*/
 
-router.post('/checkin', checkAuth, userPermission, async (req, res) => {
+/*router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude} = req.body;
     const status = 1;
     const type = 1;
@@ -506,12 +458,12 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
             data: null
         })
     }
-})
+})*/
 
-/!*
+/*
 * CHECKOUT: with Timekeeper control
-* *!/
-/!*
+* */
+/*
 router.post('/checkout', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude, activity_id} = req.body;
     const status = 1;
@@ -647,12 +599,12 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
     //
     // res.json({success: true, message: 'Activity created successfully', data: thisInsertedRow[0]});
 })
-*!/
+*/
 
-/!*
+/*
 * CHECKOUT: without Timekeeper control
-* *!/
-router.post('/checkout', checkAuth, userPermission, async (req, res) => {
+* */
+/*router.post('/checkout', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude, activity_id} = req.body;
     const status = 1;
     const type = 2;
@@ -835,9 +787,9 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             data: null
         })
     }
-})
+})*/
 
-router.get('/', checkAuth, userPermission, async (req, res) => {
+/*router.get('/', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT *, (
         SELECT json_build_object(
                        'id', e.id,
