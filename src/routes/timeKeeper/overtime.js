@@ -76,6 +76,17 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
         const end = moment(confirm_time, 'YYYY-MM-DD HH:mm');
 
+        console.log({
+            start: {
+                raw: checkInControlRow?.[0].review_time,
+                moment: start
+            },
+            end: {
+                raw: confirm_time,
+                moment: end
+            }
+        }, 'start')
+
         const duration = moment.duration(end.diff(start));
         const newDuration = moment.duration(duration.asMilliseconds() * 1.5);
 
