@@ -69,6 +69,12 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         }, res)
     }
 
+    res.status(200).json({
+        success: true,
+        message: 'Activity accepted successfully',
+        data: {}
+    })
+
 
 /*
     if (!activity_id || !employee_id || !type) {
