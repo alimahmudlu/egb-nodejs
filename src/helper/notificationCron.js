@@ -74,6 +74,6 @@ async function checkDocuments() {
 }
 
 // 🔹 Hər gün saat 00:05-də işə sal
-cron.schedule("15 3 * * *", () => {
+cron.schedule("22 3 * * *", () => {
     checkDocuments();
 });
