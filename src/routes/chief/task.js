@@ -219,6 +219,23 @@ router.post('/create', checkAuth, userPermission, async (req, res) => {
 
     sendPushNotification(assigned_employee_id, 'Assign new task', 'You have been added to a new task.')
 
+    await db.query(`
+                INSERT INTO notifications
+                (title, description, type, url, user_id, create_at, update_at, read)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *
+            `,
+            [
+                'Task added',
+                `'${insertedRow?.[0]?.name}' task added and assigned to you.`,
+                'task_activities',
+                `/employeePages/projects/${insertedRow?.[0]?.project_id}/${insertedRow?.[0]?.id}/`,
+                insertedRow?.[0]?.assigned_employee_id,
+                moment().format(),
+                moment().format(),
+                0
+            ]
+    )
+
     return res.status(201).json({
         success: true,
         message: 'Task created successfully',

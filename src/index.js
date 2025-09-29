@@ -7,6 +7,7 @@ import auth from './routes/auth.js';
 import currentUser from './routes/currentUser.js';
 
 import notification from './routes/notification.js';
+import notifications from './routes/notifications.js';
 import upload from './routes/upload.js';
 import position from './routes/position.js';
 
@@ -73,6 +74,7 @@ app.use('/api/chief/doc', docChief)
 app.use('/api/chief/employee', chiefEmployee)
 
 app.use('/api/notification', notification)
+app.use('/api/notifications', notifications)
 app.use('/api/position', position)
 
 initSocket(server);
