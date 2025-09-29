@@ -35,5 +35,4 @@ router.get('/', checkAuth, async (req, res) => {
     }
 })
 
-
 export default router;
