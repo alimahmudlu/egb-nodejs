@@ -1,79 +1,117 @@
-import cron from 'node-cron'
-import db from '../helper/db.js'
+import db from "./db.js";
+import cron from "node-cron";
 
+// 🔹 Gün fərqini hesablamaq üçün util
+function calculateDaysLeft(expiryDate) {
+    if (!expiryDate) return null;
+
+    const now = new Date();
+    const expiry = new Date(expiryDate);
+    const diffMs = expiry.getTime() - now.getTime();
+    return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+}
+
+// 🔹 Əsas funksiya
 async function checkDocuments() {
-    const client = await db.connect();
+    // const client = await db.connect();
     try {
-        console.log("Sənədlər yoxlanılır...");
+        console.log("🔍 Sənədlər yoxlanılır...");
 
-        await client.query(`
-      INSERT INTO notifications (title, description, type, url, user_id)
+        // Bütün sənədləri götür (yalnız date_of_expiry dolu olanları)
+        const { rows: documents } = await db.query(`
       SELECT 
-        'Sənədin vaxtı bitib',
-        'Bu sənəd artıq etibarsızdır',
-        'document',
-        CONCAT('/documents/', au.id),
-        u.id
+        au.id AS upload_id,
+        au.date_of_expiry,
+        u.id AS user_id
       FROM application_uploads au
       JOIN applications a ON a.id = au.application_id
       JOIN employees u ON u.application_id = a.id
-      WHERE au.date_of_expiry < NOW()
-        AND NOT EXISTS (
-          SELECT 1 FROM notifications n
-          WHERE n.type = 'document'
-            AND n.url = CONCAT('/documents/', au.id)
-            AND n.user_id = u.id
-        );
+      WHERE au.date_of_expiry IS NOT NULL
     `);
 
-        // 2. Vaxtı yaxınlaşan sənədlər üçün insert
-        await client.query(`
-      INSERT INTO notifications (title, description, type, url, user_id)
-      SELECT 
-        'Sənədin vaxtı yaxınlaşır',
-        CONCAT('Bu sənədin vaxtının bitməsinə ', EXTRACT(DAY FROM (au.date_of_expiry - NOW())), ' gün qalıb'),
-        'document',
-        CONCAT('/documents/', au.id),
-        u.id
-      FROM application_uploads au
-      JOIN applications a ON a.id = au.application_id
-      JOIN employees u ON u.application_id = a.id
-      WHERE au.date_of_expiry > NOW()
-        AND au.date_of_expiry <= NOW() + interval '30 day'
-        AND NOT EXISTS (
-          SELECT 1 FROM notifications n
-          WHERE n.type = 'document'
-            AND n.url = CONCAT('/documents/', au.id)
-            AND n.user_id = u.id
-        );
-    `);
+        for (const doc of documents) {
+            const daysLeft = calculateDaysLeft(doc.date_of_expiry);
 
-        // 3. Vaxtı yaxınlaşan sənədlərin mövcud bildirişlərini update et
-        await client.query(`
-      UPDATE notifications n
-      SET description = CONCAT('Bu sənədin vaxtının bitməsinə ', 
-                               EXTRACT(DAY FROM (au.date_of_expiry - NOW())), 
-                               ' gün qalıb'),
-          updated_at = NOW()
-      FROM application_uploads au
-      JOIN applications a ON a.id = au.application_id
-      JOIN employees u ON u.application_id = a.id
-      WHERE n.type = 'document'
-        AND n.url = CONCAT('/documents/', au.id)
-        AND n.user_id = u.id
-        AND au.date_of_expiry > NOW()
-        AND au.date_of_expiry <= NOW() + interval '30 day';
-    `);
+            // 👉 Expired sənədlər
+            if (daysLeft !== null && daysLeft <= 0) {
+                const exists = await db.query(
+                    `SELECT 1 FROM notifications 
+           WHERE type = 'document' 
+             AND url = $1 
+             AND user_id = $2`,
+                    [`/documents/${doc.upload_id}`, doc.user_id]
+                );
 
-        console.log("Bildirişlər yeniləndi");
+                if (exists.rowCount === 0) {
+                    await db.query(
+                        `INSERT INTO notifications (title, description, type, url, user_id)
+             VALUES ($1, $2, $3, $4, $5)`,
+                        [
+                            "Sənədin vaxtı bitib",
+                            "Bu sənəd artıq etibarsızdır",
+                            "document",
+                            `/documents/${doc.upload_id}`,
+                            doc.user_id,
+                        ]
+                    );
+                    console.log(`➕ Expired sənəd üçün bildiriş əlavə edildi: ${doc.upload_id}`);
+                }
+            }
+
+            // 👉 Vaxtı yaxınlaşan sənədlər (≤30 gün)
+            else if (daysLeft !== null && daysLeft <= 30) {
+                const exists = await db.query(
+                    `SELECT id FROM notifications 
+           WHERE type = 'document' 
+             AND url = $1 
+             AND user_id = $2`,
+                    [`/documents/${doc.upload_id}`, doc.user_id]
+                );
+
+                if (exists.rowCount === 0) {
+                    // insert
+                    await db.query(
+                        `INSERT INTO notifications (title, description, type, url, user_id)
+             VALUES ($1, $2, $3, $4, $5)`,
+                        [
+                            "Sənədin vaxtı yaxınlaşır",
+                            `Bu sənədin vaxtının bitməsinə ${daysLeft} gün qalıb`,
+                            "document",
+                            `/documents/${doc.upload_id}`,
+                            doc.user_id,
+                        ]
+                    );
+                    console.log(`➕ Yaxınlaşan sənəd üçün bildiriş əlavə edildi: ${doc.upload_id}`);
+                } else {
+                    // update
+                    await db.query(
+                        `UPDATE notifications 
+             SET description = $1, updated_at = NOW()
+             WHERE id = $2`,
+                        [
+                            `Bu sənədin vaxtının bitməsinə ${daysLeft} gün qalıb`,
+                            exists.rows[0].id,
+                        ]
+                    );
+                    console.log(`♻️ Bildiriş yeniləndi: ${doc.upload_id} (${daysLeft} gün)`);
+                }
+            }
+        }
+
+        console.log("✅ Bildirişlərin yoxlanması tamamlandı");
     } catch (err) {
-        console.error("Xəta baş verdi:", err);
+        console.error("❌ Xəta baş verdi:", err);
     } finally {
-        client.release();
+        db.release();
     }
 }
 
-// 🔹 Hər gün saat 00:05-də işə sal
-cron.schedule("23 41 * * *", () => {
-    checkDocuments();
-});
+// 🔹 Hər gün saat 03:15-də işə düşəcək
+cron.schedule(
+    "23 47 * * *",
+    () => {
+        checkDocuments();
+    }
+);
+
+console.log("⏳ Notifications cron işə salındı...");
