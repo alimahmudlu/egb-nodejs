@@ -35,7 +35,7 @@ router.post('/read', checkAuth, async (req, res) => {
 
     const {rows: updatedRows} = await db.query(`
         UPDATE notifications
-        SET read = 1,
+        SET read = 1
         WHERE id = $1 AND user_id = $2 RETURNING *;
     `, [id, currentUserId])
 
