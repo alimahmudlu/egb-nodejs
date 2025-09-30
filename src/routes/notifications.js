@@ -13,16 +13,10 @@ router.get('/', checkAuth, async (req, res) => {
             ORDER BY id DESC;
         `, [req.currentUserId]);
 
-        const {rows: expiredDocs} = await db.query(`SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, u.id, au.type
-                                   FROM application_uploads au
-                                            JOIN uploads u ON u.id = au.upload_id
-                                   WHERE au.application_id IN (SELECT application_id FROM employees WHERE id = $1) and au.date_of_expiry < now();
-    `, [req.currentUserId])
-
         return res.json({
             success: true,
             message: 'Notifications fetched successfully',
-            data: [...notificationRows, ...expiredDocs],
+            data: [...notificationRows],
         })
     }
     catch (error) {
