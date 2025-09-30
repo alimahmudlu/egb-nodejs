@@ -262,7 +262,7 @@ async function checkDocuments() {
            WHERE type = 'document' 
              AND url = $1 
              AND user_id = $2`,
-                    [`/documents/${doc.upload_id}`, doc.user_id]
+                    [`${url}`, doc.user_id]
                 );
 
                 if (exists.rowCount === 0) {
