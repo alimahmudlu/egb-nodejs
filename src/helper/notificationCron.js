@@ -224,7 +224,8 @@ async function checkDocuments() {
 
         for (const doc of documents) {
             const daysLeft = calculateDaysLeft(doc.date_of_expiry);
-            const fileName = fileTypes.find(el => el.type === doc.type)?.label;
+            const fileName = fileTypes.find(el => el.type === doc.type)?.label || 'Unknown';
+            console.log(fileName, 'fileName')
 
             if (daysLeft !== null && daysLeft <= 0) {
                 const exists = await client.query(
@@ -300,7 +301,7 @@ async function checkDocuments() {
 
 // 🔹 Hər gün saat 03:15-də işə düşəcək
 cron.schedule(
-    "15 00 * * *",
+    "19 00 * * *",
     () => {
         checkDocuments();
     }
