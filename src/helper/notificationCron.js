@@ -300,7 +300,7 @@ async function checkDocuments() {
 
 // 🔹 Hər gün saat 03:15-də işə düşəcək
 cron.schedule(
-    "12 00 * * *",
+    "15 00 * * *",
     () => {
         checkDocuments();
     }
