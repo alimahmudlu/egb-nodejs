@@ -32,6 +32,7 @@ router.get('/', checkAuth, async (req, res) => {
 router.post('/read', checkAuth, async (req, res) => {
     const {url, id} = req.body;
     const currentUserId = req.currentUserId;
+    console.log(url, id, currentUserId, 'url, id');
 
     const {rows: updatedRows} = await db.query(`
         UPDATE notifications
@@ -39,10 +40,13 @@ router.post('/read', checkAuth, async (req, res) => {
         WHERE id = $1 AND user_id = $2 RETURNING *;
     `, [id, currentUserId])
 
+
+    console.log(updatedRows, 'updatedRows');
+
     return res.json({
         success: true,
         message: 'Notifications read successfully',
-        data: updatedRows[0]
+        data: updatedRows
     })
 })
 
