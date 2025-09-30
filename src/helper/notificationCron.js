@@ -215,17 +215,19 @@ async function checkDocuments() {
         au.id AS upload_id,
         au.date_of_expiry,
         u.id AS user_id,
-        au.type AS type
+        au.type AS type, 
+        er.role AS role
       FROM application_uploads au
       JOIN applications a ON a.id = au.application_id
       JOIN employees u ON u.application_id = a.id
+      LEFT JOIN employee_roles er ON er.employee_id = u.id
       WHERE au.date_of_expiry IS NOT NULL
     `);
 
         for (const doc of documents) {
             const daysLeft = calculateDaysLeft(doc.date_of_expiry);
             const fileName = fileTypes.find(el => el.key === doc.type)?.label || 'Unknown';
-            console.log(doc, 'fileName')
+            const url = doc.role === 1 ? `/employeePages/docs/archive?fileUri=${doc.upload_id}` : (doc.role === 2 ? `/timeKeeperPages/docs/archive?fileUri=${doc.upload_id}` : `/chiefPages/docs/archive?fileUri=${doc.upload_id}`)
 
             if (daysLeft !== null && daysLeft <= 0) {
                 const exists = await client.query(
@@ -233,7 +235,7 @@ async function checkDocuments() {
            WHERE type = 'document' 
              AND url = $1 
              AND user_id = $2`,
-                    [`/documents/${doc.upload_id}`, doc.user_id]
+                    [`${url}`, doc.user_id]
                 );
 
                 if (exists.rowCount === 0) {
@@ -244,7 +246,7 @@ async function checkDocuments() {
                             "The document has expired.",
                             `This document (${fileName}) is no longer valid.`,
                             "document",
-                            `/documents/${doc.upload_id}`,
+                            `${url}`,
                             doc.user_id,
                             new Date(),
                             new Date(),
@@ -272,7 +274,7 @@ async function checkDocuments() {
                             "The document is nearing expiration.",
                             `This document (${fileName}) has ${daysLeft} days left to expire.`,
                             "document",
-                            `/documents/${doc.upload_id}`,
+                            `${url}`,
                             doc.user_id,
                             new Date(),
                             new Date(),
@@ -301,7 +303,7 @@ async function checkDocuments() {
 
 // 🔹 Hər gün saat 03:15-də işə düşəcək
 cron.schedule(
-    "30 00 * * *",
+    "50 00 * * *",
     () => {
         checkDocuments();
     }
