@@ -225,7 +225,7 @@ async function checkDocuments() {
         for (const doc of documents) {
             const daysLeft = calculateDaysLeft(doc.date_of_expiry);
             const fileName = fileTypes.find(el => el.type === doc.type)?.label || 'Unknown';
-            console.log(fileName, 'fileName')
+            console.log(doc, 'fileName')
 
             if (daysLeft !== null && daysLeft <= 0) {
                 const exists = await client.query(
