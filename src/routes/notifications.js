@@ -37,7 +37,7 @@ router.post('/read', checkAuth, async (req, res) => {
         UPDATE notifications
         SET read = 1,
         WHERE id = $1 AND user_id = $2 RETURNING *;
-    `)
+    `, [id, currentUserId])
 
     return res.json({
         success: true,
