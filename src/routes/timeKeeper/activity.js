@@ -100,7 +100,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             };
         }
         else if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 1
         ) {
