@@ -99,6 +99,38 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
                 minutes: 0
             };
         }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("11:59", "HH:mm"), moment("14:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 2
+        ) {
+            diff = {
+                hours: 4,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBefore(moment("14:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 2
+        ) {
+            diff = {
+                hours: Math.floor(duration.asHours() - 1),
+                minutes: duration.minutes()
+            }
+        }
         /*else if (
             moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             moment(endHourMinute, "HH:mm").isBetween(moment("19:59", "HH:mm"), moment("20:31", "HH:mm")) &&
