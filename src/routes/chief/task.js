@@ -221,8 +221,8 @@ router.post('/create', checkAuth, userPermission, async (req, res) => {
 
     await db.query(`
                 INSERT INTO notifications
-                (title, description, type, url, user_id, create_at, update_at, read)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *
+                (title, description, type, url, user_id, create_at, update_at, read, title_ru, description_ru, tutle_uz, description_uz)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *
             `,
             [
                 'Task added',
@@ -232,7 +232,11 @@ router.post('/create', checkAuth, userPermission, async (req, res) => {
                 insertedRow?.[0]?.assigned_employee_id,
                 moment().format(),
                 moment().format(),
-                0
+                0,
+                'Задача добавлена',
+                `Задача '${insertedRow?.[0]?.name}' добавлена и назначена вам.`,
+                `Vazifa qo'shildi`,
+                `'${insertedRow?.[0]?.name}' vazifasi qo'shildi va sizga tayinlandi.`,
             ]
     )
 

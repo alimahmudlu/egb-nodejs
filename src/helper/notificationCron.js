@@ -240,8 +240,8 @@ async function checkDocuments() {
 
                 if (exists.rowCount === 0) {
                     await client.query(
-                        `INSERT INTO notifications (title, description, type, url, user_id, create_at, update_at, read)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                        `INSERT INTO notifications (title, description, type, url, user_id, create_at, update_at, read, title_ru, description_ru, tutle_uz, description_uz)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
                         [
                             "The document has expired.",
                             `This document (${fileName}) is no longer valid.`,
@@ -250,7 +250,11 @@ async function checkDocuments() {
                             doc.user_id,
                             new Date(),
                             new Date(),
-                            0
+                            0,
+                            "Срок действия документа истек.",
+                            `Этот документ (${fileName}) больше недействителен.`,
+                            "Hujjat muddati tugagan.",
+                            `Ushbu hujjat (${fileName}) endi haqiqiy emas.`,
                         ]
                     );
                 }
@@ -268,8 +272,8 @@ async function checkDocuments() {
                 if (exists.rowCount === 0) {
                     // insert
                     await client.query(
-                        `INSERT INTO notifications (title, description, type, url, user_id, create_at, update_at, read)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                        `INSERT INTO notifications (title, description, type, url, user_id, create_at, update_at, read, title_ru, description_ru, tutle_uz, description_uz)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
                         [
                             "The document is nearing expiration.",
                             `This document (${fileName}) has ${daysLeft} days left to expire.`,
@@ -278,7 +282,11 @@ async function checkDocuments() {
                             doc.user_id,
                             new Date(),
                             new Date(),
-                            0
+                            0,
+                            "Срок действия документа истекает.",
+                            `Срок действия этого документа (${fileName}) истекает через ${daysLeft} дней.`,
+                            "Hujjatning amal qilish muddati tugashiga yaqin.",
+                            `Ushbu hujjatning (${fileName}) amal qilish muddati tugashiga ${daysLeft} kun qoldi.`,
                         ]
                     );
                 } else {
@@ -303,7 +311,7 @@ async function checkDocuments() {
 
 // 🔹 Hər gün saat 03:15-də işə düşəcək
 cron.schedule(
-    "50 00 * * *",
+    "12 10 * * *",
     () => {
         checkDocuments();
     }
