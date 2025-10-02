@@ -228,6 +228,7 @@ async function checkDocuments() {
             const daysLeft = calculateDaysLeft(doc.date_of_expiry);
             const fileName = fileTypes.find(el => el.key === doc.type)?.label || 'Unknown';
             const url = doc.role === 1 ? `/employeePages/docs/archive?fileUri=${doc.upload_id}` : (doc.role === 2 ? `/timeKeeperPages/docs/archive?fileUri=${doc.upload_id}` : `/chiefPages/docs/archive?fileUri=${doc.upload_id}`)
+            const url2 = doc.role === 1 ? `/employee/docs?fileUri=${doc.upload_id}` : (doc.role === 2 ? `/timeKeeper/docs?fileUri=${doc.upload_id}` : `/chief/docs?fileUri=${doc.upload_id}`)
 
             if (daysLeft !== null && daysLeft <= 0) {
                 const exists = await client.query(
@@ -266,7 +267,7 @@ async function checkDocuments() {
            WHERE type = 'document' 
              AND url = $1 
              AND user_id = $2`,
-                    [`${url}`, doc.user_id]
+                    [`${url2}`, doc.user_id]
                 );
 
                 if (exists.rowCount === 0) {
@@ -278,7 +279,7 @@ async function checkDocuments() {
                             "The document is nearing expiration.",
                             `This document (${fileName}) has ${daysLeft} days left to expire.`,
                             "document",
-                            `${url}`,
+                            `${url2}`,
                             doc.user_id,
                             new Date(),
                             new Date(),
@@ -311,7 +312,7 @@ async function checkDocuments() {
 
 // 🔹 Hər gün saat 03:15-də işə düşəcək
 cron.schedule(
-    "30 06 * * *",
+    "25 10 * * *",
     () => {
         checkDocuments();
     }
