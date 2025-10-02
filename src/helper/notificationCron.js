@@ -261,7 +261,48 @@ async function checkDocuments() {
                 }
             }
 
-            else if (daysLeft !== null && daysLeft <= 30) {
+            else if (daysLeft !== null && daysLeft <= 30 && doc.type !== 'registration_card') {
+                const exists = await client.query(
+                    `SELECT id FROM notifications 
+           WHERE type = 'document' 
+             AND url = $1 
+             AND user_id = $2`,
+                    [`${url2}`, doc.user_id]
+                );
+
+                if (exists.rowCount === 0) {
+                    // insert
+                    await client.query(
+                        `INSERT INTO notifications (title, description, type, url, user_id, create_at, update_at, read, title_ru, description_ru, title_uz, description_uz)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+                        [
+                            "The document is nearing expiration.",
+                            `This document (${fileName}) has ${daysLeft} days left to expire.`,
+                            "document",
+                            `${url2}`,
+                            doc.user_id,
+                            new Date(),
+                            new Date(),
+                            0,
+                            "Срок действия документа истекает.",
+                            `Срок действия этого документа (${fileName}) истекает через ${daysLeft} дней.`,
+                            "Hujjatning amal qilish muddati tugashiga yaqin.",
+                            `Ushbu hujjatning (${fileName}) amal qilish muddati tugashiga ${daysLeft} kun qoldi.`,
+                        ]
+                    );
+                } else {
+                    await client.query(
+                        `UPDATE notifications 
+             SET description = $1, update_at = NOW(), read = 0
+             WHERE id = $2`,
+                        [
+                            `This document (${fileName}) has ${daysLeft} days left to expire.`,
+                            exists.rows[0].id,
+                        ]
+                    );
+                }
+            }
+            else if (daysLeft !== null && daysLeft <= 7 && doc.type === 'registration_card') {
                 const exists = await client.query(
                     `SELECT id FROM notifications 
            WHERE type = 'document' 
@@ -312,7 +353,7 @@ async function checkDocuments() {
 
 // 🔹 Hər gün saat 03:15-də işə düşəcək
 cron.schedule(
-    "25 10 * * *",
+    "35 10 * * *",
     () => {
         checkDocuments();
     }
