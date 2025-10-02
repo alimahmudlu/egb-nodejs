@@ -250,7 +250,7 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, a
         sendPushNotification(returnedTask?.[0]?.assigned_employee_id, 'Task status change', 'You have been added to a new task.')
         await db.query(`
                 INSERT INTO notifications
-                (title, description, type, url, user_id, create_at, update_at, read, title_ru, description_ru, tutle_uz, description_uz)
+                (title, description, type, url, user_id, create_at, update_at, read, title_ru, description_ru, title_uz, description_uz)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *
             `, [
                 'Task status change',

@@ -221,7 +221,7 @@ router.post('/create', checkAuth, userPermission, async (req, res) => {
 
     await db.query(`
                 INSERT INTO notifications
-                (title, description, type, url, user_id, create_at, update_at, read, title_ru, description_ru, tutle_uz, description_uz)
+                (title, description, type, url, user_id, create_at, update_at, read, title_ru, description_ru, title_uz, description_uz)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *
             `,
             [
