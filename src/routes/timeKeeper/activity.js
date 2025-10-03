@@ -111,12 +111,12 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         }
         else if (
             moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("11:59", "HH:mm"), moment("14:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("12:59", "HH:mm"), moment("14:01", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 2
         ) {
             diff = {
-                hours: 4,
+                hours: 5,
                 minutes: 0
             };
         }
@@ -161,6 +161,28 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
                 hours: 10,
                 minutes: 0
             };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("00:59", "HH:mm"), moment("02:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 2
+        ) {
+            diff = {
+                hours: 5,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBefore(moment("02:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 2
+        ) {
+            diff = {
+                hours: Math.floor(duration.asHours() - 1),
+                minutes: duration.minutes()
+            }
         }
         else if (
             confirm_type === 3
