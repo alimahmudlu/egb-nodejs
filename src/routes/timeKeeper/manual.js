@@ -201,7 +201,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
 
     if (checkInControlRow?.[0]?.review_time) {
         const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
-        const end = moment(confirm_time, 'YYYY-MM-DD HH:mm').endOf('minute');
+        const end = moment(request_time, 'YYYY-MM-DD HH:mm').endOf('minute');
 
         const duration = moment.duration(end.diff(start));
 
@@ -343,9 +343,10 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             completed_status,
             reject_reason,
             work_time,
-         is_manual
+         is_manual,
+            confirm_type
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *
     `,
         [
             activity_id ?? null,
@@ -362,7 +363,8 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             1,
             null,
             `${diff?.hours}:${diff?.minutes}`,
-            true
+            true,
+            confirm_type
         ]);
 
     const {rows: thisInsertedRow} = await db.query(`
