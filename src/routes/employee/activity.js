@@ -194,7 +194,7 @@ router.post('/overtime', checkAuth, userPermission, async (req, res) => {
 
 
             if (timeKeepersList.length > 0) {
-                timeKeepersList.map(el => {
+                timeKeepersList.map(async el => {
                     const io = getIO();
                     const socketId = userSocketMap.get(el?.employee_id);
 
@@ -207,6 +207,25 @@ router.post('/overtime', checkAuth, userPermission, async (req, res) => {
                         });
                     }
                     sendPushNotification(el?.employee_id, 'test', 'salam')
+
+                    await db.query(`
+                        INSERT INTO notifications
+                        (title, description, type, url, user_id, create_at, update_at, read, title_ru, description_ru, title_uz, description_uz)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *
+                    `, [
+                        'Overtime request received ',
+                        `'${thisInsertedRow?.[0]?.employee?.full_name}' sent a request for overtime`,
+                        'overtime',
+                        `/timeKeeper/overtime/`,
+                        el?.employee_id,
+                        moment().format(),
+                        moment().format(),
+                        0,
+                        'Получен запрос на сверхурочную работу',
+                        `'${thisInsertedRow?.[0]?.employee?.full_name}' отправил запрос на сверхурочную работу`,
+                        `Qo'shimcha vaqt talabi qabul qilindi`,
+                        `'${thisInsertedRow?.[0]?.employee?.full_name}' qo'shimcha ish uchun so'rov yubordi`,
+                    ])
                 })
             }
         }
