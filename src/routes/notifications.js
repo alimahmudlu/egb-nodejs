@@ -46,4 +46,21 @@ router.post('/read', checkAuth, async (req, res) => {
     })
 })
 
+router.post('/read/group', checkAuth, async (req, res) => {
+    const {group} = req.body;
+    const currentUserId = req.currentUserId;
+
+    const {rows: updatedRows} = await db.query(`
+        UPDATE notifications
+        SET read = 1
+        WHERE type = $1 AND user_id = $2 RETURNING *;
+    `, [group, currentUserId])
+
+    return res.json({
+        success: true,
+        message: 'Notifications read successfully',
+        data: updatedRows
+    })
+})
+
 export default router;

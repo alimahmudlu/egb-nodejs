@@ -216,7 +216,7 @@ router.post('/overtime', checkAuth, userPermission, async (req, res) => {
                         'Overtime request received ',
                         `'${thisInsertedRow?.[0]?.employee?.full_name}' sent a request for overtime`,
                         'overtime',
-                        `/timeKeeper/overtime/`,
+                        `/timeKeeper/overtime?user_id=${req.currentUserId}`,
                         el?.employee_id,
                         moment().format(),
                         moment().format(),
