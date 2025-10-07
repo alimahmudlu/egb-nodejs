@@ -24,7 +24,8 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
                                                         'role', jsonb_build_object(
                                                             'id', r.id,
                                                             'name', r.name
-                                                        )
+                                                        ),
+                                                    'status', pm1.status
                                                     )
                                                 ),
                                                 '[]'::jsonb
