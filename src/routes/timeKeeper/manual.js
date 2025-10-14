@@ -1,7 +1,7 @@
 import express from 'express'
 import db from '../../helper/db.js'
 import checkAuth from '../../middleware/checkAuth.js'
-import moment from "moment/moment.js";
+import moment from "moment";
 import userPermission from "../../middleware/userPermission.js";
 
 const router = express.Router()
@@ -28,38 +28,6 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         values.push(`%${full_name}%`);
         idx++
     }
-    console.log((`
-        SELECT e.*, json_build_object(
-                'id', er.id,
-                'name', r.name
-                    ) as role,
-               (SELECT row_to_json(ea.*) FROM employee_activities ea
-                WHERE employee_id = e.id
-                  AND completed_status = 0
-                  AND type = 1
-                ORDER BY ea.id
-                         LIMIT 1
-            ) as checkIn,
-        (SELECT row_to_json(ea.*) FROM employee_activities ea
-                    WHERE employee_id = e.id
-                      AND completed_status = 0
-                      AND type = 2
-                    ORDER BY ea.id
-                             LIMIT 1
-                ) as checkout
-        FROM employees e
-            LEFT JOIN employee_roles er ON e.id = er.employee_id
-            LEFT JOIN roles r ON r.id = er.role
-        WHERE (e.dont_have_phone = true OR e.is_draft = true) 
-            AND EXISTS (
-                    SELECT 1
-                    FROM project_members pm1
-                    JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-                    WHERE pm1.employee_id = e.id
-                    AND pm2.employee_id = $1
-            )
-            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-        `, [req.currentUserId, ...values]))
 
     const {rows} = await db.query(`
         SELECT e.*, json_build_object(
@@ -82,8 +50,9 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                 ) as checkout
         FROM employees e
             LEFT JOIN employee_roles er ON e.id = er.employee_id
+            LEFT JOIN employee_ios ei ON e.id = ei.employee_id
             LEFT JOIN roles r ON r.id = er.role
-        WHERE (e.dont_have_phone = true OR e.is_draft = true) 
+        WHERE (e.dont_have_phone = true OR e.is_draft = true  OR ei.id IS NOT NULL )
             AND EXISTS (
                     SELECT 1
                     FROM project_members pm1
