@@ -425,7 +425,7 @@ router.post('/overtime_checkout', checkAuth, userPermission, async (req, res) =>
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *
     `,
         [
-            activity_id ?? null,
+            activity_id,
             employee_id,
             employee_timezone,
             request_time,
@@ -439,9 +439,8 @@ router.post('/overtime_checkout', checkAuth, userPermission, async (req, res) =>
             1,
             null,
             null,
-            // `${diff?.hours}:${diff?.minutes}`,
-            true,
-            confirm_type
+            `${diff?.hours}:${diff?.minutes}`,
+            null
         ]);
 
     const {rows: thisInsertedRow} = await db.query(`
