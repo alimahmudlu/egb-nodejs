@@ -29,6 +29,7 @@ import chiefTask from './routes/chief/task.js';
 import chiefOptions from './routes/chief/options.js';
 import docChief from "./routes/chief/doc.js";
 import chiefEmployee from "./routes/chief/employee.js";
+import myTeam from "./routes/myTeam.js";
 
 
 import { init as initSocket } from "./socketManager.js";
@@ -76,6 +77,7 @@ app.use('/api/chief/employee', chiefEmployee)
 app.use('/api/notification', notification)
 app.use('/api/notifications', notifications)
 app.use('/api/position', position)
+app.use('/api/my_team', myTeam)
 
 initSocket(server);
 
