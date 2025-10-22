@@ -382,7 +382,7 @@ router.post('/overtime_checkout', checkAuth, userPermission, async (req, res) =>
         minutes: 0
     }
 
-    if (checkInControlRow?.[0]?.review_time && type === 4) {
+    if (checkInControlRow?.[0]?.review_time) {
         const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
         const end = moment(request_time, 'YYYY-MM-DD HH:mm').endOf('minute');
 
@@ -425,7 +425,7 @@ router.post('/overtime_checkout', checkAuth, userPermission, async (req, res) =>
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *
     `,
         [
-            activity_id,
+            activity_id ?? null,
             employee_id,
             employee_timezone,
             request_time,
