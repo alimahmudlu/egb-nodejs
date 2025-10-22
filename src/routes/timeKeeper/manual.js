@@ -369,4 +369,112 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
     })
 })
 
+router.post('/overtime_checkout', checkAuth, userPermission, async (req, res) => {
+    const { activity_id, employee_id, employee_timezone, request_time, longitude, latitude, work_time, confirm_type } = req.body;
+
+    const {rows: checkInControlRow} = await db.query(`
+        SELECT * FROM employee_activities ea WHERE employee_id = $1 and status = $2 and completed_status = $3 and type = $4
+    `, [employee_id, 2, 0, 3])
+
+
+    let diff = {
+        hours: 0,
+        minutes: 0
+    }
+
+    if (checkInControlRow?.[0]?.review_time && type === 4) {
+        const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
+        const end = moment(request_time, 'YYYY-MM-DD HH:mm').endOf('minute');
+
+        const duration = moment.duration(end.diff(start));
+        const newDuration = moment.duration(duration.asMilliseconds() * 1.5);
+
+        diff = {
+            hours: Math.floor(newDuration.asHours()),
+            minutes: newDuration.minutes()
+        }
+    }
+
+    const {rows: checkInRow} = await db.query(`
+        UPDATE employee_activities ea
+        SET completed_status = $1, work_time = $6
+        WHERE employee_id = $2 and status = $3 and completed_status = $4 and type = $5
+            RETURNING *;
+    `, [1, employee_id, 2, 0, 3, `${diff?.hours}:${diff?.minutes}`])
+
+    const {rows: insertedRow} = await db.query(`
+        INSERT INTO employee_activities
+        (
+            activity_id,
+            employee_id,
+            employee_timezone,
+            request_time,
+            type,
+            longitude,
+            latitude,
+            reviewer_employee_id,
+            reviewer_timezone,
+            review_time,
+            status,
+            completed_status,
+            reject_reason,
+            work_time,
+         is_manual,
+            confirm_type
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *
+    `,
+        [
+            activity_id ?? null,
+            employee_id,
+            employee_timezone,
+            request_time,
+            4,
+            longitude,
+            latitude,
+            req.currentUserId,
+            employee_timezone,
+            request_time,
+            2,
+            1,
+            null,
+            null,
+            // `${diff?.hours}:${diff?.minutes}`,
+            true,
+            confirm_type
+        ]);
+
+    const {rows: thisInsertedRow} = await db.query(`
+            SELECT e.*, json_build_object(
+                    'id', er.id,
+                    'name', r.name
+                        ) as role,
+                   (SELECT row_to_json(ea.*) FROM employee_activities ea
+                    WHERE employee_id = e.id
+                      AND completed_status = 1
+                      AND type = 1
+                    ORDER BY ea.id
+                             LIMIT 1
+                ) as checkin,
+                   (SELECT row_to_json(ea.*) FROM employee_activities ea
+                    WHERE employee_id = e.id
+                      AND completed_status = 1
+                      AND type = 2
+                    ORDER BY ea.id
+                             LIMIT 1
+                ) as checkout
+            FROM employees e
+                LEFT JOIN employee_roles er ON e.id = er.employee_id
+                LEFT JOIN roles r ON r.id = er.role
+            WHERE e.id = $1
+        `, [employee_id])
+
+
+    return res.status(201).json({
+        success: true,
+        message: 'Activity created successfully',
+        data: thisInsertedRow?.[0]
+    })
+})
+
 export default router

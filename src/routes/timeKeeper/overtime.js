@@ -85,8 +85,6 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         }
     }
 
-    console.log({activity_id, employee_id, type, confirm_time, timezone, confirm_type}, 'aaa')
-
     const {rows: checkInRow} = await db.query(`
         UPDATE employee_activities ea
         SET completed_status = $1, work_time = $6
