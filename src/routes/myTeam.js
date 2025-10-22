@@ -1,10 +1,7 @@
 import express from 'express'
-import db from '../../helper/db.js'
-import checkAuth from '../../middleware/checkAuth.js'
-import {getIO, userSocketMap} from "../../socketManager.js";
-import sendPushNotification from "../../helper/sendPushNotification.js";
-import userPermission from "../../middleware/userPermission.js";
-import moment from "moment/moment.js";
+import db from '../helper/db.js'
+import checkAuth from '../middleware/checkAuth.js'
+import userPermission from "../middleware/userPermission.js";
 
 const router = express.Router()
 
