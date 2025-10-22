@@ -438,8 +438,8 @@ router.post('/overtime_checkout', checkAuth, userPermission, async (req, res) =>
             2,
             1,
             null,
-            null,
             `${diff?.hours}:${diff?.minutes}`,
+            true,
             null
         ]);
 
