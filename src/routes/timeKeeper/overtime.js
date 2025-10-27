@@ -29,7 +29,17 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                    FROM employees e
                    WHERE e.id = ea.reviewer_employee_id
                           LIMIT 1
-            ) AS reviewer
+            ) AS reviewer,
+               (
+                   SELECT json_build_object(
+                                  'id', p.id,
+                                  'name', p.name
+                          )
+                   FROM project_members pm
+                   LEFT JOIN projects p ON p.id = pm.project_id
+                   WHERE e.id = pm.employee_id
+                          LIMIT 1
+            ) AS project
         FROM employee_activities ea
             LEFT JOIN employees e ON e.id = ea.employee_id
             LEFT JOIN employee_roles er ON e.id = er.employee_id
