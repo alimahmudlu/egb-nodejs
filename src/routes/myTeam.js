@@ -6,35 +6,59 @@ import userPermission from "../middleware/userPermission.js";
 const router = express.Router()
 
 router.get('/list', checkAuth, userPermission, async (req, res) => {
+    const {full_name, role_id} = req.query;
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+    if (role_id) {
+        filters.push(`pm.role_id = $${role_id}`);
+        values.push(role_id);
+        idx++
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e_filter.full_name) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
+        idx++
+    }
+
     const {rows} = await db.query(`SELECT
                                        p.*,
-                                       (SELECT json_build_object('id', r.id, 'name', r.name)  FROM roles r
-                                        WHERE role_id = pm.role_id LIMIT 1) as role_id,
+                                       (
+                                           SELECT json_build_object('id', r.id, 'name', r.name)
+                                           FROM roles r
+                                           WHERE r.id = pm.role_id LIMIT 1
+                                       ) AS role_info, -- Adı role_id-dən role_info-ya dəyişdim, çünki JSON-dur.
     (
         SELECT COALESCE(
-                       jsonb_agg(
-                               jsonb_build_object(
-                                       'id', e1.id,
-                                       'full_name', e1.full_name,
-                                       'phone_number', e1.phone_number,
-                                       'role', jsonb_build_object(
-                                               'id', r.id,
-                                               'name', r.name
-                                               ),
-                                                    'status', pm1.status
-                               )
-                       ),
-                       '[]'::jsonb
-               )
+            jsonb_agg(
+                jsonb_build_object(
+                    'id', e1.id,
+                    'full_name', e1.full_name,
+                    'phone_number', e1.phone_number,
+                    'role', jsonb_build_object(
+                        'id', r.id,
+                        'name', r.name
+                    ),
+                    'status', pm1.status
+                )
+            ),
+            '[]'::jsonb
+        )
         FROM project_members pm1
-                 JOIN employees e1 ON e1.id = pm1.employee_id
-                 LEFT JOIN employee_roles er ON er.employee_id = e1.id
-                 LEFT JOIN roles r ON r.id = er.role
+        JOIN employees e1 ON e1.id = pm1.employee_id
+        LEFT JOIN employee_roles er ON er.employee_id = e1.id
+        LEFT JOIN roles r ON r.id = er.role
         WHERE pm1.project_id = p.id AND pm1.status = 1
     ) AS members
                                    FROM project_members pm
                                        LEFT JOIN projects p ON p.id = pm.project_id
-                                   WHERE pm.employee_id = $1 AND pm.status = 1`, [req.currentUserId])
+                                       JOIN employees e_filter ON e_filter.id = pm.employee_id -- Full Name filtri üçün JOIN
+                                   WHERE
+                                       pm.employee_id = $1
+                                     AND pm.status = 1
+                                       ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+                                     `, [req.currentUserId])
 
     res.json({
         success: true,
