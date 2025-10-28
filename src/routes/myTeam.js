@@ -22,43 +22,6 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         idx++
     }
 
-    console.log(`SELECT
-                     p.*,
-                     (
-                         SELECT json_build_object('id', r.id, 'name', r.name)
-                         FROM roles r
-                         WHERE r.id = pm.role_id LIMIT 1
-                     ) AS role_info,
-    (
-        SELECT COALESCE(
-            jsonb_agg(
-                jsonb_build_object(
-                    'id', e1.id,
-                    'full_name', e1.full_name,
-                    'phone_number', e1.phone_number,
-                    'role', jsonb_build_object(
-                        'id', r.id,
-                        'name', r.name
-                    ),
-                    'status', pm1.status
-                )
-            ) ${filters.length > 0 ? ` FILTER (WHERE ${filters.join(' AND ')} )` : ''},
-                     '[]'::jsonb
-                     )
-                     FROM project_members pm1
-                     JOIN employees e1 ON e1.id = pm1.employee_id
-                     LEFT JOIN employee_roles er ON er.employee_id = e1.id
-                     LEFT JOIN roles r ON r.id = er.role
-                     WHERE pm1.project_id = p.id
-                     AND pm1.status = 1
-                     ) AS members
-                 FROM project_members pm
-                     LEFT JOIN projects p ON p.id = pm.project_id
-                 WHERE
-                     pm.employee_id = $1
-                   AND pm.status = 1
-    `, [req.currentUserId, ...values])
-
     const {rows} = await db.query(`SELECT
                                        p.*,
                                        (
