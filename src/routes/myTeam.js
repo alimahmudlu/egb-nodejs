@@ -12,7 +12,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     let idx = 2;
 
     if (role_id) {
-        filters.push(`r.id = $${role_id}`);
+        filters.push(`r.id = $${idx}`);
         values.push(role_id);
         idx++
     }
