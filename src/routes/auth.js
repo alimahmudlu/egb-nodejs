@@ -96,13 +96,61 @@ router.post('/', async (req, res) => {
         }));
     }
     else {
-        return res.status(500).json({
-            success: false,
-            message: 'Password or id is incorrect ',
-            data: null
-        });
-    }
+        const {rows: adminAuthRows} = await db.query('SELECT * FROM admins WHERE email = $1', [id])
 
+        if(adminAuthRows.length > 0 && isValidPassword(password, adminAuthRows?.[0]?.password)) {
+            const {rows: userDataRows} =
+                await db.query(`
+                SELECT
+                    a.*,
+                    jsonb_build_object('id', 0, 'name', 'Admin') AS role,
+                FROM admins a
+                WHERE a.email = $1;
+            `, [id])
+
+            const userAgent = JSON.parse(req.headers?.['user-agent'])
+
+            const {rows: authActivity} = await db.query(`INSERT INTO auth_activity (
+                           employee_id, 
+                           brand,
+                           model_name,
+                           as_name,
+                           os_version,
+                           login_date
+        ) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id`,
+                [
+                    userDataRows[0].id,
+                    userAgent?.brand,
+                    userAgent?.modelName,
+                    userAgent?.asName,
+                    userAgent?.osVersion
+                ]
+            )
+
+            const token = generateJWT({
+                id: userDataRows[0].id,
+                authActivityId: authActivity?.[0].id,
+                full_name: userDataRows[0].full_name,
+            });
+
+            return res.json(JSON.stringify({
+                success: true,
+                message: 'Login successful',
+                token: {
+                    accessToken: token,
+                    authActivityId: authActivity?.[0].id
+                },
+                user: userDataRows[0]
+            }));
+        }
+        else {
+            return res.status(500).json({
+                success: false,
+                message: 'Password or id is incorrect ',
+                data: null
+            });
+        }
+    }
 })
 
 
