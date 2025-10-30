@@ -30,11 +30,12 @@ router.post('/', async (req, res) => {
         return res.status(400).json({error: 'Email and password are required'});
     }
 
-    const {rows: userAuthRows} = await db.query('SELECT * FROM employee_auth WHERE employee_id = $1', [id])
+    if (typeof id === 'number') {
+        const {rows: userAuthRows} = await db.query('SELECT * FROM employee_auth WHERE employee_id = $1', [id])
 
-    if(userAuthRows.length > 0 && isValidPassword(password, userAuthRows?.[0]?.password)) {
-        const {rows: userDataRows} =
-            await db.query(`
+        if(userAuthRows.length > 0 && isValidPassword(password, userAuthRows?.[0]?.password)) {
+            const {rows: userDataRows} =
+                await db.query(`
                 SELECT
                     e.*,
                     (
@@ -60,9 +61,9 @@ router.post('/', async (req, res) => {
                 WHERE e.id = $1;
             `, [id])
 
-        const userAgent = JSON.parse(req.headers?.['user-agent'])
+            const userAgent = JSON.parse(req.headers?.['user-agent'])
 
-        const {rows: authActivity} = await db.query(`INSERT INTO auth_activity (
+            const {rows: authActivity} = await db.query(`INSERT INTO auth_activity (
                            employee_id, 
                            brand,
                            model_name,
@@ -70,30 +71,38 @@ router.post('/', async (req, res) => {
                            os_version,
                            login_date
         ) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id`,
-            [
-                userDataRows[0].id,
-                userAgent?.brand,
-                userAgent?.modelName,
-                userAgent?.asName,
-                userAgent?.osVersion
-            ]
-        )
+                [
+                    userDataRows[0].id,
+                    userAgent?.brand,
+                    userAgent?.modelName,
+                    userAgent?.asName,
+                    userAgent?.osVersion
+                ]
+            )
 
-        const token = generateJWT({
-            id: userDataRows[0].id,
-            authActivityId: authActivity?.[0].id,
-            full_name: userDataRows[0].full_name,
-        });
+            const token = generateJWT({
+                id: userDataRows[0].id,
+                authActivityId: authActivity?.[0].id,
+                full_name: userDataRows[0].full_name,
+            });
 
-        return res.json(JSON.stringify({
-            success: true,
-            message: 'Login successful',
-            token: {
-                accessToken: token,
-                authActivityId: authActivity?.[0].id
-            },
-            user: userDataRows[0]
-        }));
+            return res.json(JSON.stringify({
+                success: true,
+                message: 'Login successful',
+                token: {
+                    accessToken: token,
+                    authActivityId: authActivity?.[0].id
+                },
+                user: userDataRows[0]
+            }));
+        }
+        else {
+            return res.status(500).json({
+                success: false,
+                message: 'Password or id is incorrect ',
+                data: null
+            });
+        }
     }
     else {
         const {rows: adminAuthRows} = await db.query('SELECT * FROM admins WHERE email = $1', [id])
