@@ -29,7 +29,6 @@ router.post('/', async (req, res) => {
     if (!id || !password) {
         return res.status(400).json({error: 'Email and password are required'});
     }
-console.log(typeof id, 'ID TYPEEEEE +<<<<')
     if (typeof id === 'number') {
         const {rows: userAuthRows} = await db.query('SELECT * FROM employee_auth WHERE employee_id = $1', [id])
 
@@ -112,7 +111,7 @@ console.log(typeof id, 'ID TYPEEEEE +<<<<')
                 await db.query(`
                 SELECT
                     a.*,
-                    jsonb_build_object('id', 0, 'name', 'Admin') AS role
+                    jsonb_build_object('id', 999, 'name', 'Admin') AS role
                 FROM admins a
                 WHERE a.email = $1;
             `, [id])
