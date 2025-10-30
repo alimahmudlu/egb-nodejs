@@ -107,7 +107,7 @@ console.log(typeof id, 'ID TYPEEEEE +<<<<')
     else {
         const {rows: adminAuthRows} = await db.query('SELECT * FROM admins WHERE email = $1', [id])
 
-        if(adminAuthRows.length > 0 && isValidPassword(password, adminAuthRows?.[0]?.password)) {
+        if(adminAuthRows.length > 0 && isValidPassword(password, adminAuthRows?.[0]?.password_hash)) {
             const {rows: userDataRows} =
                 await db.query(`
                 SELECT
