@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
     if (!id || !password) {
         return res.status(400).json({error: 'Email and password are required'});
     }
-    if (typeof id === 'number') {
+    if (typeof Number(id) === 'number') {
         const {rows: userAuthRows} = await db.query('SELECT * FROM employee_auth WHERE employee_id = $1', [id])
 
         if(userAuthRows.length > 0 && isValidPassword(password, userAuthRows?.[0]?.password)) {
