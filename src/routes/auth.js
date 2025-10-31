@@ -26,6 +26,8 @@ const router = express.Router()
 router.post('/', async (req, res) => {
     const {id, password} = req.body;
 
+    console.log(typeof id, typeof id === 'number')
+
     if (!id || !password) {
         return res.status(400).json({error: 'Email and password are required'});
     }
