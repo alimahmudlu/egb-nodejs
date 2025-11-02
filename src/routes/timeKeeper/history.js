@@ -7,7 +7,7 @@ import userPermission from "../../middleware/userPermission.js";
 const router = express.Router()
 
 router.get('/list', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, project} = req.query;
+    const {start_date, end_date, full_name, project, page, limit} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -40,6 +40,14 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     }
 
 
+    let limits = '';
+    const offset = (page - 1) * limit;
+
+    if (page && limit) {
+        limits = ` LIMIT ${limit} OFFSET ${offset} `;
+    }
+
+
     const {rows} = await db.query(`
         SELECT ea.*, json_build_object(
                 'id', e.id,
@@ -63,7 +71,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
               AND pm2.employee_id = $1
         )
                                    ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-        ORDER BY ea.id DESC;
+        ORDER BY ea.id DESC ${limits ? limits : ''}
         `, [req.currentUserId, ...values])
 
     res.status(200).json({
