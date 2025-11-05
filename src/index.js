@@ -10,6 +10,7 @@ import notification from './routes/notification.js';
 import notifications from './routes/notifications.js';
 import upload from './routes/upload.js';
 import position from './routes/position.js';
+import myTeam from "./routes/myTeam.js";
 
 import project from './routes/employee/project.js';
 import activity from "./routes/employee/activity.js";
@@ -29,7 +30,9 @@ import chiefTask from './routes/chief/task.js';
 import chiefOptions from './routes/chief/options.js';
 import docChief from "./routes/chief/doc.js";
 import chiefEmployee from "./routes/chief/employee.js";
-import myTeam from "./routes/myTeam.js";
+
+import foodAdmin from "./routes/admin/food.js";
+
 
 
 import { init as initSocket } from "./socketManager.js";
@@ -73,6 +76,8 @@ app.use('/api/chief/task', chiefTask)
 app.use('/api/chief/options', chiefOptions)
 app.use('/api/chief/doc', docChief)
 app.use('/api/chief/employee', chiefEmployee)
+
+app.use('/api/admin/food', foodAdmin)
 
 app.use('/api/notification', notification)
 app.use('/api/notifications', notifications)
