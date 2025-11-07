@@ -44,13 +44,12 @@ router.get('/report/list', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`
         SELECT *
         FROM food_reports
-        WHERE employee_id = $1
     `, [req.currentUserId]);
 
     return res.status(200).json({
         success: true,
         message: 'Food reports fetched successfully',
-        data: rows?.[0]
+        data: rows
     })
 })
 
