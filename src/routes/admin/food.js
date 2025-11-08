@@ -71,19 +71,17 @@ router.get('/report/list', checkAuth, userPermission, async (req, res) => {
 
 router.get('/report/today', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`
-        SELECT fr.*,
-               (SELECT COUNT(ea.id) FROM employee_activities ea WHERE ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.review_time) = $1 ) AS turn1employees,
-               (SELECT COUNT(ea.id) FROM employee_activities ea WHERE ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.review_time) = $1 ) AS turn2employees
+        SELECT fr.*
         FROM food_reports fr
-        WHERE date = $2
-    `, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD')]);
+        WHERE date = $1
+    `, [moment().add(1, 'days').format('YYYY-MM-DD')]);
     const {rows: employees} = await db.query(`
             SELECT COUNT(ea.id) as total_employees,
                    COUNT(ea.id) FILTER (WHERE ea.turn = 1) AS turn1employees, 
                    COUNT(ea.id) FILTER (WHERE ea.turn = 2) AS turn2employees
             FROM employee_activities ea 
             WHERE ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.review_time) = $1
-    `, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD')]);
+    `, [moment().add(-1, 'days').format('YYYY-MM-DD')]);
 
     return res.status(200).json({
         success: true,
