@@ -73,7 +73,7 @@ router.get('/report/today', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`
         SELECT fr.*,
                (SELECT COUNT(ea.id) FROM employee_activities ea WHERE ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.review_time) = $1 ) AS turn1employees,
-               (SELECT COUNT(ea.id) FROM employee_activities ea WHERE ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.review_time) = $1 ) AS turn2employees,
+               (SELECT COUNT(ea.id) FROM employee_activities ea WHERE ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.review_time) = $1 ) AS turn2employees
         FROM food_reports fr
         WHERE date = $2
     `, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD')]);
