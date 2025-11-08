@@ -77,11 +77,21 @@ router.get('/report/today', checkAuth, userPermission, async (req, res) => {
         FROM food_reports fr
         WHERE date = $2
     `, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD')]);
+    const {rows: employees} = await db.query(`
+            SELECT COUNT(ea.id) as total_employees,
+                   COUNT(ea.turn1) as turn1employees,
+                   COUNT(ea.turn2) as turn2employees
+            FROM employee_activities ea 
+            WHERE ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.review_time) = $1
+    `, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD')]);
 
     return res.status(200).json({
         success: true,
         message: 'Food reports fetched successfully',
-        data: rows
+        data: {
+            today: rows?.[0],
+            todayEmployees: employees?.[0]
+        }
     })
 })
 
