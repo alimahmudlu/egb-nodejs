@@ -25,14 +25,13 @@ const router = express.Router()
 // })
 
 router.post('/report/add', checkAuth, userPermission, async (req, res) => {
-    const {turn1order, turn2order, date} = req.body;
-    // req.currentUserId
+    const {turn1order, turn1employees, turn2order, turn2employees, date} = req.body;
 
     const {rows} = await db.query(`
-        INSERT INTO food_reports (turn1order, turn2order, date, employee_id)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO food_reports (turn1order, turn1employees, turn2order, turn2employees, date, employee_id)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *
-    `, [turn1order, turn2order, date, req.currentUserId]);
+    `, [turn1order, turn1employees, turn2order, turn2employees, date, req.currentUserId]);
 
     return res.status(200).json({
         success: true,
