@@ -79,8 +79,8 @@ router.get('/report/today', checkAuth, userPermission, async (req, res) => {
     `, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD')]);
     const {rows: employees} = await db.query(`
             SELECT COUNT(ea.id) as total_employees,
-                   COUNT(ea.turn1) as turn1employees,
-                   COUNT(ea.turn2) as turn2employees
+                   COUNT(ea.id) FILTER (WHERE ea.turn = 1) AS turn1employees, 
+                   COUNT(ea.id) FILTER (WHERE ea.turn = 2) AS turn2employees
             FROM employee_activities ea 
             WHERE ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.review_time) = $1
     `, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD')]);
