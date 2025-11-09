@@ -53,7 +53,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
             LEFT JOIN employee_ios ei ON e.id = ei.employee_id
             LEFT JOIN roles r ON r.id = er.role
         WHERE (e.dont_have_phone = true OR e.is_draft = true  OR ei.id IS NOT NULL )
-            
+            AND e.is_active = true
             AND EXISTS (
                     SELECT 1
                     FROM project_members pm1
