@@ -50,7 +50,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                 ) as checkout
         FROM employees e
             LEFT JOIN employee_roles er ON e.id = er.employee_id
-            LEFT JOIN employee_ios ei ON e.id = ei.employee_id
+            LEFT JOIN employee_ios ei ON e.id = ei.employee_id and ei.status = 1
             LEFT JOIN roles r ON r.id = er.role
         WHERE (e.dont_have_phone = true OR e.is_draft = true  OR ei.id IS NOT NULL )
             AND e.is_active = true
