@@ -294,7 +294,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
     }
 
 
-    if (checkOutControlRow.length > 0) {
+    if (checkOutControlRow.length === 0) {
         const {rows: checkInRow} = await db.query(`
         UPDATE employee_activities ea
         SET completed_status = $1, work_time = $6
