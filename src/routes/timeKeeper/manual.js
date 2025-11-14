@@ -121,6 +121,48 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
             `
         );
     }
+    console.log(`
+        SELECT
+            COUNT(e.id) OVER() AS total_count,
+            e.*,
+                json_build_object(
+                    'id', er.id,
+                    'name', r.name
+                ) as role,
+               (SELECT row_to_json(ea.*) FROM employee_activities ea
+                WHERE employee_id = e.id
+                  AND completed_status = 0
+                  AND type = 1
+                ORDER BY ea.id
+                         LIMIT 1
+            ) as checkIn,
+        (SELECT row_to_json(ea.*) FROM employee_activities ea
+                    WHERE employee_id = e.id
+                      AND completed_status = 0
+                      AND type = 2
+                    ORDER BY ea.id
+                             LIMIT 1
+                ) as checkout
+        FROM employees e
+            LEFT JOIN employee_roles er ON e.id = er.employee_id
+--             LEFT JOIN employee_ios ei ON e.id = ei.employee_id and ei.status = 1
+            LEFT JOIN roles r ON r.id = er.role
+        WHERE e.is_active = true
+            AND EXISTS (
+                    SELECT 1
+                    FROM project_members pm1
+                    JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+                    WHERE pm1.employee_id = e.id
+                    AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
+            )
+            AND NOT EXISTS(
+                SELECT 1
+                FROM employee_activities ea
+                WHERE ea.employee_id = e.id AND ea.status = 2 AND ea.type = 1 AND ea.completed_status = 0
+            )
+            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+            ${limits ? limits : ''}
+        `, [req.currentUserId, ...values])
 
     const {rows} = await db.query(`
         SELECT
@@ -165,48 +207,6 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
             ${limits ? limits : ''}
         `, [req.currentUserId, ...values])
 
-    console.log(`
-        SELECT
-            COUNT(e.id) OVER() AS total_count,
-            e.*,
-                json_build_object(
-                    'id', er.id,
-                    'name', r.name
-                ) as role,
-               (SELECT row_to_json(ea.*) FROM employee_activities ea
-                WHERE employee_id = e.id
-                  AND completed_status = 0
-                  AND type = 1
-                ORDER BY ea.id
-                         LIMIT 1
-            ) as checkIn,
-        (SELECT row_to_json(ea.*) FROM employee_activities ea
-                    WHERE employee_id = e.id
-                      AND completed_status = 0
-                      AND type = 2
-                    ORDER BY ea.id
-                             LIMIT 1
-                ) as checkout
-        FROM employees e
-            LEFT JOIN employee_roles er ON e.id = er.employee_id
---             LEFT JOIN employee_ios ei ON e.id = ei.employee_id and ei.status = 1
-            LEFT JOIN roles r ON r.id = er.role
-        WHERE e.is_active = true
-            AND EXISTS (
-                    SELECT 1
-                    FROM project_members pm1
-                    JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-                    WHERE pm1.employee_id = e.id
-                    AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
-            )
-            AND NOT EXISTS(
-                SELECT 1
-                FROM employee_activities ea
-                WHERE ea.employee_id = e.id AND ea.status = 2 AND ea.type = 1 AND ea.completed_status = 0
-            )
-            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-            ${limits ? limits : ''}
-        `, [req.currentUserId, ...values])
 
 
     res.status(200).json({
