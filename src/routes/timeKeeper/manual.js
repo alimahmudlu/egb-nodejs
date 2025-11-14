@@ -105,13 +105,9 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     }
     if (application_status === '0') {
         filters.push(`e.is_draft = true`);
-        values.push(application_status);
-        idx++
     }
     if (application_status === '1') {
         filters.push(`e.is_draft = false`);
-        values.push(application_status);
-        idx++
     }
     if (ios === '1') {
         console.log('ios', ios)
