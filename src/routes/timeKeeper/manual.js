@@ -105,10 +105,12 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     }
 
     const {rows} = await db.query(`
-        SELECT e.*, json_build_object(
-                'id', er.id,
-                'name', r.name
-                    ) as role,
+        SELECT e.*,
+               COUNT(*) OVER() AS total_count,
+                json_build_object(
+                    'id', er.id,
+                    'name', r.name
+                ) as role,
                (SELECT row_to_json(ea.*) FROM employee_activities ea
                 WHERE employee_id = e.id
                   AND completed_status = 0
@@ -148,7 +150,11 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     res.status(200).json({
         success: true,
         message: 'Activity fetched successfully',
-        data: rows
+        data: {
+            total: rows?.[0]?.total_count || 0,
+            page: page,
+            data: rows
+        }
     })
 })
 
