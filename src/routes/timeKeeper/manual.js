@@ -113,7 +113,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         values.push(application_status);
         idx++
     }
-    if (ios) {
+    if (ios === '1') {
         console.log('ios', ios)
         filters.push(
             `
