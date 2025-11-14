@@ -38,7 +38,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                           )
                    FROM project_members pm
                    LEFT JOIN projects p ON p.id = pm.project_id
-                   WHERE e.id = pm.employee_id
+                   WHERE e.id = pm.employee_id AND pm.status = 1
                           LIMIT 1
             ) AS project
         FROM employee_activities ea
