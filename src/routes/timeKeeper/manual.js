@@ -74,7 +74,7 @@ const router = express.Router()
 })*/
 
 router.get('/list', checkAuth, userPermission, async (req, res) => {
-    const {full_name, project, page = 1, limit = 10} = req.query;
+    const {full_name, project, application_status, ios, page = 1, limit = 10} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -103,6 +103,25 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         values.push(`%${full_name}%`);
         idx++
     }
+    if (application_status === '0') {
+        filters.push(`e.is_draft = true`);
+        values.push(application_status);
+        idx++
+    }
+    if (application_status === '1') {
+        filters.push(`e.is_draft = false`);
+        values.push(application_status);
+        idx++
+    }
+    if (ios) {
+        filters.push(
+            `
+                EXISTS (SELECT 1 FROM employee_ios ei WHERE ei.employee_id = e.id AND ei.status = $${idx})
+            `
+        );
+        values.push(ios);
+        idx++
+    }
 
     const {rows} = await db.query(`
         SELECT
@@ -128,7 +147,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                 ) as checkout
         FROM employees e
             LEFT JOIN employee_roles er ON e.id = er.employee_id
-            LEFT JOIN employee_ios ei ON e.id = ei.employee_id and ei.status = 1
+--             LEFT JOIN employee_ios ei ON e.id = ei.employee_id and ei.status = 1
             LEFT JOIN roles r ON r.id = er.role
         WHERE e.is_active = true
             AND EXISTS (
