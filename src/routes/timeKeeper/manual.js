@@ -139,7 +139,21 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                       AND type = 2
                     ORDER BY ea.id
                              LIMIT 1
-                ) as checkout
+                ) as checkout,
+               (SELECT row_to_json(ea.*) FROM employee_activities ea
+                WHERE employee_id = e.id
+                  AND completed_status = 0
+                  AND type = 3
+                ORDER BY ea.id
+                         LIMIT 1
+            ) as overtimeCheckIn,
+        (SELECT row_to_json(ea.*) FROM employee_activities ea
+                    WHERE employee_id = e.id
+                      AND completed_status = 0
+                      AND type = 4
+                    ORDER BY ea.id
+                             LIMIT 1
+                ) as overtimeCheckout
         FROM employees e
             LEFT JOIN employee_roles er ON e.id = er.employee_id
 --             LEFT JOIN employee_ios ei ON e.id = ei.employee_id and ei.status = 1
@@ -607,6 +621,91 @@ router.post('/overtime_checkout', checkAuth, userPermission, async (req, res) =>
         message: 'Activity created successfully',
         data: thisInsertedRow?.[0]
     })
+})
+
+router.post('/overtime_checkin', checkAuth, userPermission, async (req, res) => {
+    const { employee_id, employee_timezone, request_time, longitude, latitude, work_time } = req.body;
+
+    const {rows: checkedInRows} =
+        await db.query(`
+            SELECT id FROM employee_activities
+            WHERE employee_id = $1 AND status != 3 AND type = 3 AND completed_status = 0
+            ORDER BY id DESC
+                LIMIT 1
+        `, [employee_id])
+
+    if (checkedInRows.length === 0) {
+        const {rows: insertedRow} = await db.query(`
+        INSERT INTO employee_activities
+        (
+            activity_id,
+            employee_id,
+            employee_timezone,
+            request_time,
+            type,
+            longitude,
+            latitude,
+            reviewer_employee_id,
+            reviewer_timezone,
+            review_time,
+            status,
+            completed_status,
+            reject_reason,
+            work_time,
+         is_manual
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
+    `,
+            [
+                null,
+                employee_id,
+                employee_timezone,
+                request_time,
+                3,
+                longitude,
+                latitude,
+                req.currentUserId,
+                employee_timezone,
+                request_time,
+                2,
+                0,
+                null,
+                null,
+                true
+            ]);
+
+        const {rows: thisInsertedRow} = await db.query(`
+            SELECT e.*, json_build_object(
+                    'id', er.id,
+                    'name', r.name
+                        ) as role,
+                   (SELECT row_to_json(ea.*) FROM employee_activities ea
+                    WHERE employee_id = e.id
+                      AND completed_status = 0
+                      AND type = 3
+                    ORDER BY ea.id
+                             LIMIT 1
+                ) as overtimeCheckIn
+            FROM employees e
+                LEFT JOIN employee_roles er ON e.id = er.employee_id
+                LEFT JOIN roles r ON r.id = er.role
+            WHERE e.id = $1
+        `, [employee_id])
+
+
+        return res.status(201).json({
+            success: true,
+            message: 'Activity created successfully',
+            data: thisInsertedRow?.[0]
+        })
+    }
+    else {
+        return res.status(400).json({
+            success: false,
+            message: 'activity already exists for this status',
+            data: null
+        })
+    }
 })
 
 export default router
