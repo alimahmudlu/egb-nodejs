@@ -146,7 +146,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                   AND type = 3
                 ORDER BY ea.id
                          LIMIT 1
-            ) as overtimeCheckIn,
+            ) as overtimecheckin,
         (SELECT row_to_json(ea.*) FROM employee_activities ea
                     WHERE employee_id = e.id
                       AND completed_status = 0
@@ -169,7 +169,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
             AND NOT EXISTS(
                 SELECT 1
                 FROM employee_activities ea
-                WHERE ea.employee_id = e.id AND ea.status = 2 AND ea.type = 1 AND ea.completed_status = 0
+                WHERE ea.employee_id = e.id AND ea.status = 2 AND ea.type = 1 AND ea.completed_status = 0 AND ea.is_manual = false
             )
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
             ${limits ? limits : ''}
@@ -685,7 +685,7 @@ router.post('/overtime_checkin', checkAuth, userPermission, async (req, res) => 
                       AND type = 3
                     ORDER BY ea.id
                              LIMIT 1
-                ) as overtimeCheckIn
+                ) as overtimecheckin
             FROM employees e
                 LEFT JOIN employee_roles er ON e.id = er.employee_id
                 LEFT JOIN roles r ON r.id = er.role
