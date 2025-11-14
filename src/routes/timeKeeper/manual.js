@@ -114,6 +114,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         idx++
     }
     if (ios) {
+        console.log('ios', ios)
         filters.push(
             `
                 EXISTS (SELECT 1 FROM employee_ios ei WHERE ei.employee_id = e.id AND ei.status = 1)
