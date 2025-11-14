@@ -105,8 +105,9 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     }
 
     const {rows} = await db.query(`
-        SELECT e.*,
-               COUNT(*) OVER() AS total_count,
+        SELECT
+            COUNT(e.id) OVER() AS total_count,
+            e.*,
                 json_build_object(
                     'id', er.id,
                     'name', r.name
