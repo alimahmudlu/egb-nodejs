@@ -116,7 +116,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     if (ios) {
         filters.push(
             `
-                EXISTS (SELECT 1 FROM employee_ios ei WHERE ei.employee_id = e.id AND ei.status = $${idx})
+                EXISTS (SELECT 1 FROM employee_ios ei WHERE ei.employee_id = e.id AND ei.status = 1)
             `
         );
         values.push(ios);
