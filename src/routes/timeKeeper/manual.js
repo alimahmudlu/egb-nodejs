@@ -119,8 +119,6 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                 EXISTS (SELECT 1 FROM employee_ios ei WHERE ei.employee_id = e.id AND ei.status = 1)
             `
         );
-        values.push(ios);
-        idx++
     }
 
     const {rows} = await db.query(`
