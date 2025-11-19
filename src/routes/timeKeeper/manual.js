@@ -93,7 +93,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
             FROM project_members pm1
                      JOIN project_members pm2 ON pm1.project_id = pm2.project_id
             WHERE pm1.employee_id = e.id
-            AND pm1.project_id = $${idx}
+            AND pm1.project_id = $${idx} AND pm1.status = 1 AND pm2.status = 1
         )`);
         values.push(project)
         idx++
