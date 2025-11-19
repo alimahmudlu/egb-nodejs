@@ -179,7 +179,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
             AND NOT EXISTS(
                 SELECT 1
                 FROM employee_activities ea
-                WHERE ea.employee_id = e.id AND ea.status = 2 AND ea.type = 1 AND ea.completed_status = 0 AND ea.is_manual = false
+                WHERE ea.employee_id = e.id AND ea.status = 2 AND ea.type = 1 AND ea.completed_status = 0 /*AND ea.is_manual = false*/
             )
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         ORDER BY e.full_name ASC
