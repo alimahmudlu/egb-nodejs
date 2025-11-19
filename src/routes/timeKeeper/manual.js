@@ -126,6 +126,16 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                     'id', er.id,
                     'name', r.name
                 ) as role,
+            (
+                SELECT json_build_object(
+                               'id', p.id,
+                               'name', p.name
+                       )
+                FROM project_members pm
+                         LEFT JOIN projects p ON p.id = pm.project_id
+                WHERE e.id = pm.employee_id AND pm.status = 1
+                LIMIT 1
+            ) AS project,
                (SELECT row_to_json(ea.*) FROM employee_activities ea
                 WHERE employee_id = e.id
                   AND completed_status = 0
