@@ -159,7 +159,8 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
         )
                                    ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         AND (ea.type = 1 OR ea.type = 3)
-        ORDER BY ea.id DESC ${limits ? limits : ''}
+
+        ORDER BY e.full_name ASC ${limits ? limits : ''}
         `, [req.currentUserId, ...values])
 
     res.status(200).json({
