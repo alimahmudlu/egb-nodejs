@@ -260,7 +260,16 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
         ]);
 
         const {rows: thisInsertedRow} = await db.query(`
-            SELECT e.*, json_build_object(
+            SELECT e.*, (
+                SELECT json_build_object(
+                               'id', p.id,
+                               'name', p.name
+                       )
+                FROM project_members pm
+                         LEFT JOIN projects p ON p.id = pm.project_id
+                WHERE e.id = pm.employee_id AND pm.status = 1
+                LIMIT 1
+                ) AS project, json_build_object(
                     'id', er.id,
                     'name', r.name
                         ) as role,
@@ -481,7 +490,16 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
                 ]);
 
             const {rows: thisInsertedRow} = await db.query(`
-            SELECT e.*, json_build_object(
+            SELECT e.*, (
+                SELECT json_build_object(
+                               'id', p.id,
+                               'name', p.name
+                       )
+                FROM project_members pm
+                         LEFT JOIN projects p ON p.id = pm.project_id
+                WHERE e.id = pm.employee_id AND pm.status = 1
+                LIMIT 1
+                ) AS project, json_build_object(
                     'id', er.id,
                     'name', r.name
                         ) as role,
@@ -601,7 +619,16 @@ router.post('/overtime_checkout', checkAuth, userPermission, async (req, res) =>
         ]);
 
     const {rows: thisInsertedRow} = await db.query(`
-            SELECT e.*, json_build_object(
+            SELECT e.*, (
+                SELECT json_build_object(
+                               'id', p.id,
+                               'name', p.name
+                       )
+                FROM project_members pm
+                         LEFT JOIN projects p ON p.id = pm.project_id
+                WHERE e.id = pm.employee_id AND pm.status = 1
+                LIMIT 1
+                ) AS project, json_build_object(
                     'id', er.id,
                     'name', r.name
                         ) as role,
@@ -685,7 +712,16 @@ router.post('/overtime_checkin', checkAuth, userPermission, async (req, res) => 
             ]);
 
         const {rows: thisInsertedRow} = await db.query(`
-            SELECT e.*, json_build_object(
+            SELECT e.*, (
+                SELECT json_build_object(
+                               'id', p.id,
+                               'name', p.name
+                       )
+                FROM project_members pm
+                         LEFT JOIN projects p ON p.id = pm.project_id
+                WHERE e.id = pm.employee_id AND pm.status = 1
+                LIMIT 1
+                ) AS project, json_build_object(
                     'id', er.id,
                     'name', r.name
                         ) as role,
