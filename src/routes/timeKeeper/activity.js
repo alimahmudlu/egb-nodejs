@@ -371,7 +371,17 @@ router.get('/checkin', checkAuth, userPermission, async (req, res) => {
     }
 
     const {rows} = await db.query(`
-        SELECT ea.*, json_build_object(
+        SELECT ea.*,
+               (
+                   SELECT json_build_object(
+                                  'id', p.id,
+                                  'name', p.name
+                          )
+                   FROM project_members pm
+                            LEFT JOIN projects p ON p.id = pm.project_id
+                   WHERE e.id = pm.employee_id AND pm.status = 1
+                   LIMIT 1
+            ) AS project, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
                 'email', e.email,
@@ -435,7 +445,17 @@ router.get('/checkout', checkAuth, userPermission, async (req, res) => {
     }
 
     const {rows} = await db.query(`
-        SELECT ea.*, json_build_object(
+        SELECT ea.*,
+               (
+                   SELECT json_build_object(
+                                  'id', p.id,
+                                  'name', p.name
+                          )
+                   FROM project_members pm
+                            LEFT JOIN projects p ON p.id = pm.project_id
+                   WHERE e.id = pm.employee_id AND pm.status = 1
+                   LIMIT 1
+            ) AS project, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
                 'email', e.email,
