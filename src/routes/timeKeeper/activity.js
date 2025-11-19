@@ -52,7 +52,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
             WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1
           AND pm2.employee_id = $1
             )
-        ORDER BY ea.id DESC;
+        ORDER BY e.full_name ASC;
     `, [req.currentUserId])
 
     res.status(200).json({
