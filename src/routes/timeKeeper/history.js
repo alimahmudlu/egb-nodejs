@@ -71,7 +71,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
               AND pm2.employee_id = $1
         )
                                    ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-        ORDER BY ea.id DESC ${limits ? limits : ''}
+        ORDER BY e.full_name ASC ${limits ? limits : ''}
         `, [req.currentUserId, ...values])
 
     res.status(200).json({
@@ -219,7 +219,18 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`
         SELECT
             COUNT(*) OVER() AS total_count,
-            ea.*, json_build_object(
+            ea.*,
+            (
+                SELECT json_build_object(
+                               'id', p.id,
+                               'name', p.name
+                       )
+                FROM project_members pm
+                         LEFT JOIN projects p ON p.id = pm.project_id
+                WHERE e.id = pm.employee_id AND pm.status = 1
+                LIMIT 1
+            ) AS project,
+            json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
                 'manual', e.dont_have_phone,
@@ -241,7 +252,7 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
         )
                                    ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         AND (ea.type = 2 OR ea.type = 4)
-        ORDER BY ea.id DESC ${limits ? limits : ''}
+        ORDER BY e.full_name ASC ${limits ? limits : ''}
         `, [req.currentUserId, ...values])
 
     res.status(200).json({
