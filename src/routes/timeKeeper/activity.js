@@ -34,7 +34,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         idx++
     }
 
-    console.log((`
+    console.log(`
         SELECT ea.*, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
@@ -76,7 +76,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
             )
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         ORDER BY e.full_name ASC;
-    `, [req.currentUserId, ...values]))
+    `, [req.currentUserId, ...values])
 
     const {rows} = await db.query(`
         SELECT ea.*, json_build_object(
