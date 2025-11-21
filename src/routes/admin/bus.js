@@ -13,8 +13,8 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
         SELECT
             p.name AS project_name,
             p.id AS project_id,
-            COUNT(CASE WHEN ea.turn = 1 THEN 1 END) AS "Employees Morning Checked In",
-            COUNT(CASE WHEN ea.turn = 2 THEN 1 END) AS "Employees Night Check In"
+            COUNT(CASE WHEN ea.turn = 1 THEN 1 END) AS turn1Employees,
+            COUNT(CASE WHEN ea.turn = 2 THEN 1 END) AS turn2Employees
         FROM
             projects AS p
                 JOIN
@@ -37,9 +37,7 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
     return res.status(200).json({
         success: true,
         message: 'Food reports fetched successfully',
-        data: {
-            todayEmployees: employees?.[0]
-        }
+        data: employees
     })
 })
 
