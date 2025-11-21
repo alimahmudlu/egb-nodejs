@@ -25,8 +25,6 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
             WHERE pm1.employee_id = ea.employee_id
             AND pm1.project_id IN (${(project || [])?.map(el => el.id)?.join(', ')}) AND pm1.status = 1
         )`);
-        values.push(project)
-        idx++
     }
     if (full_name) {
         filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
