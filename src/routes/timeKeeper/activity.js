@@ -17,6 +17,8 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     const values = [];
     let idx = 2;
 
+    console.log(project, (project || []).length > 0, 'project')
+
     if (project && (project || []).length > 0) {
         filters.push(`EXISTS (
             SELECT 1
