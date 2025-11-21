@@ -17,13 +17,13 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     const values = [];
     let idx = 2;
 
-    if (project) {
+    if (project && (project || []).length > 0) {
         filters.push(`EXISTS (
             SELECT 1
             FROM project_members pm1
                      JOIN project_members pm2 ON pm1.project_id = pm2.project_id
             WHERE pm1.employee_id = ea.employee_id
-            AND pm1.project_id = $${idx}
+            AND pm1.project_id IN (${(project || [])?.map(el => el.id)?.join(', ')}) AND pm1.status = 1
         )`);
         values.push(project)
         idx++
