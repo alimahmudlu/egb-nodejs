@@ -12,13 +12,11 @@ import timeKeeperActivityAccept from "../../fn/timeKeeperActivityAccept.js";
 const router = express.Router()
 
 router.get('/list', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, project, page, limit} = req.query;
+    const {start_date, end_date, full_name, page, limit} = req.query;
+    const project = req.query?.['project[]'] || req.query?.['project']
     const filters = [];
     const values = [];
     let idx = 2;
-
-    console.log(req.query, 'queryy')
-    console.log(project, req.query?.['project[]'], 'queryy2')
 
     if (project && (project || []).length > 0) {
         filters.push(`EXISTS (
