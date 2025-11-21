@@ -32,6 +32,7 @@ import docChief from "./routes/chief/doc.js";
 import chiefEmployee from "./routes/chief/employee.js";
 
 import foodAdmin from "./routes/admin/food.js";
+import busAdmin from "./routes/admin/bus.js";
 
 
 
@@ -78,6 +79,7 @@ app.use('/api/chief/doc', docChief)
 app.use('/api/chief/employee', chiefEmployee)
 
 app.use('/api/admin/food', foodAdmin)
+app.use('/api/admin/bus', busAdmin)
 
 app.use('/api/notification', notification)
 app.use('/api/notifications', notifications)

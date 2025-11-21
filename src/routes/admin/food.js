@@ -79,7 +79,7 @@ router.get('/report/today', checkAuth, userPermission, async (req, res) => {
                    COUNT(ea.id) FILTER (WHERE ea.turn = 1) AS turn1employees, 
                    COUNT(ea.id) FILTER (WHERE ea.turn = 2) AS turn2employees
             FROM employee_activities ea 
-            WHERE ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.review_time) = $1
+            WHERE ea.type = 1 AND ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.review_time) = $1
     `, [moment().add(-1, 'days').format('YYYY-MM-DD')]);
 
     return res.status(200).json({
