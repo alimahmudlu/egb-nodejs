@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/src/helper/notificationCron.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/middleware/checkAuth.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/middleware/userPermission.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/admin/bus.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/admin/food.js" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/routes/auth.js" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/routes/chief/activity.js" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/routes/chief/doc.js" dialect="GenericSQL" />
@@ -9,10 +14,17 @@
     <file url="file://$PROJECT_DIR$/src/routes/chief/task.js" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/routes/currentUser.js" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/routes/employee/activity.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/employee/doc.js" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/routes/employee/project.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/myTeam.js" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/routes/notification.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/notifications.js" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/routes/timeKeeper/activity.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/timeKeeper/doc.js" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/routes/timeKeeper/employee.js" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/routes/timeKeeper/history.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/timeKeeper/manual.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/timeKeeper/options.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/routes/timeKeeper/overtime.js" dialect="GenericSQL" />
   </component>
 </project>
