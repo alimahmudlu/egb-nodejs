@@ -62,7 +62,7 @@ router.get('/projects/history', checkAuth, userPermission, async (req, res) => {
         SELECT
             br.*,
             p.name AS project_name,
-            p.id AS project_id,
+            p.id AS project_id
         FROM bus_reports br
                  LEFT JOIN projects AS p ON br.project_id = p.id
         ORDER BY
