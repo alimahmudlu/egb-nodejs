@@ -57,5 +57,25 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     })
 })
 
+router.get('/projects/history', checkAuth, userPermission, async (req, res) => {
+    const query = `
+        SELECT
+            br.*,
+            p.name AS project_name,
+            p.id AS project_id,
+        FROM bus_reports br
+                 LEFT JOIN projects AS p ON br.project_id = p.id
+        ORDER BY
+            p.name;
+    `
+    const {rows: employees} = await db.query(query, []);
+
+    return res.status(200).json({
+        success: true,
+        message: 'Food reports fetched successfully',
+        data: employees
+    })
+})
+
 
 export default router
