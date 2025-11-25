@@ -135,7 +135,8 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
     }
 
     const {rows} = await db.query(`
-        SELECT ea.*, json_build_object(
+        SELECT ea.*,
+               COUNT(*) OVER() AS total_count, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
                 'role', json_build_object(
@@ -170,7 +171,11 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
     res.status(200).json({
         success: true,
         message: 'Activity fetched successfully',
-        data: rows
+        data: {
+            total: rows?.[0]?.total_count || 0,
+            page: page,
+            data: rows
+        }
     })
 })
 
@@ -215,7 +220,8 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
     }
 
     const {rows} = await db.query(`
-        SELECT ea.*, json_build_object(
+        SELECT ea.*,
+               COUNT(*) OVER() AS total_count, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
                 'role', json_build_object(
@@ -250,7 +256,11 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
     res.status(200).json({
         success: true,
         message: 'Activity fetched successfully',
-        data: rows
+        data: {
+            total: rows?.[0]?.total_count || 0,
+            page: page,
+            data: rows
+        }
     })
 })
 
@@ -295,7 +305,8 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
     }
 
     const {rows} = await db.query(`
-        SELECT ea.*, json_build_object(
+        SELECT ea.*,
+               COUNT(*) OVER() AS total_count, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
                 'role', json_build_object(
@@ -330,7 +341,11 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
     res.status(200).json({
         success: true,
         message: 'Activity fetched successfully',
-        data: rows
+        data: {
+            total: rows?.[0]?.total_count || 0,
+            page: page,
+            data: rows
+        }
     })
 })
 
