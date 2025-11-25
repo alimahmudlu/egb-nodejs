@@ -126,6 +126,14 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
         idx++
     }
 
+
+    let limits = '';
+    const offset = (page - 1) * limit;
+
+    if (page && limit) {
+        limits = ` LIMIT ${limit} OFFSET ${offset} `;
+    }
+
     const {rows} = await db.query(`
         SELECT ea.*, json_build_object(
                 'id', e.id,
@@ -156,7 +164,7 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
             )
             AND ea.type = 1 AND ea.status = 1
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-        ORDER BY e.full_name ASC;
+        ORDER BY e.full_name ASC ${limits ? limits : ''};
     `, [req.currentUserId, ...values])
 
     res.status(200).json({
@@ -198,6 +206,14 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
         idx++
     }
 
+
+    let limits = '';
+    const offset = (page - 1) * limit;
+
+    if (page && limit) {
+        limits = ` LIMIT ${limit} OFFSET ${offset} `;
+    }
+
     const {rows} = await db.query(`
         SELECT ea.*, json_build_object(
                 'id', e.id,
@@ -228,7 +244,7 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
             )
             AND ea.type = 2 AND ea.status = 1 AND ea.completed_status = 0
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-        ORDER BY e.full_name ASC;
+        ORDER BY e.full_name ASC ${limits ? limits : ''};
     `, [req.currentUserId, ...values])
 
     res.status(200).json({
@@ -270,6 +286,14 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
         idx++
     }
 
+
+    let limits = '';
+    const offset = (page - 1) * limit;
+
+    if (page && limit) {
+        limits = ` LIMIT ${limit} OFFSET ${offset} `;
+    }
+
     const {rows} = await db.query(`
         SELECT ea.*, json_build_object(
                 'id', e.id,
@@ -300,7 +324,7 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
             )
             AND ea.type = 1 AND ea.status = 2 AND ea.completed_status = 0
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-        ORDER BY e.full_name ASC;
+        ORDER BY e.full_name ASC ${limits ? limits : ''};
     `, [req.currentUserId, ...values])
 
     res.status(200).json({
