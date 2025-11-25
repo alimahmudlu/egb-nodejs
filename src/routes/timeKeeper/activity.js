@@ -187,7 +187,7 @@ router.get('/list/count', checkAuth, userPermission, async (req, res) => {
                   AND pm2.employee_id = $1
                   AND pm2.status = 1
             )
-          AND ${filters.join(' AND ')}
+          ${filters.join(' AND ')}
         ORDER BY
             e.full_name ASC;
     `, [req.currentUserId, ...values])
@@ -243,7 +243,7 @@ router.get('/list/count', checkAuth, userPermission, async (req, res) => {
                   AND pm2.employee_id = $1
                   AND pm2.status = 1
             )
-          AND ${filters.join(' AND ')}
+          ${filters.join(' AND ')}
         ORDER BY
             e.full_name ASC;
     `, [req.currentUserId, ...values])
