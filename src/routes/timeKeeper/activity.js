@@ -136,6 +136,38 @@ router.get('/list/count', checkAuth, userPermission, async (req, res) => {
         idx++
     }
 
+    console.log(`
+        SELECT
+            COALESCE(SUM(CASE WHEN ea.type = 1 AND ea.status > 0 THEN 1 ELSE 0 END), 0) AS checkin_count,
+
+            COALESCE(SUM(CASE WHEN ea.type = 2 AND ea.status > 0 THEN 1 ELSE 0 END), 0) AS checkout_count
+        FROM
+            employees e
+                JOIN
+            project_members pm_self ON pm_self.employee_id = e.id AND pm_self.status = 1
+                JOIN
+            projects p ON p.id = pm_self.project_id
+                LEFT JOIN
+            positions ps ON ps.id = e.position
+                LEFT JOIN
+            roles r ON r.id = pm_self.role_id -- Rolu layihə üzvlüyündən götürürük
+                LEFT JOIN
+            employee_activities ea ON ea.employee_id = e.id AND ea.status > 0 -- Bütün fəaliyyətləri daxil edirik
+
+        WHERE
+            e.is_active = TRUE
+          -- EXISTS şərti: Bu işçi ($1) ilə eyni layihədə olanları seçir
+          AND EXISTS (
+            SELECT 1
+            FROM project_members pm_other
+            WHERE
+                pm_other.project_id = pm_self.project_id
+              AND pm_other.employee_id = 909
+              AND pm_other.status = 1
+        )
+          ${filters.join(' AND ')}
+    `, [req.currentUserId, ...values])
+
     const {rows} = await db.query(`
         SELECT
             COALESCE(SUM(CASE WHEN ea.type = 1 AND ea.status > 0 THEN 1 ELSE 0 END), 0) AS checkin_count,
