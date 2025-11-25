@@ -338,6 +338,38 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
         ORDER BY e.full_name ASC ${limits ? limits : ''};
     `, [req.currentUserId, ...values])
 
+    console.log(`SELECT ea.*,
+                        COUNT(*) OVER() AS total_count, json_build_object(
+                'id', e.id,
+                'full_name', e.full_name,
+                'role', json_build_object(
+                        'name', r.name
+                        )
+                                                        ) as employee,
+                        (
+                            SELECT json_build_object(
+                                           'name', p.name
+                                   )
+                            FROM project_members pm
+                                     LEFT JOIN projects p ON p.id = pm.project_id
+                            WHERE e.id = pm.employee_id AND pm.status = 1
+                                 LIMIT 1
+                     ) AS project
+                 FROM employee_activities ea
+                     LEFT JOIN employees e ON e.id = ea.employee_id
+                     LEFT JOIN employee_roles er ON e.id = er.employee_id
+                     LEFT JOIN roles r ON r.id = er.role
+                 WHERE EXISTS (
+                     SELECT 1
+                     FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
+                     WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1
+                   AND pm2.employee_id = $1
+                     )
+                   AND ea.type = 1 AND ea.status = 2 AND ea.completed_status = 0
+                     ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+                 ORDER BY e.full_name ASC ${limits ? limits : ''};`, [req.currentUserId, ...values])
+
     res.status(200).json({
         success: true,
         message: 'Activity fetched successfully',
