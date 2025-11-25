@@ -102,6 +102,16 @@ router.get('/list/count', checkAuth, userPermission, async (req, res) => {
     const values = [];
     let idx = 2;
 
+    if (start_date) {
+        filters.push(`ea.review_time >= $${idx}`);
+        values.push(start_date)
+        idx++
+    }
+    if (end_date) {
+        filters.push(`ea.review_time <= $${idx}`);
+        values.push(end_date)
+        idx++
+    }
     if (project && (project || []).length > 0) {
         filters.push(`EXISTS (
             SELECT 1
