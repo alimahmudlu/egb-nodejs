@@ -162,10 +162,10 @@ router.get('/list/count', checkAuth, userPermission, async (req, res) => {
             FROM project_members pm_other
             WHERE
                 pm_other.project_id = pm_self.project_id
-              AND pm_other.employee_id = 909
+              AND pm_other.employee_id = $1
               AND pm_other.status = 1
         )
-          ${filters.join(' AND ')}
+            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
     `, [req.currentUserId, ...values])
 
     const {rows} = await db.query(`
