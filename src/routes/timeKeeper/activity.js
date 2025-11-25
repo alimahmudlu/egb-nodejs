@@ -102,14 +102,26 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
     const values = [];
     let idx = 2;
 
-    if (project && (project || []).length > 0) {
-        filters.push(`EXISTS (
+
+    if (project) {
+        if (Array.isArray(project2) && (project || []).length > 0) {
+            filters.push(`EXISTS (
+                SELECT 1
+                FROM project_members pm1
+                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+                WHERE pm1.employee_id = ea.employee_id
+                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            )`);
+        }
+        else {
+            filters.push(`EXISTS (
             SELECT 1
             FROM project_members pm1
                      JOIN project_members pm2 ON pm1.project_id = pm2.project_id
             WHERE pm1.employee_id = ea.employee_id
-            AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            AND pm1.project_id = ${project} AND pm1.status = 1
         )`);
+        }
     }
     if (project2) {
         filters.push(`EXISTS (
@@ -187,14 +199,26 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
     const values = [];
     let idx = 2;
 
-    if (project && (project || []).length > 0) {
-        filters.push(`EXISTS (
+
+    if (project) {
+        if (Array.isArray(project2) && (project || []).length > 0) {
+            filters.push(`EXISTS (
+                SELECT 1
+                FROM project_members pm1
+                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+                WHERE pm1.employee_id = ea.employee_id
+                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            )`);
+        }
+        else {
+            filters.push(`EXISTS (
             SELECT 1
             FROM project_members pm1
                      JOIN project_members pm2 ON pm1.project_id = pm2.project_id
             WHERE pm1.employee_id = ea.employee_id
-            AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            AND pm1.project_id = ${project} AND pm1.status = 1
         )`);
+        }
     }
     if (project2) {
         filters.push(`EXISTS (
@@ -272,16 +296,25 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
     const values = [];
     let idx = 2;
 
-    console.log(project, project2, 'a');
-
-    if (project && (project || []).length > 0) {
-        filters.push(`EXISTS (
+    if (project) {
+        if (Array.isArray(project2) && (project || []).length > 0) {
+            filters.push(`EXISTS (
+                SELECT 1
+                FROM project_members pm1
+                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+                WHERE pm1.employee_id = ea.employee_id
+                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            )`);
+        }
+        else {
+            filters.push(`EXISTS (
             SELECT 1
             FROM project_members pm1
                      JOIN project_members pm2 ON pm1.project_id = pm2.project_id
             WHERE pm1.employee_id = ea.employee_id
-            AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            AND pm1.project_id = ${project} AND pm1.status = 1
         )`);
+        }
     }
     if (project2) {
         filters.push(`EXISTS (
