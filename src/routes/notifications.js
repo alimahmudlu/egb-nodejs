@@ -18,16 +18,53 @@ router.get('/', checkAuth, async (req, res) => {
 
     try {
         const {rows: notificationRows} = await db.query(`
-            SELECT * from notifications 
+            SELECT *, COUNT(*) OVER() AS total_count from notifications 
             WHERE user_id = $1
             ORDER BY id DESC ${limits ? limits : ''};
         `, [req.currentUserId]);
 
-        return res.json({
-            success: true,
-            message: 'Notifications fetched successfully',
-            data: [...notificationRows],
+        if (limits) {
+            return res.json({
+                success: true,
+                message: 'Notifications fetched successfully',
+                data: {
+                    total: notificationRows?.[0]?.total_count || 0,
+                    page: page,
+                    data: notificationRows
+                }
+            })
+        }
+        else {
+            return res.json({
+                success: true,
+                message: 'Notifications fetched successfully',
+                data: notificationRows
+            })
+        }
+    }
+    catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message,
+            data: null
         })
+    }
+})
+router.get('/count', checkAuth, async (req, res) => {
+    try {
+        const {rows: notificationRows} = await db.query(`
+            SELECT COUNT(id) AS total_notifications_count,
+                   COUNT(CASE WHEN read = 0 THEN 1 END) AS unread_notifications_count from notifications 
+            WHERE user_id = $1
+        `, [req.currentUserId]);
+
+
+            return res.json({
+                success: true,
+                message: 'Notifications fetched successfully',
+                data: notificationRows?.[0]
+            })
     }
     catch (error) {
         return res.status(500).json({
