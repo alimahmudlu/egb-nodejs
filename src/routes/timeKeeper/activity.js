@@ -94,6 +94,101 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     })
 })
 
+router.get('/list/count', checkAuth, userPermission, async (req, res) => {
+    const {start_date, end_date, full_name, page, limit} = req.query;
+    const project = req.query?.['project[]']
+    const project2 = req.query?.['project']
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+    if (project && (project || []).length > 0) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+        )`);
+    }
+    if (project2) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project2} AND pm1.status = 1
+        )`);
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
+        idx++
+    }
+
+    const {rows} = await db.query(`
+        SELECT
+            COALESCE(checkin_counts.checkin_count, 0) AS checkin_count,
+            COALESCE(checkout_counts.checkout_count, 0) AS checkout_count
+        FROM
+            employee_activities ea
+                LEFT JOIN
+            employees e ON e.id = ea.employee_id
+                LEFT JOIN
+            employee_roles er ON e.id = er.employee_id
+                LEFT JOIN
+            roles r ON r.id = er.role
+                LEFT JOIN (
+                SELECT
+                    employee_id,
+                    COUNT(id) AS checkin_count
+                FROM
+                    employee_activities
+                WHERE
+                    type = 1
+                  AND status > 0
+                GROUP BY
+                    employee_id
+            ) AS checkin_counts
+                          ON checkin_counts.employee_id = ea.employee_id
+                LEFT JOIN (
+                SELECT
+                    employee_id,
+                    COUNT(id) AS checkout_count
+                FROM
+                    employee_activities
+                WHERE
+                    type = 2
+                  AND status > 0
+                GROUP BY
+                    employee_id
+            ) AS checkout_counts
+                          ON checkout_counts.employee_id = ea.employee_id
+        WHERE
+            EXISTS (
+                SELECT 1
+                FROM
+                    project_members pm1
+                        JOIN
+                    project_members pm2 ON pm1.project_id = pm2.project_id
+                WHERE
+                    pm1.employee_id = ea.employee_id
+                  AND pm1.status = 1
+                  AND pm2.employee_id = $1
+                  AND pm2.status = 1
+            )
+          AND ${filters.join(' AND ')}
+        ORDER BY
+            e.full_name ASC;
+    `, [req.currentUserId, ...values])
+
+    res.status(200).json({
+        success: true,
+        message: 'Activity fetched successfully',
+        data: rows
+    })
+})
+
 router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
     const {start_date, end_date, full_name, page, limit} = req.query;
     const project = req.query?.['project[]']
