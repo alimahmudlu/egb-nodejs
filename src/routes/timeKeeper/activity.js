@@ -136,116 +136,36 @@ router.get('/list/count', checkAuth, userPermission, async (req, res) => {
         idx++
     }
 
-    console.log(`
-        SELECT
-            COALESCE(checkin_counts.checkin_count, 0) AS checkin_count,
-            COALESCE(checkout_counts.checkout_count, 0) AS checkout_count
-        FROM
-            employee_activities ea
-                LEFT JOIN
-            employees e ON e.id = ea.employee_id
-                LEFT JOIN
-            employee_roles er ON e.id = er.employee_id
-                LEFT JOIN
-            roles r ON r.id = er.role
-                LEFT JOIN (
-                SELECT
-                    employee_id,
-                    COUNT(id) AS checkin_count
-                FROM
-                    employee_activities
-                WHERE
-                    type = 1
-                  AND status > 0
-                GROUP BY
-                    employee_id
-            ) AS checkin_counts
-                          ON checkin_counts.employee_id = ea.employee_id
-                LEFT JOIN (
-                SELECT
-                    employee_id,
-                    COUNT(id) AS checkout_count
-                FROM
-                    employee_activities
-                WHERE
-                    type = 2
-                  AND status > 0
-                GROUP BY
-                    employee_id
-            ) AS checkout_counts
-                          ON checkout_counts.employee_id = ea.employee_id
-        WHERE
-            EXISTS (
-                SELECT 1
-                FROM
-                    project_members pm1
-                        JOIN
-                    project_members pm2 ON pm1.project_id = pm2.project_id
-                WHERE
-                    pm1.employee_id = ea.employee_id
-                  AND pm1.status = 1
-                  AND pm2.employee_id = $1
-                  AND pm2.status = 1
-            )
-          ${filters.join(' AND ')}
-        ORDER BY
-            e.full_name ASC;
-    `, [req.currentUserId, ...values])
-
     const {rows} = await db.query(`
         SELECT
-            COALESCE(checkin_counts.checkin_count, 0) AS checkin_count,
-            COALESCE(checkout_counts.checkout_count, 0) AS checkout_count
+            COALESCE(SUM(CASE WHEN ea.type = 1 AND ea.status > 0 THEN 1 ELSE 0 END), 0) AS checkin_count,
+
+            COALESCE(SUM(CASE WHEN ea.type = 2 AND ea.status > 0 THEN 1 ELSE 0 END), 0) AS checkout_count
         FROM
-            employee_activities ea
+            employees e
+                JOIN
+            project_members pm_self ON pm_self.employee_id = e.id AND pm_self.status = 1
+                JOIN
+            projects p ON p.id = pm_self.project_id
                 LEFT JOIN
-            employees e ON e.id = ea.employee_id
+            positions ps ON ps.id = e.position
                 LEFT JOIN
-            employee_roles er ON e.id = er.employee_id
+            roles r ON r.id = pm_self.role_id -- Rolu layihə üzvlüyündən götürürük
                 LEFT JOIN
-            roles r ON r.id = er.role
-                LEFT JOIN (
-                SELECT
-                    employee_id,
-                    COUNT(id) AS checkin_count
-                FROM
-                    employee_activities
-                WHERE
-                    type = 1
-                  AND status > 0
-                GROUP BY
-                    employee_id
-            ) AS checkin_counts
-                          ON checkin_counts.employee_id = ea.employee_id
-                LEFT JOIN (
-                SELECT
-                    employee_id,
-                    COUNT(id) AS checkout_count
-                FROM
-                    employee_activities
-                WHERE
-                    type = 2
-                  AND status > 0
-                GROUP BY
-                    employee_id
-            ) AS checkout_counts
-                          ON checkout_counts.employee_id = ea.employee_id
+            employee_activities ea ON ea.employee_id = e.id AND ea.status > 0 -- Bütün fəaliyyətləri daxil edirik
+
         WHERE
-            EXISTS (
-                SELECT 1
-                FROM
-                    project_members pm1
-                        JOIN
-                    project_members pm2 ON pm1.project_id = pm2.project_id
-                WHERE
-                    pm1.employee_id = ea.employee_id
-                  AND pm1.status = 1
-                  AND pm2.employee_id = $1
-                  AND pm2.status = 1
-            )
+            e.is_active = TRUE
+          -- EXISTS şərti: Bu işçi ($1) ilə eyni layihədə olanları seçir
+          AND EXISTS (
+            SELECT 1
+            FROM project_members pm_other
+            WHERE
+                pm_other.project_id = pm_self.project_id
+              AND pm_other.employee_id = 909
+              AND pm_other.status = 1
+        )
           ${filters.join(' AND ')}
-        ORDER BY
-            e.full_name ASC;
     `, [req.currentUserId, ...values])
 
     res.status(200).json({
