@@ -6,11 +6,21 @@ import moment from "moment";
 const router = express.Router();
 
 router.get('/', checkAuth, async (req, res) => {
+    const { page, limit } = req.query;
+
+    let limits = '';
+    const offset = (page - 1) * limit;
+
+    if (page && limit) {
+        limits = ` LIMIT ${limit} OFFSET ${offset} `;
+    }
+
+
     try {
         const {rows: notificationRows} = await db.query(`
             SELECT * from notifications 
             WHERE user_id = $1
-            ORDER BY id DESC;
+            ORDER BY id DESC ${limits ? limits : ''};
         `, [req.currentUserId]);
 
         return res.json({
