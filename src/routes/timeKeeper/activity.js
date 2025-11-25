@@ -197,7 +197,7 @@ router.get('/list/count', checkAuth, userPermission, async (req, res) => {
               AND pm_other.employee_id = $1
               AND pm_other.status = 1
         )
-          ${filters.join(' AND ')}
+            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
     `, [req.currentUserId, ...values])
 
     res.status(200).json({
