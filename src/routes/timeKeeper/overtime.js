@@ -21,15 +21,15 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                         'name', r.name
                         )
                      ) as employee,
-               (
-                   SELECT json_build_object(
-                                  'id', e.id,
-                                  'full_name', e.full_name
-                          )
-                   FROM employees e
-                   WHERE e.id = ea.reviewer_employee_id
-                          LIMIT 1
-            ) AS reviewer,
+--                (
+--                    SELECT json_build_object(
+--                                   'id', e.id,
+--                                   'full_name', e.full_name
+--                           )
+--                    FROM employees e
+--                    WHERE e.id = ea.reviewer_employee_id
+--                           LIMIT 1
+--             ) AS reviewer,
                (
                    SELECT json_build_object(
                                   'id', p.id,
