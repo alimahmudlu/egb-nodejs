@@ -94,409 +94,6 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     })
 })
 
-router.get('/list/count', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, page, limit} = req.query;
-    const project = req.query?.['project[]']
-    const project2 = req.query?.['project']
-    const filters = [];
-    const values = [];
-    let idx = 2;
-
-    if (start_date) {
-        filters.push(`ea.review_time >= $${idx}`);
-        values.push(start_date)
-        idx++
-    }
-    if (end_date) {
-        filters.push(`ea.review_time <= $${idx}`);
-        values.push(end_date)
-        idx++
-    }
-    if (project && (project || []).length > 0) {
-        filters.push(`EXISTS (
-            SELECT 1
-            FROM project_members pm1
-                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-            WHERE pm1.employee_id = ea.employee_id
-            AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
-        )`);
-    }
-    if (project2) {
-        filters.push(`EXISTS (
-            SELECT 1
-            FROM project_members pm1
-                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-            WHERE pm1.employee_id = ea.employee_id
-            AND pm1.project_id = ${project2} AND pm1.status = 1
-        )`);
-    }
-    if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
-        values.push(`%${full_name}%`);
-        idx++
-    }
-
-    console.log(`
-        SELECT
-            COALESCE(SUM(CASE WHEN ea.type = 1 AND ea.status > 0 THEN 1 ELSE 0 END), 0) AS checkin_count,
-
-            COALESCE(SUM(CASE WHEN ea.type = 2 AND ea.status > 0 THEN 1 ELSE 0 END), 0) AS checkout_count
-        FROM
-            employees e
-                JOIN
-            project_members pm_self ON pm_self.employee_id = e.id AND pm_self.status = 1
-                JOIN
-            projects p ON p.id = pm_self.project_id
-                LEFT JOIN
-            positions ps ON ps.id = e.position
-                LEFT JOIN
-            roles r ON r.id = pm_self.role_id -- Rolu layihə üzvlüyündən götürürük
-                LEFT JOIN
-            employee_activities ea ON ea.employee_id = e.id AND ea.status > 0 -- Bütün fəaliyyətləri daxil edirik
-
-        WHERE
-            e.is_active = TRUE
-          -- EXISTS şərti: Bu işçi ($1) ilə eyni layihədə olanları seçir
-          AND EXISTS (
-            SELECT 1
-            FROM project_members pm_other
-            WHERE
-                pm_other.project_id = pm_self.project_id
-              AND pm_other.employee_id = $1
-              AND pm_other.status = 1
-        )
-            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-    `, [req.currentUserId, ...values])
-
-    const {rows} = await db.query(`
-        SELECT
-            COALESCE(SUM(CASE WHEN ea.type = 1 AND ea.status > 0 THEN 1 ELSE 0 END), 0) AS checkin_count,
-
-            COALESCE(SUM(CASE WHEN ea.type = 2 AND ea.status > 0 THEN 1 ELSE 0 END), 0) AS checkout_count
-        FROM
-            employees e
-                JOIN
-            project_members pm_self ON pm_self.employee_id = e.id AND pm_self.status = 1
-                JOIN
-            projects p ON p.id = pm_self.project_id
-                LEFT JOIN
-            positions ps ON ps.id = e.position
-                LEFT JOIN
-            roles r ON r.id = pm_self.role_id -- Rolu layihə üzvlüyündən götürürük
-                LEFT JOIN
-            employee_activities ea ON ea.employee_id = e.id AND ea.status > 0 -- Bütün fəaliyyətləri daxil edirik
-
-        WHERE
-            e.is_active = TRUE
-          -- EXISTS şərti: Bu işçi ($1) ilə eyni layihədə olanları seçir
-          AND EXISTS (
-            SELECT 1
-            FROM project_members pm_other
-            WHERE
-                pm_other.project_id = pm_self.project_id
-              AND pm_other.employee_id = $1
-              AND pm_other.status = 1
-        )
-            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-    `, [req.currentUserId, ...values])
-
-    res.status(200).json({
-        success: true,
-        message: 'Activity fetched successfully',
-        data: rows?.[0]
-    })
-})
-
-router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, page, limit} = req.query;
-    const project = req.query?.['project[]']
-    const project2 = req.query?.['project']
-    const filters = [];
-    const values = [];
-    let idx = 2;
-
-
-    if (project) {
-        if (Array.isArray(project2) && (project || []).length > 0) {
-            filters.push(`EXISTS (
-                SELECT 1
-                FROM project_members pm1
-                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-                WHERE pm1.employee_id = ea.employee_id
-                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
-            )`);
-        }
-        else {
-            filters.push(`EXISTS (
-            SELECT 1
-            FROM project_members pm1
-                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-            WHERE pm1.employee_id = ea.employee_id
-            AND pm1.project_id = ${project} AND pm1.status = 1
-        )`);
-        }
-    }
-    if (project2) {
-        filters.push(`EXISTS (
-            SELECT 1
-            FROM project_members pm1
-                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-            WHERE pm1.employee_id = ea.employee_id
-            AND pm1.project_id = ${project2} AND pm1.status = 1
-        )`);
-    }
-    if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
-        values.push(`%${full_name}%`);
-        idx++
-    }
-
-
-    let limits = '';
-    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
-
-    if (page && limit) {
-        limits = ` LIMIT ${limit} OFFSET ${offset} `;
-    }
-
-    const {rows} = await db.query(`
-        SELECT ea.*,
-               COUNT(*) OVER() AS total_count, json_build_object(
-                'id', e.id,
-                'full_name', e.full_name,
-                'role', json_build_object(
-                        'name', r.name
-                        )
-                     ) as employee,
-               (
-                   SELECT json_build_object(
-                                  'name', p.name
-                          )
-                   FROM project_members pm
-                   LEFT JOIN projects p ON p.id = pm.project_id
-                   WHERE e.id = pm.employee_id AND pm.status = 1
-                          LIMIT 1
-            ) AS project
-        FROM employee_activities ea
-            LEFT JOIN employees e ON e.id = ea.employee_id
-            LEFT JOIN employee_roles er ON e.id = er.employee_id
-            LEFT JOIN roles r ON r.id = er.role
-        WHERE EXISTS (
-            SELECT 1
-            FROM project_members pm1
-            JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
-            WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1
-          AND pm2.employee_id = $1
-            )
-            AND ea.type = 1 AND ea.status = 1
-            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-        ORDER BY e.full_name ASC ${limits ? limits : ''};
-    `, [req.currentUserId, ...values])
-
-    res.status(200).json({
-        success: true,
-        message: 'Activity fetched successfully',
-        data: {
-            total: rows?.[0]?.total_count || 0,
-            page: page,
-            data: rows
-        }
-    })
-})
-
-router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, page, limit} = req.query;
-    const project = req.query?.['project[]']
-    const project2 = req.query?.['project']
-    const filters = [];
-    const values = [];
-    let idx = 2;
-
-
-    if (project) {
-        if (Array.isArray(project2) && (project || []).length > 0) {
-            filters.push(`EXISTS (
-                SELECT 1
-                FROM project_members pm1
-                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-                WHERE pm1.employee_id = ea.employee_id
-                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
-            )`);
-        }
-        else {
-            filters.push(`EXISTS (
-            SELECT 1
-            FROM project_members pm1
-                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-            WHERE pm1.employee_id = ea.employee_id
-            AND pm1.project_id = ${project} AND pm1.status = 1
-        )`);
-        }
-    }
-    if (project2) {
-        filters.push(`EXISTS (
-            SELECT 1
-            FROM project_members pm1
-                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-            WHERE pm1.employee_id = ea.employee_id
-            AND pm1.project_id = ${project2} AND pm1.status = 1
-        )`);
-    }
-    if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
-        values.push(`%${full_name}%`);
-        idx++
-    }
-
-
-    let limits = '';
-    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
-
-    if (page && limit) {
-        limits = ` LIMIT ${limit} OFFSET ${offset} `;
-    }
-
-    const {rows} = await db.query(`
-        SELECT ea.*,
-               COUNT(*) OVER() AS total_count, json_build_object(
-                'id', e.id,
-                'full_name', e.full_name,
-                'role', json_build_object(
-                        'name', r.name
-                        )
-                     ) as employee,
-               (
-                   SELECT json_build_object(
-                                  'name', p.name
-                          )
-                   FROM project_members pm
-                   LEFT JOIN projects p ON p.id = pm.project_id
-                   WHERE e.id = pm.employee_id AND pm.status = 1
-                          LIMIT 1
-            ) AS project
-        FROM employee_activities ea
-            LEFT JOIN employees e ON e.id = ea.employee_id
-            LEFT JOIN employee_roles er ON e.id = er.employee_id
-            LEFT JOIN roles r ON r.id = er.role
-        WHERE EXISTS (
-            SELECT 1
-            FROM project_members pm1
-            JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
-            WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1
-          AND pm2.employee_id = $1
-            )
-            AND ea.type = 2 AND ea.status = 1 AND ea.completed_status = 0
-            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-        ORDER BY e.full_name ASC ${limits ? limits : ''};
-    `, [req.currentUserId, ...values])
-
-    res.status(200).json({
-        success: true,
-        message: 'Activity fetched successfully',
-        data: {
-            total: rows?.[0]?.total_count || 0,
-            page: page,
-            data: rows
-        }
-    })
-})
-
-router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, page, limit} = req.query;
-    const project = req.query?.['project[]']
-    const project2 = req.query?.['project']
-    const filters = [];
-    const values = [];
-    let idx = 2;
-
-    if (project) {
-        if (Array.isArray(project2) && (project || []).length > 0) {
-            filters.push(`EXISTS (
-                SELECT 1
-                FROM project_members pm1
-                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-                WHERE pm1.employee_id = ea.employee_id
-                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
-            )`);
-        }
-        else {
-            filters.push(`EXISTS (
-            SELECT 1
-            FROM project_members pm1
-                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-            WHERE pm1.employee_id = ea.employee_id
-            AND pm1.project_id = ${project} AND pm1.status = 1
-        )`);
-        }
-    }
-    if (project2) {
-        filters.push(`EXISTS (
-            SELECT 1
-            FROM project_members pm1
-                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-            WHERE pm1.employee_id = ea.employee_id
-            AND pm1.project_id = ${project2} AND pm1.status = 1
-        )`);
-    }
-    if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
-        values.push(`%${full_name}%`);
-        idx++
-    }
-
-
-    let limits = '';
-    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
-
-    if (page && limit) {
-        limits = ` LIMIT ${limit} OFFSET ${offset} `;
-    }
-
-    const {rows} = await db.query(`
-        SELECT ea.*,
-               COUNT(*) OVER() AS total_count, json_build_object(
-                'id', e.id,
-                'full_name', e.full_name,
-                'role', json_build_object(
-                        'name', r.name
-                        )
-                     ) as employee,
-               (
-                   SELECT json_build_object(
-                                  'name', p.name
-                          )
-                   FROM project_members pm
-                   LEFT JOIN projects p ON p.id = pm.project_id
-                   WHERE e.id = pm.employee_id AND pm.status = 1
-                          LIMIT 1
-            ) AS project
-        FROM employee_activities ea
-            LEFT JOIN employees e ON e.id = ea.employee_id
-            LEFT JOIN employee_roles er ON e.id = er.employee_id
-            LEFT JOIN roles r ON r.id = er.role
-        WHERE EXISTS (
-            SELECT 1
-            FROM project_members pm1
-            JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
-            WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1
-          AND pm2.employee_id = $1
-            )
-            AND ea.type = 1 AND ea.status = 2 AND ea.completed_status = 0
-            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-        ORDER BY e.full_name ASC ${limits ? limits : ''};
-    `, [req.currentUserId, ...values])
-
-    res.status(200).json({
-        success: true,
-        message: 'Activity fetched successfully',
-        data: {
-            total: rows?.[0]?.total_count || 0,
-            page: page,
-            data: rows
-        }
-    })
-})
-
 router.post('/accept', checkAuth, userPermission, async (req, res) => {
     const {activity_id, employee_id, type, confirm_time, timezone, confirm_type} = req.body
 
@@ -773,7 +370,7 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/checkin', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, project, full_name, page, limit} = req.query;
+    const {start_date, end_date, project, full_name} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -793,7 +390,7 @@ router.get('/checkin', checkAuth, userPermission, async (req, res) => {
             SELECT 1
             FROM project_members pm1
                      JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-            WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1 AND pm2.status = 1
+            WHERE pm1.employee_id = ea.employee_id
             AND pm1.project_id = $${idx}
         )`);
         values.push(project)
@@ -805,19 +402,9 @@ router.get('/checkin', checkAuth, userPermission, async (req, res) => {
         idx++
     }
 
-
-    let limits = '';
-    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
-
-    if (page && limit) {
-        limits = ` LIMIT ${limit} OFFSET ${offset} `;
-    }
-
-
     const {rows} = await db.query(`
         SELECT ea.*,
-               COUNT(*) OVER() AS total_count,
-            (
+               (
                    SELECT json_build_object(
                                   'id', p.id,
                                   'name', p.name
@@ -829,7 +416,9 @@ router.get('/checkin', checkAuth, userPermission, async (req, res) => {
             ) AS project, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
+--                 'email', e.email,
                 'role', json_build_object(
+--                         'id', er.id,
                         'name', r.name
                         )
                      ) as employee FROM employee_activities ea
@@ -840,26 +429,22 @@ router.get('/checkin', checkAuth, userPermission, async (req, res) => {
             SELECT 1
             FROM project_members pm1
                      JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-            WHERE pm1.employee_id = ea.employee_id AND pm2.status = 1
-              AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
+            WHERE pm1.employee_id = ea.employee_id
+              AND pm2.employee_id = $1
         )
         AND ea.type = 1 AND ea.status > 0 AND ${filters.join(' AND ')}
-        ORDER BY ea.id DESC ${limits ? limits : ''};
+        ORDER BY ea.id DESC;
     `, [req.currentUserId, ...values])
 
     res.status(200).json({
         success: true,
         message: 'Activity fetched successfully',
-        data: {
-            total: rows?.[0]?.total_count || 0,
-            page: page,
-            data: rows
-        }
+        data: rows || []
     })
 })
 
 router.get('/checkout', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, project, page, limit} = req.query;
+    const {start_date, end_date, full_name, project} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -879,7 +464,7 @@ router.get('/checkout', checkAuth, userPermission, async (req, res) => {
             SELECT 1
             FROM project_members pm1
                      JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-            WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1 AND pm2.status = 1
+            WHERE pm1.employee_id = ea.employee_id
             AND pm1.project_id = $${idx}
         )`);
         values.push(project)
@@ -891,17 +476,8 @@ router.get('/checkout', checkAuth, userPermission, async (req, res) => {
         idx++
     }
 
-
-    let limits = '';
-    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
-
-    if (page && limit) {
-        limits = ` LIMIT ${limit} OFFSET ${offset} `;
-    }
-
     const {rows} = await db.query(`
         SELECT ea.*,
-               COUNT(*) OVER() AS total_count,
                (
                    SELECT json_build_object(
 --                                   'id', p.id,
@@ -914,7 +490,9 @@ router.get('/checkout', checkAuth, userPermission, async (req, res) => {
             ) AS project, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
+--                 'email', e.email,
                 'role', json_build_object(
+--                         'id', er.id,
                         'name', r.name
                         )
                      ) as employee FROM employee_activities ea
@@ -926,21 +504,17 @@ router.get('/checkout', checkAuth, userPermission, async (req, res) => {
             SELECT 1
             FROM project_members pm1
                      JOIN project_members pm2 ON pm1.project_id = pm2.project_id
-            WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1 AND pm2.status = 1
-              AND pm2.employee_id = $1 
+            WHERE pm1.employee_id = ea.employee_id
+              AND pm2.employee_id = $1
         )
         AND ea.type = 2 AND ea.status > 0 AND ${filters.join(' AND ')}
-        ORDER BY ea.id DESC  ${limits ? limits : ''};
+        ORDER BY ea.id DESC;
     `, [req.currentUserId, ...values])
 
     res.status(200).json({
         success: true,
         message: 'Activity fetched successfully',
-        data: {
-            total: rows?.[0]?.total_count || 0,
-            page: page,
-            data: rows
-        }
+        data: rows || []
     })
 })
 
