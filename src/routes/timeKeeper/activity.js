@@ -203,7 +203,7 @@ router.get('/list/count', checkAuth, userPermission, async (req, res) => {
     res.status(200).json({
         success: true,
         message: 'Activity fetched successfully',
-        data: rows
+        data: rows?.[0]
     })
 })
 
