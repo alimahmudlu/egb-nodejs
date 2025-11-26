@@ -41,7 +41,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
 
 
     let limits = '';
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
 
     if (page && limit) {
         limits = ` LIMIT ${limit} OFFSET ${offset} `;
@@ -116,7 +116,7 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
 
 
     let limits = '';
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
 
     if (page && limit) {
         limits = ` LIMIT ${limit} OFFSET ${offset} `;
@@ -209,7 +209,7 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
 
 
     let limits = '';
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
 
     if (page && limit) {
         limits = ` LIMIT ${limit} OFFSET ${offset} `;

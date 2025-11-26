@@ -9,7 +9,7 @@ router.get('/', checkAuth, async (req, res) => {
     const { page, limit } = req.query;
 
     let limits = '';
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
 
     if (page && limit) {
         limits = ` LIMIT ${limit} OFFSET ${offset} `;
