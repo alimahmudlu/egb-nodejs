@@ -136,6 +136,21 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                 WHERE e.id = pm.employee_id AND pm.status = 1
                 LIMIT 1
             ) AS project,
+            (
+    SELECT
+        COALESCE(
+                jsonb_agg(
+                        json_build_object(
+                                'id', p.id,
+                                'name', p.name
+                        )
+                ),
+                '[]'::jsonb
+        )
+    FROM project_members pm
+             LEFT JOIN projects p ON p.id = pm.project_id
+    WHERE e.id = pm.employee_id AND pm.status = 1
+) AS projects,
                (SELECT row_to_json(ea.*) FROM employee_activities ea
                 WHERE employee_id = e.id
                   AND completed_status = 0
@@ -221,7 +236,15 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
         `, [employee_id])
 
     if (checkedInRows.length === 0) {
-        const {rows: insertedRow} = await db.query(`
+        const {rows: checkedOutRows} =
+            await db.query(`
+            SELECT id FROM employee_activities
+            WHERE employee_id = $1 AND status != 3 AND type = 2 AND completed_status = 0
+            ORDER BY id DESC
+                LIMIT 1
+        `, [employee_id])
+        if (checkedInRows.length === 0) {
+            const {rows: insertedRow} = await db.query(`
         INSERT INTO employee_activities
         (
             activity_id,
@@ -242,25 +265,25 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
     `,
-        [
-            null,
-            employee_id,
-            employee_timezone,
-            request_time,
-            1,
-            longitude,
-            latitude,
-            req.currentUserId,
-            employee_timezone,
-            request_time,
-            2,
-            0,
-            null,
-            null,
-            true
-        ]);
+                [
+                    null,
+                    employee_id,
+                    employee_timezone,
+                    request_time,
+                    1,
+                    longitude,
+                    latitude,
+                    req.currentUserId,
+                    employee_timezone,
+                    request_time,
+                    2,
+                    0,
+                    null,
+                    null,
+                    true
+                ]);
 
-        const {rows: thisInsertedRow} = await db.query(`
+            const {rows: thisInsertedRow} = await db.query(`
             SELECT e.*, (
                 SELECT json_build_object(
                                'id', p.id,
@@ -288,11 +311,12 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
         `, [employee_id])
 
 
-        return res.status(201).json({
-            success: true,
-            message: 'Activity created successfully',
-            data: thisInsertedRow?.[0]
-        })
+            return res.status(201).json({
+                success: true,
+                message: 'Activity created successfully',
+                data: thisInsertedRow?.[0]
+            })
+        }
     }
     else {
         return res.status(400).json({
