@@ -99,6 +99,8 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                     const io = getIO();
                     const socketId = userSocketMap.get(el?.employee_id);
 
+                    console.log(el?.employee_id, socketId)
+
                     if (socketId) {
                         io.to(socketId).emit("new_activity", {
                             success: true,
