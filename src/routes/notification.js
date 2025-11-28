@@ -4,7 +4,8 @@ import db from "../helper/db.js";
 const router = express.Router()
 
 router.post('/token/create', async (req, res) => {
-    const {userId, token} = req.body;
+    const {token} = req.body;
+    const userId = req.currentUserId;
 
     const {rows: existingRows} = await db.query(`SELECT * FROM notification_tokens WHERE user_id = $1 AND token = $2`, [userId, token])
 
@@ -29,7 +30,8 @@ RETURNING *`,
 })
 
 router.post('/token/delete', async (req, res) => {
-    const {userId, token} = req.body;
+    const {token} = req.body;
+    const userId = req.currentUserId;
 
 
     const {rows: existingRows} = await db.query(`
