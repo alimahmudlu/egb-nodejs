@@ -109,6 +109,9 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
+
+                    console.log(el?.employee_id, 'New Check-in request', `${empData?.[0]?.full_name} sent a request for check-in at now`,)
+
                     sendPushNotification(el?.employee_id, 'New Check-in request', `${empData?.[0]?.full_name} sent a request for check-in at now`, )
                 })
             }
