@@ -35,11 +35,12 @@ router.post('/token/delete', checkAuth, userPermission, async (req, res) => {
     const {token} = req.body;
     const userId = req.currentUserId;
 
-
-    const {rows: existingRows} = await db.query(`
+    const query = `
         UPDATE notification_tokens 
         SET status = 0
-        WHERE user_id = $1 AND token = $2`, [userId, token])
+        WHERE user_id = ${userId} AND token = '${token}' RETURNING *`
+
+    const {rows: existingRows} = await db.query(query, [])
 
     console.log(userId, token, existingRows)
 
