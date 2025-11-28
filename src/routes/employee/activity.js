@@ -13,6 +13,8 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const status = 1;
     const type = 1;
 
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
+
     const {rows: checkedInRows} =
         await db.query(`
             SELECT * FROM employee_activities
@@ -107,7 +109,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
-                    sendPushNotification(el?.employee_id, 'Activity status changed successfully', 'salam')
+                    sendPushNotification(el?.employee_id, 'New Check-in request', `${empData?.[0]?.full_name} sent a request for check-in at now`, )
                 })
             }
         }
