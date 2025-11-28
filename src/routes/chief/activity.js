@@ -86,6 +86,8 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                 LIMIT 1
         `, [req.currentUserId])
 
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
+
     if (checkedInRows.length === 0) {
         const {rows} =
             await db.query(`
@@ -171,7 +173,10 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
-                    sendPushNotification(el?.employee_id, 'test', 'salam')
+                    sendPushNotification(el?.employee_id, 'New Check-in request', `${empData?.[0]?.full_name} sent a request for check-in at now`, {
+                        url: '/chief/',
+                        utm_source: 'push_notification'
+                    })
                 })
             }
         }
@@ -206,6 +211,8 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             ORDER BY id DESC 
                 LIMIT 1
         `, [req.currentUserId])
+
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
 
     if (checkedOutRows.length === 0) {
         const {rows} =
@@ -285,7 +292,10 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
-                    sendPushNotification(el?.employee_id, 'test', 'salam')
+                    sendPushNotification(el?.employee_id, 'New Check-out request', `${empData?.[0]?.full_name} sent a request for check-out at now`, {
+                        url: '/chief/',
+                        utm_source: 'push_notification'
+                    })
                 })
             }
         }

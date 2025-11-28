@@ -146,8 +146,14 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
     )
 
 
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
     const io = getIO();
     const socketId = userSocketMap.get(employee_id);
+
+    sendPushNotification(employee_id, type === 3 ? 'Overtime Check-in request accepted' : 'Overtime Check-out request accepted', `${empData?.[0]?.full_name} accepted a request for ${type === 2 ? 'Overtime check-in' : 'Overtime check-out'} at now`, {
+        url: '/timeKeeper/',
+        utm_source: 'push_notification'
+    })
 
     if (socketId) {
         io.to(socketId).emit("update_activity", {
@@ -218,6 +224,12 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
             data: returnedRow?.[0]
         });
     }
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
+
+    sendPushNotification(employee_id, type === 3 ? 'Overtime Check-in request accepted' : 'Overtime Check-out request accepted', `${empData?.[0]?.full_name} accepted a request for ${type === 2 ? 'Overtime check-in' : 'Overtime check-out'} at now`, {
+        url: '/timeKeeper/',
+        utm_source: 'push_notification'
+    })
 
     return res.status(200).json({
         success: true,

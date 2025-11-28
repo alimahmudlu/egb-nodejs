@@ -502,6 +502,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
 
     // const returnedRow = await timeKeeperActivityAccept({...req.body, currentUserId: req.currentUserId}, res)
 
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
     if (!activity_id || !employee_id || !type) {
         return res.status(400).json({
             success: false,
@@ -702,7 +703,10 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         });
     }
 
-    sendPushNotification(employee_id, 'test', 'salam')
+    sendPushNotification(employee_id, type === 1 ? 'Check-in request accepted' : 'Check-out request accepted', `${empData?.[0]?.full_name} accepted a request for ${type === 1 ? 'check-in' : 'check-out'} at now`, {
+        url: '/timeKeeper/',
+        utm_source: 'push_notification'
+    })
 
     return res.status(200).json({
         success: true,
@@ -720,6 +724,8 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
             message: 'Activity ID, Employee ID, type and reject_reason are required'
         })
     }
+
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
 
     const {rows} = await db.query(`
                 UPDATE employee_activities
@@ -762,6 +768,11 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
             data: returnedRow?.[0]
         });
     }
+
+    sendPushNotification(employee_id, type === 1 ? 'Check-in request rejected' : 'Check-out request rejected', `${empData?.[0]?.full_name} rejected a request for ${type === 1 ? 'check-in' : 'check-out'} at now`, {
+        url: '/timeKeeper/',
+        utm_source: 'push_notification'
+    })
 
     return res.status(200).json({
         success: true,
@@ -1040,7 +1051,6 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
-                    sendPushNotification(el?.employee_id, 'test', 'salam')
                 })
             }
         }
@@ -1378,7 +1388,6 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
-                    sendPushNotification(el?.employee_id, 'test', 'salam')
                 })
             }
 

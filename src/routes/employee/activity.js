@@ -140,6 +140,7 @@ router.post('/overtime', checkAuth, userPermission, async (req, res) => {
     const status = 1;
     const type = 3;
 
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
     const {rows: checkedInRows} =
         await db.query(`
             SELECT * FROM employee_activities
@@ -233,7 +234,10 @@ router.post('/overtime', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
-                    sendPushNotification(el?.employee_id, 'test', 'salam')
+                    sendPushNotification(el?.employee_id, 'New Overtime Check-in request', `${empData?.[0]?.full_name} sent a request for overtime check-in at now`, {
+                        url: '/timeKeeper/overtime',
+                        utm_source: 'push_notification'
+                    })
 
                     await db.query(`
                         INSERT INTO notifications
@@ -277,6 +281,7 @@ router.post('/overtimeout', checkAuth, userPermission, async (req, res) => {
     const status = 1;
     const type = 4;
 
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
     const {rows: checkedOutRows} =
         await db.query(`
             SELECT * FROM employee_activities
@@ -363,7 +368,10 @@ router.post('/overtimeout', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
-                    sendPushNotification(el?.employee_id, 'test', 'salam')
+                    sendPushNotification(el?.employee_id, 'New Overtime Check-out request', `${empData?.[0]?.full_name} sent a request for Overtime check-out at now`, {
+                        url: '/timeKeeper/overtime',
+                        utm_source: 'push_notification'
+                    })
                 })
             }
         }
@@ -436,6 +444,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
     const status = 1;
     const type = 2;
 
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
     const {rows: checkedOutRows} =
         await db.query(`
             SELECT * FROM employee_activities
@@ -522,7 +531,10 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
-                    sendPushNotification(el?.employee_id, 'test', 'salam')
+                    sendPushNotification(el?.employee_id, 'New Check-out request', `${empData?.[0]?.full_name} sent a request for check-out at now`, {
+                        url: '/timeKeeper/',
+                        utm_source: 'push_notification'
+                    })
                 })
             }
         }
