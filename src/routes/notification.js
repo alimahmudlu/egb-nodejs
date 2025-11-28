@@ -37,6 +37,8 @@ router.post('/token/delete', async (req, res) => {
         SET status = 0
         WHERE user_id = $1 AND token = $2`, [userId, token])
 
+    console.log(userId, token, existingRows)
+
     if (existingRows.length === 0) {
         return res.status(400).json({
             success: false,
