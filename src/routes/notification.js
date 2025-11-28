@@ -50,8 +50,6 @@ router.post('/token/delete', checkAuth, userPermission, async (req, res) => {
 
     const {rows: existingRows} = await db.query(query, [])
 
-    console.log(userId, token, existingRows)
-
     if (existingRows.length === 0) {
         return res.status(400).json({
             success: false,

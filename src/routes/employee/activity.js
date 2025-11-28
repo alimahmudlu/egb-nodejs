@@ -99,8 +99,6 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                     const io = getIO();
                     const socketId = userSocketMap.get(el?.employee_id);
 
-                    console.log(el?.employee_id, socketId)
-
                     if (socketId) {
                         io.to(socketId).emit("new_activity", {
                             success: true,
@@ -109,7 +107,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
-                    sendPushNotification(el?.employee_id, 'test', 'salam')
+                    sendPushNotification(el?.employee_id, 'Activity status changed successfully', 'salam')
                 })
             }
         }
