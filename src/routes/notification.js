@@ -1,9 +1,11 @@
 import express from "express";
 import db from "../helper/db.js";
+import checkAuth from "../middleware/checkAuth.js";
+import userPermission from "../middleware/userPermission.js";
 
 const router = express.Router()
 
-router.post('/token/create', async (req, res) => {
+router.post('/token/create', checkAuth, userPermission, async (req, res) => {
     const {token} = req.body;
     const userId = req.currentUserId;
 
@@ -29,7 +31,7 @@ RETURNING *`,
     })
 })
 
-router.post('/token/delete', async (req, res) => {
+router.post('/token/delete', checkAuth, userPermission, async (req, res) => {
     const {token} = req.body;
     const userId = req.currentUserId;
 
