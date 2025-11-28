@@ -693,8 +693,6 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
     const io = getIO();
     const socketId = userSocketMap.get(employee_id);
 
-    console.log('socket_id', socketId, returnedRow?.[0])
-
     if (socketId) {
         io.to(socketId).emit("update_activity", {
             success: true,
