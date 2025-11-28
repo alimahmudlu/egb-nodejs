@@ -17,6 +17,11 @@ export default async function sendPushNotification(userId, title, body, data = {
         WHERE user_id = $1 AND status = 1
     `, [userId]);
 
+    console.log(rows, userId, 'rows', `
+        SELECT token FROM notification_tokens
+        WHERE user_id = $1 AND status = 1
+    `)
+
     if (rows.length === 0) {
         console.log(`[PushService] İstifadəçi ${userId} üçün aktiv token tapılmadı.`);
         return;
