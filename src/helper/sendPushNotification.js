@@ -27,65 +27,100 @@ export default async function sendPushNotification(userId, title, body, data = {
         return;
     }
 
-    const tokens = rows.map(row => row.token);
-    const tokenBatches = chunkArray(tokens, 100);
+    rows.map(async row => {
+        const message = {
+                    to: row?.token,
+                    sound: 'default',
+                    title,
+                    body,
+                    subtitle: "Yeni Məlumat",
+                    priority: 'high',
+                    channelId: 'default',
+                    data: {
+                        event: 'new_data',
+                        timestamp: Date.now(),
+                        ...data
+                    },
+        };
 
-    const failedTokens = [];
-
-    for (const batch of tokenBatches) {
-        const messages = batch.map(token => ({
-            to: token,
-            sound: 'default',
-            title,
-            body,
-            subtitle: "Yeni Məlumat",
-            priority: 'high',
-            channelId: 'default',
-            data: {
-                event: 'new_data',
-                timestamp: Date.now(),
-                ...data
+        const res = await fetch("https://exp.host/--/api/v2/push/send", {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Accept-encoding": "gzip, deflate",
+                "Content-Type": "application/json",
             },
-        }));
+            body: JSON.stringify(message),
+        });
 
-        try {
-            const res = await fetch("https://exp.host/--/api/v2/push/send", {
-                method: "POST",
-                headers: {
-                    Accept: "application/json",
-                    "Accept-encoding": "gzip, deflate",
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(messages),
-            });
+        const result = await res.json();
 
-            const result = await res.json();
+        console.log(result, 'result')
 
-            if (result?.data) {
-                for (const ticket of result.data) {
-                    if (ticket.status === 'error' && ticket.details?.error === 'DeviceNotRegistered') {
-                        const token = messages.find(m => m.id === ticket.id)?.to || null;
-                        const index = result.data.indexOf(ticket);
-                        if (index !== -1 && batch[index]) {
-                            failedTokens.push(batch[index]);
-                        }
-                    }
-                }
-            }
-
-        } catch (error) {
-            console.error("[PushService] Expo API ilə əlaqə xətası:", error);
+        if (result?.data?.status === 'error') {
+            const {rows: deletedRow} = db.query(`UPDATE notification_tokens SET status = 0 WHERE token = $1`, [row?.token])
         }
-    }
+    })
 
-    if (failedTokens.length > 0) {
-        const tokenList = failedTokens.join("','");
-
-        await db.query(`
-            UPDATE notification_tokens 
-            SET status = 0 
-            WHERE token IN ('${tokenList}')
-        `);
-        console.log(`[PushService] ${failedTokens.length} qeyri-aktiv token deaktiv edildi.`);
-    }
+    // const tokens = rows.map(row => row.token);
+    // const tokenBatches = chunkArray(tokens, 100);
+    //
+    // const failedTokens = [];
+    //
+    // for (const batch of rows) {
+    //     const messages = batch.map(token => ({
+    //         to: token,
+    //         sound: 'default',
+    //         title,
+    //         body,
+    //         subtitle: "Yeni Məlumat",
+    //         priority: 'high',
+    //         channelId: 'default',
+    //         data: {
+    //             event: 'new_data',
+    //             timestamp: Date.now(),
+    //             ...data
+    //         },
+    //     }));
+    //
+    //     try {
+    //         const res = await fetch("https://exp.host/--/api/v2/push/send", {
+    //             method: "POST",
+    //             headers: {
+    //                 Accept: "application/json",
+    //                 "Accept-encoding": "gzip, deflate",
+    //                 "Content-Type": "application/json",
+    //             },
+    //             body: JSON.stringify(messages),
+    //         });
+    //
+    //         const result = await res.json();
+    //
+    //         if (result?.data) {
+    //             for (const ticket of result.data) {
+    //                 if (ticket.status === 'error' && ticket.details?.error === 'DeviceNotRegistered') {
+    //                     const token = messages.find(m => m.id === ticket.id)?.to || null;
+    //                     const index = result.data.indexOf(ticket);
+    //                     if (index !== -1 && batch[index]) {
+    //                         failedTokens.push(batch[index]);
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //
+    //     } catch (error) {
+    //         console.error("[PushService] Expo API ilə əlaqə xətası:", error);
+    //     }
+    // }
+    //
+    // if (failedTokens.length > 0) {
+    //     const tokenList = failedTokens.join("','");
+    //
+    //     await db.query(`
+    //         UPDATE notification_tokens
+    //         SET status = 0
+    //         WHERE token IN ('${tokenList}')
+    //     `);
+    //     console.log(`[PushService] ${failedTokens.length} qeyri-aktiv token deaktiv edildi.`);
+    // }
 }
