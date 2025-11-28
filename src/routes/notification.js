@@ -12,9 +12,17 @@ router.post('/token/create', checkAuth, userPermission, async (req, res) => {
     const {rows: existingRows} = await db.query(`SELECT * FROM notification_tokens WHERE user_id = $1 AND token = $2`, [userId, token])
 
     if (existingRows.length > 0) {
-        return res.status(400).json({
-            success: false,
-            message: 'Token already exists'
+        const query = `
+            UPDATE notification_tokens
+            SET status = 1
+            WHERE user_id = ${userId} AND token = '${token}' RETURNING *`
+
+        const {rows: existingUpdateRows} = await db.query(query, [])
+
+        return res.status(201).json({
+            success: true,
+            message: 'Token update successfully',
+            data: {salam: 'aaaa'}
         })
     }
     const {rows: createdRows} = await db.query(`INSERT INTO notification_tokens
@@ -24,7 +32,7 @@ RETURNING *`,
         [userId, token]
     )
 
-    res.status(201).json({
+    return res.status(201).json({
         success: true,
         message: 'Token created successfully',
         data: {salam: 'aaaa'}
