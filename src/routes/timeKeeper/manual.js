@@ -592,6 +592,25 @@ router.post('/overtime_checkout', checkAuth, userPermission, async (req, res) =>
             hours: Math.floor(newDuration.asHours()),
             minutes: newDuration.minutes()
         }
+
+        if (confirm_type === 1) {
+            diff = {
+                hours: 3,
+                minutes: 0
+            };
+        }
+        else if (confirm_type === 2) {
+            diff = {
+                hours: Math.floor(newDuration.asHours()),
+                minutes: newDuration.minutes()
+            }
+        }
+        else if (confirm_type === 3) {
+            diff = {
+                hours: 0,
+                minutes: 0
+            }
+        }
     }
 
     const {rows: checkInRow} = await db.query(`
