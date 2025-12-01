@@ -4,6 +4,7 @@ import checkAuth from '../../middleware/checkAuth.js'
 import {getIO, userSocketMap} from "../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
 import userPermission from "../../middleware/userPermission.js";
+import moment from "moment/moment.d.ts";
 
 const router = express.Router()
 
@@ -77,6 +78,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude} = req.body;
     const status = 1;
     const type = 1;
+    const turn = moment(time, "HH:mm").isBetween(moment("05:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
 
     const {rows: checkedInRows} =
         await db.query(`
@@ -107,11 +109,11 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                             completed_status,
                             reject_reason,
                             work_time,
-                         is_manual
+                         is_manual, turn
                         )
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *
                 `,
-                [null, req.currentUserId, timezone, time, type, longitude, latitude, null, null, null, status, 0, null, null, false])
+                [null, req.currentUserId, timezone, time, type, longitude, latitude, null, null, null, status, 0, null, null, false, turn])
 
         if (rows.length > 0) {
             const {rows: thisInsertedRow} = await db.query(`

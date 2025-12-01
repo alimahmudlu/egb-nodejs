@@ -957,6 +957,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude} = req.body;
     const status = 1;
     const type = 1;
+    const turn = moment(time, "HH:mm").isBetween(moment("05:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
 
     const {rows: checkedInRows} =
         await db.query(`
@@ -985,11 +986,12 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                             completed_status,
                             reject_reason,
                             work_time,
-                         is_manual
+                         is_manual,
+                         turn
                         )
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *
                 `,
-                [null, req.currentUserId, timezone, time, type, longitude, latitude, req.currentUserId, timezone, time, 2, 0, null, null, false])
+                [null, req.currentUserId, timezone, time, type, longitude, latitude, req.currentUserId, timezone, time, 2, 0, null, null, false, turn])
 
         if (rows.length > 0) {
             const {rows: thisInsertedRow} = await db.query(`
@@ -1215,7 +1217,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
 * CHECKOUT: without Timekeeper control
 * */
 router.post('/checkout', checkAuth, userPermission, async (req, res) => {
-    const {time, timezone, latitude, longitude, activity_id} = req.body;
+    const {time, timezone, latitude, longitude, activity_id, confirm_type} = req.body;
     const status = 1;
     const type = 2;
 
@@ -1244,13 +1246,46 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
 
         if (
             moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("19:31", "HH:mm")) &&
-            duration.asHours() < 24
+            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1
         ) {
             diff = {
                 hours: 10,
                 minutes: 0
             };
+        }
+        else if (
+            // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("12:59", "HH:mm"), moment("14:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 2
+        ) {
+            diff = {
+                hours: 5,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBefore(moment("14:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 2
+        ) {
+            diff = {
+                hours: Math.floor(duration.asHours() - 1),
+                minutes: duration.minutes()
+            }
         }
         /*else if (
             moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
@@ -1275,13 +1310,85 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
         else if (
             moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
             moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
-            duration.asHours() < 24
+            duration.asHours() < 24 &&
+            confirm_type === 1
         ) {
             diff = {
                 hours: 10,
                 minutes: 0
             };
         }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("00:59", "HH:mm"), moment("02:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 2
+        ) {
+            diff = {
+                hours: 5,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBefore(moment("02:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 2
+        ) {
+            diff = {
+                hours: Math.floor(duration.asHours() - 1),
+                minutes: duration.minutes()
+            }
+        }
+        else if (
+            confirm_type === 3
+        ) {
+            diff = {
+                hours: 0,
+                minutes: 0
+            }
+        }
+        //
+        // if (
+        //     moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+        //     moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("19:31", "HH:mm")) &&
+        //     duration.asHours() < 24
+        // ) {
+        //     diff = {
+        //         hours: 10,
+        //         minutes: 0
+        //     };
+        // }
+        // /*else if (
+        //     moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+        //     moment(endHourMinute, "HH:mm").isBetween(moment("19:59", "HH:mm"), moment("20:31", "HH:mm")) &&
+        //     duration.asHours() < 24
+        // ) {
+        //     diff = {
+        //         hours: 11,
+        //         minutes: 30
+        //     };
+        // }
+        // else if (
+        //     moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+        //     moment(endHourMinute, "HH:mm").isBetween(moment("20:59", "HH:mm"), moment("21:31", "HH:mm")) &&
+        //     duration.asHours() < 24
+        // ) {
+        //     diff = {
+        //         hours: 13,
+        //         minutes: 0
+        //     };
+        // }*/
+        // else if (
+        //     moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+        //     moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
+        //     duration.asHours() < 24
+        // ) {
+        //     diff = {
+        //         hours: 10,
+        //         minutes: 0
+        //     };
+        // }
     }
 
     const {rows: checkInRow} = await db.query(`
