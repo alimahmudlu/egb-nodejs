@@ -50,6 +50,8 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         RETURNING *
     `, [projectId, turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, date, req.currentUserId]);
 
+    console.log(rows, 'rowssss')
+
     return res.status(200).json({
         success: true,
         message: 'Bus report added successfully',
