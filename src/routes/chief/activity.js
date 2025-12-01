@@ -4,7 +4,7 @@ import checkAuth from '../../middleware/checkAuth.js'
 import {getIO, userSocketMap} from "../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
 import userPermission from "../../middleware/userPermission.js";
-import moment from "moment/moment.d.ts";
+import moment from "moment";
 
 const router = express.Router()
 
