@@ -32,6 +32,8 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
         ORDER BY
             p.id;
     `
+
+    console.log(query, 'queryssss', moment().format('YYYY-MM-DD'))
     const {rows: employees} = await db.query(query, [moment().format('YYYY-MM-DD')]);
 
     return res.status(200).json({
