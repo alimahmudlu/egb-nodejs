@@ -1324,6 +1324,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() !== 2
         ) {
+            console.log('1ci ')
             diff = {
                 hours: 10,
                 minutes: 0
@@ -1336,6 +1337,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() === 2
         ) {
+            console.log('2ci ')
             diff = {
                 hours: 8,
                 minutes: 0
@@ -1348,6 +1350,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             confirm_type === 4 &&
             moment().tz("Europe/Moscow").weekday() === 2
         ) {
+            console.log('3cu ')
             diff = {
                 hours: 10,
                 minutes: 0
@@ -1359,6 +1362,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() !== 2
         ) {
+            console.log('4cu ')
             diff = {
                 hours: 10,
                 minutes: 0
@@ -1370,6 +1374,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() === 2
         ) {
+            console.log('5ci ')
             diff = {
                 hours: 8,
                 minutes: 0
@@ -1381,6 +1386,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             confirm_type === 4 &&
             moment().tz("Europe/Moscow").weekday() === 2
         ) {
+            console.log('6ci ')
             diff = {
                 hours: 10,
                 minutes: 0
@@ -1392,6 +1398,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             duration.asHours() < 24 &&
             confirm_type === 2
         ) {
+            console.log('7ci ')
             diff = {
                 hours: 5,
                 minutes: 0
@@ -1403,6 +1410,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             duration.asHours() < 24 &&
             confirm_type === 2
         ) {
+            console.log('8ci ')
             diff = {
                 hours: Math.floor(duration.asHours() - 1),
                 minutes: duration.minutes()
@@ -1435,6 +1443,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() !== 2
         ) {
+            console.log('9cu ')
             diff = {
                 hours: 10,
                 minutes: 0
@@ -1447,6 +1456,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() === 2
         ) {
+            console.log('10cu ')
             diff = {
                 hours: 8,
                 minutes: 0
@@ -1459,6 +1469,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             confirm_type === 4 &&
             moment().tz("Europe/Moscow").weekday() === 2
         ) {
+            console.log('11ci ')
             diff = {
                 hours: 10,
                 minutes: 0
@@ -1470,6 +1481,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             duration.asHours() < 24 &&
             confirm_type === 2
         ) {
+            console.log('12ci ')
             diff = {
                 hours: 5,
                 minutes: 0
@@ -1481,6 +1493,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             duration.asHours() < 24 &&
             confirm_type === 2
         ) {
+            console.log('13cu ')
             diff = {
                 hours: Math.floor(duration.asHours() - 1),
                 minutes: duration.minutes()
@@ -1489,6 +1502,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
         else if (
             confirm_type === 3
         ) {
+            console.log('14cu ')
             diff = {
                 hours: 0,
                 minutes: 0
@@ -1537,7 +1551,9 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
         // }
     }
 
-    const {rows: checkInRow} = await db.query(`
+    console.log(diff, 'diff', confirm_type, moment().tz("Europe/Moscow").weekday(), moment().tz("Europe/Moscow").weekday() === 2)
+
+ /*   const {rows: checkInRow} = await db.query(`
         UPDATE employee_activities ea
         SET completed_status = $1, work_time = $6
         WHERE employee_id = $2 and status = $3 and completed_status = $4 and type = $5
@@ -1657,7 +1673,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             message: 'activity already exists for this status',
             data: null
         })
-    }
+    }*/
 })
 
 router.get('/', checkAuth, userPermission, async (req, res) => {
