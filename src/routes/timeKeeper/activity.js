@@ -541,6 +541,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() !== 2
         ) {
+            console.log('1ci ')
             diff = {
                 hours: 10,
                 minutes: 0
@@ -553,6 +554,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             confirm_type === 4 &&
             moment().tz("Europe/Moscow").weekday() === 2
         ) {
+            console.log('2ci ')
             diff = {
                 hours: 10,
                 minutes: 0
@@ -565,6 +567,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() === 2
         ) {
+            console.log('3ci ')
             diff = {
                 hours: 8,
                 minutes: 0
@@ -576,6 +579,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() !== 2
         ) {
+            console.log('4ci ')
             diff = {
                 hours: 10,
                 minutes: 0
@@ -587,6 +591,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             confirm_type === 4 &&
             moment().tz("Europe/Moscow").weekday() === 2
         ) {
+            console.log('5ci ')
             diff = {
                 hours: 10,
                 minutes: 0
@@ -598,6 +603,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() === 2
         ) {
+            console.log('6ci ')
             diff = {
                 hours: 8,
                 minutes: 0
@@ -609,6 +615,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             duration.asHours() < 24 &&
             confirm_type === 2
         ) {
+            console.log('7ci ')
             diff = {
                 hours: 5,
                 minutes: 0
@@ -620,6 +627,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             duration.asHours() < 24 &&
             confirm_type === 2
         ) {
+            console.log('8ci ')
             diff = {
                 hours: Math.floor(duration.asHours() - 1),
                 minutes: duration.minutes()
@@ -652,6 +660,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() !== 2
         ) {
+            console.log('9ci ')
             diff = {
                 hours: 10,
                 minutes: 0
@@ -664,6 +673,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() === 2
         ) {
+            console.log('10ci ')
             diff = {
                 hours: 8,
                 minutes: 0
@@ -676,6 +686,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             confirm_type === 4 &&
             moment().tz("Europe/Moscow").weekday() === 2
         ) {
+            console.log('11ci ')
             diff = {
                 hours: 10,
                 minutes: 0
@@ -687,6 +698,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             duration.asHours() < 24 &&
             confirm_type === 2
         ) {
+            console.log('12ci ')
             diff = {
                 hours: 5,
                 minutes: 0
@@ -698,6 +710,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             duration.asHours() < 24 &&
             confirm_type === 2
         ) {
+            console.log('13ci ')
             diff = {
                 hours: Math.floor(duration.asHours() - 1),
                 minutes: duration.minutes()
@@ -706,6 +719,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         else if (
             confirm_type === 3
         ) {
+            console.log('14ci ')
             diff = {
                 hours: 0,
                 minutes: 0
@@ -726,66 +740,68 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
     //     }
     // }
 
-    const {rows: checkInRow} = await db.query(`
-        UPDATE employee_activities ea
-        SET completed_status = $1, work_time = $6
-        WHERE employee_id = $2 and status = $3 and completed_status = $4 and type = $5
-            RETURNING *;
-    `, [1, employee_id, 2, 0, 1, `${diff?.hours}:${diff?.minutes}`])
+    console.log(diff, 'diff', confirm_type, moment().tz("Europe/Moscow").weekday(), moment().tz("Europe/Moscow").weekday() === 2)
 
-    const {rows} = await db.query(`
-        UPDATE employee_activities
-        SET reviewer_employee_id = $1, reviewer_timezone = $2, review_time = $3, completed_status = $4, status = $9, confirm_type = $10
-        WHERE id = $5 and employee_id = $6 and status = $7 and type = $8
-            RETURNING *;
-    `, [req.currentUserId, timezone, confirm_time, type === 1 ? 0 : 1, activity_id, employee_id, 1,  type, 2, confirm_type])
-
-
-    if (rows.length === 0 && (type === 2 ? checkInRow.length === 0 : false)) {
-        return res.status(404).json({
-            success: false,
-            message: 'Activity not found or already accepted'
-        })
-    }
-
-    const {rows: returnedRow} = await db.query(
-        `SELECT ea.*,
-                (
-                    SELECT json_build_object(
-                                   'id', e.id,
-                                   'full_name', e.full_name
-                           )
-                    FROM employees e
-                    WHERE e.id = ea.reviewer_employee_id
-                    LIMIT 1
-             ) AS reviewer
-         FROM employee_activities ea
-         WHERE ea.id = $1`, [rows?.[0]?.id]
-    )
-
-
-    const io = getIO();
-    const socketId = userSocketMap.get(employee_id);
-
-    if (socketId) {
-        io.to(socketId).emit("update_activity", {
-            success: true,
-            from: req.currentUserId,
-            message: 'Activity status changed successfully',
-            data: returnedRow?.[0]
-        });
-    }
-
-    sendPushNotification(employee_id, type === 1 ? 'Check-in request accepted' : 'Check-out request accepted', `${empData?.[0]?.full_name} accepted a request for ${type === 1 ? 'check-in' : 'check-out'} at now`, {
-        url: '/timeKeeper/',
-        utm_source: 'push_notification'
-    })
-
-    return res.status(200).json({
-        success: true,
-        message: 'Activity accepted successfully',
-        data: returnedRow?.[0]
-    })
+    // const {rows: checkInRow} = await db.query(`
+    //     UPDATE employee_activities ea
+    //     SET completed_status = $1, work_time = $6
+    //     WHERE employee_id = $2 and status = $3 and completed_status = $4 and type = $5
+    //         RETURNING *;
+    // `, [1, employee_id, 2, 0, 1, `${diff?.hours}:${diff?.minutes}`])
+    //
+    // const {rows} = await db.query(`
+    //     UPDATE employee_activities
+    //     SET reviewer_employee_id = $1, reviewer_timezone = $2, review_time = $3, completed_status = $4, status = $9, confirm_type = $10
+    //     WHERE id = $5 and employee_id = $6 and status = $7 and type = $8
+    //         RETURNING *;
+    // `, [req.currentUserId, timezone, confirm_time, type === 1 ? 0 : 1, activity_id, employee_id, 1,  type, 2, confirm_type])
+    //
+    //
+    // if (rows.length === 0 && (type === 2 ? checkInRow.length === 0 : false)) {
+    //     return res.status(404).json({
+    //         success: false,
+    //         message: 'Activity not found or already accepted'
+    //     })
+    // }
+    //
+    // const {rows: returnedRow} = await db.query(
+    //     `SELECT ea.*,
+    //             (
+    //                 SELECT json_build_object(
+    //                                'id', e.id,
+    //                                'full_name', e.full_name
+    //                        )
+    //                 FROM employees e
+    //                 WHERE e.id = ea.reviewer_employee_id
+    //                 LIMIT 1
+    //          ) AS reviewer
+    //      FROM employee_activities ea
+    //      WHERE ea.id = $1`, [rows?.[0]?.id]
+    // )
+    //
+    //
+    // const io = getIO();
+    // const socketId = userSocketMap.get(employee_id);
+    //
+    // if (socketId) {
+    //     io.to(socketId).emit("update_activity", {
+    //         success: true,
+    //         from: req.currentUserId,
+    //         message: 'Activity status changed successfully',
+    //         data: returnedRow?.[0]
+    //     });
+    // }
+    //
+    // sendPushNotification(employee_id, type === 1 ? 'Check-in request accepted' : 'Check-out request accepted', `${empData?.[0]?.full_name} accepted a request for ${type === 1 ? 'check-in' : 'check-out'} at now`, {
+    //     url: '/timeKeeper/',
+    //     utm_source: 'push_notification'
+    // })
+    //
+    // return res.status(200).json({
+    //     success: true,
+    //     message: 'Activity accepted successfully',
+    //     data: returnedRow?.[0]
+    // })
 })
 
 router.post('/reject', checkAuth, userPermission, async (req, res) => {
