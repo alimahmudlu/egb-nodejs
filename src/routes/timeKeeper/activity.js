@@ -998,7 +998,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude} = req.body;
     const status = 1;
     const type = 1;
-    const turn = moment(time, "HH:mm").isBetween(moment("05:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
+    const turn = moment(time, "HH:mm").isBetween(moment("03:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
 
     const {rows: checkedInRows} =
         await db.query(`
