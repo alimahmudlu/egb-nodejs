@@ -520,6 +520,8 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         minutes: 0
     }
 
+    console.log(checkInControlRow?.[0]?.review_time, type , 'aslakslaskla')
+
     if (checkInControlRow?.[0]?.review_time && type === 2) {
         const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
         const end = moment(confirm_time, 'YYYY-MM-DD HH:mm').endOf('minute');
