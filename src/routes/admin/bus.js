@@ -19,13 +19,13 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             (SELECT to_jsonb(br.*) FROM bus_reports br WHERE br.project_id = p.id AND Date(br.date) = $1 ORDER BY br.id DESC LIMIT 1) AS report_status
         FROM projects AS p
             LEFT JOIN project_members AS pm ON p.id = pm.project_id
-            AND pm.status = 1 -- Layihə üzvü aktivdir
+            AND pm.status = 1 
             LEFT JOIN employees AS e ON e.id = pm.employee_id
             LEFT JOIN employee_activities AS ea ON ea.employee_id = e.id
-            AND ea.status = 2 -- Fəaliyyət statusu 2
-            AND ea.completed_status = 0 -- Tamamlanma statusu 1
-            AND ea.type = 1 -- Fəaliyyət növü 1 (Check-in/out olduğu güman edilir)
-            AND DATE(ea.review_time) = $1 -- Tələb olunan tarix
+            AND ea.status = 2
+            AND ea.completed_status = 0
+            AND ea.type = 1
+            AND DATE(ea.review_time) = $1
 
         GROUP BY
             p.id, p.name
