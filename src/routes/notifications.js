@@ -51,29 +51,35 @@ router.get('/', checkAuth, async (req, res) => {
         })
     }
 })
-router.get('/count', checkAuth, async (req, res) => {
-    try {
-        const {rows: notificationRows} = await db.query(`
-            SELECT COUNT(id) AS total_notifications_count,
-                   COUNT(CASE WHEN read = 0 THEN 1 END) AS unread_notifications_count from notifications 
-            WHERE user_id = $1
-        `, [req.currentUserId]);
+router.get('/count', async (req, res) => {
+    // try {
+    //     const {rows: notificationRows} = await db.query(`
+    //         SELECT COUNT(id) AS total_notifications_count,
+    //                COUNT(CASE WHEN read = 0 THEN 1 END) AS unread_notifications_count from notifications
+    //         WHERE user_id = $1
+    //     `, [req.currentUserId]);
+    //
+    //
+    //         return res.json({
+    //             success: true,
+    //             message: 'Notifications fetched successfully',
+    //             data: notificationRows?.[0]
+    //         })
+    // }
+    // catch (error) {
+    //     return res.status(500).json({
+    //         success: false,
+    //         message: 'Internal server error',
+    //         error: error.message,
+    //         data: null
+    //     })
+    // }
 
-
-            return res.json({
-                success: true,
-                message: 'Notifications fetched successfully',
-                data: notificationRows?.[0]
-            })
-    }
-    catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: error.message,
-            data: null
-        })
-    }
+    res.status(200).json({
+                    success: true,
+                    message: 'Notifications fetched successfully',
+                    data: {}
+    })
 })
 
 router.post('/read', checkAuth, async (req, res) => {
