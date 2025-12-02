@@ -34,7 +34,7 @@ async function userPermission (req, res, next) {
                 FROM employees e
                 WHERE e.id = $1 and e.is_active = false
                 LIMIT 1
-            `, [id, 'registration_card', 1])
+            `, [id])
 
 
         if (isActiveEmployee?.length > 0) {
