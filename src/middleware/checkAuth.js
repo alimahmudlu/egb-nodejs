@@ -17,11 +17,12 @@ async function checkAuth (req, res, next) {
         next()
     }
     catch (error) {
-        return res.status(401).json({
-            message: 'Unauthorized',
-            error: error.message,
-            data: null
-        });
+        // return res.status(401).json({
+        //     message: 'Unauthorized',
+        //     error: error.message,
+        //     data: null
+        // });
+        console.log(error)
     }
 }
 
