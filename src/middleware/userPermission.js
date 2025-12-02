@@ -3,7 +3,7 @@ import moment from "moment";
 
 async function userPermission (req, res, next) {
     try {
-        // const id = req.currentUserId;
+        const id = req.currentUserId;
         // const {rows: userRole} = await db.query('SELECT * FROM employee_roles WHERE employee_id = $1', [id])
         // if (!['GET', 'get'].includes(req?.method) && userRole?.[0]?.role === 1) {
         //     const {rows: uploadsDoc} = await db.query(`
@@ -25,7 +25,28 @@ async function userPermission (req, res, next) {
         //             data: null
         //         });
         //     }
-        // }
+
+        // const {rows: userRole} = await db.query('SELECT * FROM employee_roles WHERE employee_id = $1', [id])
+
+        const {rows: isActiveEmployee} = await db.query(`
+                SELECT
+                    e.is_active    
+                FROM employees e
+                WHERE e.id = $1 and e.is_active = false
+                LIMIT 1
+            `, [id, 'registration_card', 1])
+
+
+        if (isActiveEmployee?.length > 0) {
+            return res.status(401).json({
+                success: false,
+                message: 'Employee inactive',
+                error: 'Employee inactive. Please contact admin.',
+                data: null
+            });
+        }
+
+
         next()
     }
     catch (error) {
