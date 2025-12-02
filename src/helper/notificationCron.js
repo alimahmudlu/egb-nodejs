@@ -358,5 +358,3 @@ cron.schedule(
         checkDocuments();
     }
 );
-
-console.log("⏳ Notifications cron işə salındı...");

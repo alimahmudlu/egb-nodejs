@@ -33,7 +33,6 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             p.id;
     `
 
-    console.log(query, 'queryssss', moment().format('YYYY-MM-DD'))
     const {rows: employees} = await db.query(query, [moment().format('YYYY-MM-DD')]);
 
     return res.status(200).json({
@@ -51,8 +50,6 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
     `, [projectId, turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, date, req.currentUserId]);
-
-    console.log(rows, 'rowssss')
 
     return res.status(200).json({
         success: true,

@@ -110,7 +110,6 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         filters.push(`e.is_draft = false`);
     }
     if (ios === '1') {
-        console.log('ios', ios)
         filters.push(
             `
                 EXISTS (SELECT 1 FROM employee_ios ei WHERE ei.employee_id = e.id AND ei.status = 1)

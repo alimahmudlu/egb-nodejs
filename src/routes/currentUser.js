@@ -80,27 +80,6 @@ router.get('/activities/list', checkAuth, async (req, res) => {
         idx++
     }
 
-    console.log(`
-            SELECT ea.*, json_build_object(
-                    'id', e.id,
-                    'full_name', e.full_name,
-                    'email', e.email,
-                    'manual', e.dont_have_phone,
-                    'role', json_build_object(
-                            'id', er.id,
-                            'name', r.name
-                            )
-                         ) as employee FROM employee_activities ea
-                                                LEFT JOIN employees e ON e.id = ea.employee_id
-                                                LEFT JOIN employee_roles er ON e.id = er.employee_id
-                                                LEFT JOIN roles r ON r.id = er.role
-
-            WHERE e.id = $1
-                ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-            ORDER BY ea.id DESC
-                
-            `, [req.currentUserId, ...values])
-
     const {rows: userDataRows} =
         await db.query(`
             SELECT ea.*, json_build_object(

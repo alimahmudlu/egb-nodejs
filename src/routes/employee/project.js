@@ -165,8 +165,6 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, a
     const {task_id, id} = req.params;
     const {date, status, files} = req.body;
 
-    console.log(task_id, id)
-
     const {rows} = await db.query(`
                 INSERT INTO task_activities
                 (
@@ -244,8 +242,6 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, a
     if (returnedTask.length > 0) {
         const io = getIO();
         const socketId = userSocketMap.get(returnedTask?.[0]?.reporter_employee_id);
-
-        console.log(returnedTask?.[0]?.reporter_employee_id, socketId, returnedTask)
 
         if (socketId) {
             io.to(socketId).emit("change_task__by_employee", {

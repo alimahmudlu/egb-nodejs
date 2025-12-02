@@ -238,8 +238,6 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, a
         const io = getIO();
         const socketId = userSocketMap.get(returnedTask?.[0]?.assigned_employee_id);
 
-        console.log(returnedTask?.[0]?.assigned_employee_id, socketId, returnedTask)
-
         if (socketId) {
             io.to(socketId).emit("change_task__by_employee", {
                 success: true,

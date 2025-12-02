@@ -50,15 +50,12 @@ router.post('/add', checkAuth, userPermission, async (req, res) => {
 router.post('/remove', checkAuth, userPermission, async (req, res) => {
     const {file, application_id} = req.body;
 
-    console.log(file, application_id)
-
     const {rows: InsertedRow} = await db.query(
         `UPDATE application_uploads
          SET deleted_at = now(), status = 0
          WHERE application_id = $1 AND id = $2 AND employee_id = $3`,
         [application_id, file, req.currentUserId]
     )
-    console.log(InsertedRow)
 
     res.json({
         success: true,
