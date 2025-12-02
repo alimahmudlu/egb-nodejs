@@ -9,6 +9,9 @@ async function checkAuth (req, res, next) {
         const {id} = verifyJWT(access_token);
         const {rows: userAuthRows} = await db.query('SELECT * FROM employee_auth WHERE employee_id = $1', [id])
         const {rows: userRole} = await db.query('SELECT * FROM employee_roles WHERE employee_id = $1', [id])
+
+        console.log(userAuthRows, id)
+
         if (!userAuthRows || userAuthRows.length === 0) {
             throw new Error('User not found');
         }
