@@ -99,7 +99,7 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             p.id AS project_id,
             '${moment().format('YYYY-MM-DD')}' as date,
             COUNT(CASE WHEN ea.turn = 1 THEN 1 END) AS turn1Employees,
-            COUNT(CASE WHEN ea.turn = 2 THEN 1 END) AS turn2Employees,
+            COUNT(CASE WHEN ea.turn = 2 THEN 1 END) AS turn2Employees
 --             (SELECT to_jsonb(br.*) FROM bus_reports br WHERE br.project_id = p.id AND Date(br.date) = $1 ORDER BY br.id DESC LIMIT 1) AS report_status
         FROM projects AS p
             LEFT JOIN project_members AS pm ON p.id = pm.project_id
