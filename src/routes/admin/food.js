@@ -143,10 +143,10 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
                        ),
                        '[]'::jsonb
                ) FROM food_reports_p fr WHERE fr.project_id = p.id AND Date(fr.date) = $2) AS report_status,*/
-            (SELECT json_b(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 1 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS breakfast,
-            (SELECT json_b(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 2 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS lunch,
-            (SELECT json_b(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 3 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS dinner,
-            (SELECT json_b(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 4 AND turn = 2 ORDER BY br_fr.id DESC LIMIT 1) AS nightLunch
+            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 1 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS breakfast,
+            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 2 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS lunch,
+            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 3 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS dinner,
+            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 4 AND turn = 2 ORDER BY br_fr.id DESC LIMIT 1) AS nightLunch
         FROM projects AS p
             LEFT JOIN project_members AS pm ON p.id = pm.project_id
             AND pm.status = 1 
