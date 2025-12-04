@@ -45,29 +45,78 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     const {breakfast, lunch, dinner} = turn1;
     const {lunch: nightLunch} = turn2;
 
-    const {rows: breakfastRows} = await db.query(`
+    const {rows: controls} = await db.query(`SELECT * FROM food_reports_p WHERE project_id = $1 AND date = $2`, [project_id, date]);
+
+    if (controls.length > 0 && controls.some(control => control.type === 1 && control.turn === 1)) {
+        const {rows: breakfastRows} = await db.query(`
+        UPDATE food_reports_p SET type=$3, turn=$4, "order"=$5, employees=$6, note=$7
+            WHERE project_id = $1 AND date = $2 AND type = 1 AND turn = 1
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+    `, [date, project_id, 1, 1, breakfast?.order || 0, turn1employees, breakfast?.note || '']);
+    }
+    else {
+        const {rows: breakfastRows} = await db.query(`
         INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
     `, [date, project_id, 1, 1, breakfast?.order || 0, turn1employees, breakfast?.note || '']);
+    }
 
-    const {rows: lunchRows} = await db.query(`
+    if (controls.length > 0 && controls.some(control => control.type === 2 && control.turn === 1)) {
+        const {rows: lunchRows} = await db.query(`
+        UPDATE food_reports_p SET type=$3, turn=$4, "order"=$5, employees=$6, note=$7
+            WHERE project_id = $1 AND date = $2 AND type = 2 AND turn = 1
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+    `, [date, project_id, 1, 1, lunch?.order || 0, turn1employees, lunch?.note || '']);
+    }
+    else {
+        const {rows: lunchRows} = await db.query(`
         INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
     `, [date, project_id, 2, 1, lunch?.order || 0, turn1employees, lunch?.note || '']);
+    }
 
-    const {rows: dinnerRows} = await db.query(`
+    if (controls.length > 0 && controls.some(control => control.type === 3 && control.turn === 1)) {
+        const {rows: dinnerRows} = await db.query(`
+        UPDATE food_reports_p SET type=$3, turn=$4, "order"=$5, employees=$6, note=$7
+            WHERE project_id = $1 AND date = $2 AND type = 3 AND turn = 1
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+    `, [date, project_id, 1, 1, dinner?.order || 0, turn1employees, dinner?.note || '']);
+
+    }
+    else {
+        const {rows: dinnerRows} = await db.query(`
         INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
     `, [date, project_id, 3, 1, dinner?.order || 0, turn1employees, dinner?.note || '']);
+    }
 
-    const {rows: nightLunchRows} = await db.query(`
+    if (controls.length > 0 && controls.some(control => control.type === 4 && control.turn === 2)) {
+        const {rows: nightLunchRows} = await db.query(`
+        UPDATE food_reports_p SET type=$3, turn=$4, "order"=$5, employees=$6, note=$7
+            WHERE project_id = $1 AND date = $2 AND type = 4 AND turn = 2
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+    `, [date, project_id, 1, 1, nightLunch?.order || 0, turn2employees, nightLunch?.note || '']);
+
+    }
+    else {
+        const {rows: nightLunchRows} = await db.query(`
         INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
-    `, [date, project_id, 4, 2, nightLunch?.order || 0, turn1employees, nightLunch?.note || '']);
+    `, [date, project_id, 4, 2, nightLunch?.order || 0, turn2employees, nightLunch?.note || '']);
+    }
+
+
+
+
+
 
     return res.status(200).json({
         success: true,
