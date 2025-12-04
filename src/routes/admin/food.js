@@ -137,12 +137,16 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             '${moment().add(-1, 'days').format('YYYY-MM-DD')}' as date,
             COUNT(CASE WHEN ea.turn = 1 THEN 1 END) AS turn1Employees,
             COUNT(CASE WHEN ea.turn = 2 THEN 1 END) AS turn2Employees,
-            (SELECT COALESCE(
+            /*(SELECT COALESCE(
                        jsonb_agg(
                                to_jsonb(fr.*)
                        ),
                        '[]'::jsonb
-               ) FROM food_reports_p fr WHERE fr.project_id = p.id AND Date(fr.date) = $2 GROUP BY fr.id ORDER BY fr.id DESC) AS report_status
+               ) FROM food_reports_p fr WHERE fr.project_id = p.id AND Date(fr.date) = $2) AS report_status,*/
+            (SELECT json_b(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 1 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS breakfast,
+            (SELECT json_b(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 2 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS lunch,
+            (SELECT json_b(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 3 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS dinner,
+            (SELECT json_b(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 4 AND turn = 2 ORDER BY br_fr.id DESC LIMIT 1) AS nightLunch
         FROM projects AS p
             LEFT JOIN project_members AS pm ON p.id = pm.project_id
             AND pm.status = 1 
