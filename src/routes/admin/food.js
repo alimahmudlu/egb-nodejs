@@ -139,8 +139,8 @@ router.get('/report/list', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`
         SELECT *
         FROM food_reports_p
-        WHERE employee_id = $1
-    `, [req.currentUserId]);
+        ORDER BY date DESC
+    `, []);
 
     return res.status(200).json({
         success: true,
