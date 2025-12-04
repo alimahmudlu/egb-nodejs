@@ -47,6 +47,8 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
 
     const {rows: controls} = await db.query(`SELECT * FROM food_reports_p WHERE project_id = $1 AND date = $2`, [project_id, date]);
 
+    console.log(controls,`SELECT * FROM food_reports_p WHERE project_id = $1 AND date = $2`, [project_id, date]);
+
     if (controls.length > 0 && controls.some(control => control.type === 1 && control.turn === 1)) {
         const {rows: breakfastRows} = await db.query(`
         UPDATE food_reports_p SET type=$3, turn=$4, "order"=$5, employees=$6, note=$7
