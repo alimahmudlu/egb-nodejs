@@ -46,13 +46,13 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     const {lunch: nightLunch} = turn2;
 
     const {rows: breakfastRows} = await db.query(`
-        INSERT INTO food_reports_p (date, project_id, type, turn, order, employees, note)
+        INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
     `, [date, project_id, 1, 1, breakfast?.order || 0, turn1employees, breakfast?.note || '']);
 
     const {rows: lunchRows} = await db.query(`
-        INSERT INTO food_reports_p (date, project_id, type, turn, order, employees, note)
+        INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
     `, [date, project_id, 2, 1, lunch?.order || 0, turn1employees, lunch?.note || '']);
