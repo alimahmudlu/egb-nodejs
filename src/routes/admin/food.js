@@ -67,9 +67,9 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
 
     if (controls.length > 0 && controls.some(control => control.type === 2 && control.turn === 1)) {
         const {rows: lunchRows} = await db.query(`
-        UPDATE food_reports_p SET type=$3, turn=$4, "order"=$5, employees=$6, note=$7
-            WHERE project_id = $1 AND date = $2 AND type = 2 AND turn = 1
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
+            WHERE project_id = $4 AND date = $5 AND type = 2 AND turn = 1
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING *
     `, [lunch?.order || 0, turn1employees, lunch?.note || '', date, project_id]);
     }
@@ -83,9 +83,9 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
 
     if (controls.length > 0 && controls.some(control => control.type === 3 && control.turn === 1)) {
         const {rows: dinnerRows} = await db.query(`
-        UPDATE food_reports_p SET type=$3, turn=$4, "order"=$5, employees=$6, note=$7
-            WHERE project_id = $1 AND date = $2 AND type = 3 AND turn = 1
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
+            WHERE project_id = $4 AND date = $5 AND type = 3 AND turn = 1
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING *
     `, [dinner?.order || 0, turn1employees, dinner?.note || '', date, project_id]);
 
@@ -100,9 +100,9 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
 
     if (controls.length > 0 && controls.some(control => control.type === 4 && control.turn === 2)) {
         const {rows: nightLunchRows} = await db.query(`
-        UPDATE food_reports_p SET type=$3, turn=$4, "order"=$5, employees=$6, note=$7
-            WHERE project_id = $1 AND date = $2 AND type = 4 AND turn = 2
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
+            WHERE project_id = $4 AND date = $5 AND type = 4 AND turn = 2
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING *
     `, [nightLunch?.order || 0, turn1employees, breakfast?.note || '', date, project_id]);
 
