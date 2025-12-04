@@ -51,11 +51,11 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
 
     if (controls.length > 0 && controls.some(control => control.type === 1 && control.turn === 1)) {
         const {rows: breakfastRows} = await db.query(`
-        UPDATE food_reports_p SET type=$3, turn=$4, "order"=$5, employees=$6, note=$7
-            WHERE project_id = $1 AND date = $2 AND type = 1 AND turn = 1
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
+            WHERE project_id = $4 AND date = $5 AND type = 1 AND turn = 1
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING *
-    `, [date, project_id, 1, 1, breakfast?.order || 0, turn1employees, breakfast?.note || '']);
+    `, [breakfast?.order || 0, turn1employees, breakfast?.note || '', date, project_id]);
     }
     else {
         const {rows: breakfastRows} = await db.query(`
@@ -71,7 +71,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
             WHERE project_id = $1 AND date = $2 AND type = 2 AND turn = 1
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
-    `, [date, project_id, 1, 1, lunch?.order || 0, turn1employees, lunch?.note || '']);
+    `, [lunch?.order || 0, turn1employees, lunch?.note || '', date, project_id]);
     }
     else {
         const {rows: lunchRows} = await db.query(`
@@ -87,7 +87,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
             WHERE project_id = $1 AND date = $2 AND type = 3 AND turn = 1
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
-    `, [date, project_id, 1, 1, dinner?.order || 0, turn1employees, dinner?.note || '']);
+    `, [dinner?.order || 0, turn1employees, dinner?.note || '', date, project_id]);
 
     }
     else {
@@ -104,7 +104,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
             WHERE project_id = $1 AND date = $2 AND type = 4 AND turn = 2
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
-    `, [date, project_id, 1, 1, nightLunch?.order || 0, turn2employees, nightLunch?.note || '']);
+    `, [nightLunch?.order || 0, turn1employees, breakfast?.note || '', date, project_id]);
 
     }
     else {
