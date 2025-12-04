@@ -23,7 +23,7 @@ const router = express.Router()
 //         data: rows?.[0]
 //     })
 // })
-
+/*
 router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     const {turn1order, turn1employees, turn2order, turn2employees, date} = req.body;
 
@@ -37,6 +37,42 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         success: true,
         message: 'Food report added successfully',
         data: rows?.[0]
+    })
+})*/
+
+router.post('/report/add', checkAuth, userPermission, async (req, res) => {
+    const {turn1 = {}, turn1employees = 0, turn2 = {}, turn2employees = 0, date, project_id} = req.body;
+    const {breakfast, lunch, dinner} = turn1;
+    const {lunch: nightLunch} = turn2;
+
+    const {rows: breakfastRows} = await db.query(`
+        INSERT INTO food_reports_p (date, project_id, type, turn, order, employees, note)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+    `, [date, project_id, 1, 1, breakfast?.order || 0, turn1employees, breakfast?.note || '']);
+
+    const {rows: lunchRows} = await db.query(`
+        INSERT INTO food_reports_p (date, project_id, type, turn, order, employees, note)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+    `, [date, project_id, 2, 1, lunch?.order || 0, turn1employees, lunch?.note || '']);
+
+    const {rows: dinnerRows} = await db.query(`
+        INSERT INTO food_reports_p (date, project_id, type, turn, order, employees, note)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+    `, [date, project_id, 3, 1, dinner?.order || 0, turn1employees, dinner?.note || '']);
+
+    const {rows: nightLunchRows} = await db.query(`
+        INSERT INTO food_reports_p (date, project_id, type, turn, order, employees, note)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+    `, [date, project_id, 4, 2, nightLunch?.order || 0, turn1employees, nightLunch?.note || '']);
+
+    return res.status(200).json({
+        success: true,
+        message: 'Food report added successfully',
+        // data: rows?.[0]
     })
 })
 
@@ -71,9 +107,10 @@ router.get('/report/list', checkAuth, userPermission, async (req, res) => {
 router.get('/report/today', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`
         SELECT fr.*
-        FROM food_reports fr
+        FROM food_reports_p fr
         WHERE date = $1
     `, [moment().add(1, 'days').format('YYYY-MM-DD')]);
+
     const {rows: employees} = await db.query(`
             SELECT COUNT(ea.id) as total_employees,
                    COUNT(ea.id) FILTER (WHERE ea.turn = 1) AS turn1employees, 
@@ -97,10 +134,15 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
         SELECT
             p.name AS project_name,
             p.id AS project_id,
-            '${moment().format('YYYY-MM-DD')}' as date,
+            '${moment().add(-1, 'days').format('YYYY-MM-DD')}' as date,
             COUNT(CASE WHEN ea.turn = 1 THEN 1 END) AS turn1Employees,
-            COUNT(CASE WHEN ea.turn = 2 THEN 1 END) AS turn2Employees
---             (SELECT to_jsonb(br.*) FROM bus_reports br WHERE br.project_id = p.id AND Date(br.date) = $1 ORDER BY br.id DESC LIMIT 1) AS report_status
+            COUNT(CASE WHEN ea.turn = 2 THEN 1 END) AS turn2Employees,
+            (SELECT COALESCE(
+                       jsonb_agg(
+                               to_jsonb(fr.*)
+                       ),
+                       '[]'::jsonb
+               ) FROM food_reports_p fr WHERE fr.project_id = p.id AND Date(fr.date) = $2 ORDER BY fr.id DESC) AS report_status
         FROM projects AS p
             LEFT JOIN project_members AS pm ON p.id = pm.project_id
             AND pm.status = 1 
@@ -117,7 +159,7 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             p.id;
     `
 
-    const {rows: employees} = await db.query(query, [moment().add(-1, 'days').format('YYYY-MM-DD')]);
+    const {rows: employees} = await db.query(query, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD')]);
 
     return res.status(200).json({
         success: true,
