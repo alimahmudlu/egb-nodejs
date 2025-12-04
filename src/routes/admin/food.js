@@ -142,7 +142,7 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
                                to_jsonb(fr.*)
                        ),
                        '[]'::jsonb
-               ) FROM food_reports_p fr WHERE fr.project_id = p.id AND Date(fr.date) = $2 ORDER BY fr.id DESC) AS report_status
+               ) FROM food_reports_p fr WHERE fr.project_id = p.id AND Date(fr.date) = $2 GROUP BY fr.id ORDER BY fr.id DESC) AS report_status
         FROM projects AS p
             LEFT JOIN project_members AS pm ON p.id = pm.project_id
             AND pm.status = 1 
