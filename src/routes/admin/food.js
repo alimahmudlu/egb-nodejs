@@ -125,7 +125,7 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
     const {real, missing, rest, project_id, date} = req.body;
 
     const {rows} = await db.query(`
-        UPDATE food_reports SET real = $1, missing = $2, rest = $3, status = $4 WHERE id = $5 RETURNING *
+        UPDATE food_reports_p SET real = $1, missing = $2, rest = $3, status = $4 WHERE id = $5 RETURNING *
     `, [real, missing, rest, 1, req.params.id]);
 
     return res.status(200).json({
