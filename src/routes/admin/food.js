@@ -52,7 +52,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
             WHERE project_id = $4 AND date = $5 AND type = 1 AND turn = 1
         RETURNING *
-    `, [breakfast?.order || 0, turn1employees, breakfast?.note || '', date, project_id]);
+    `, [breakfast?.order || 0, turn1employees, breakfast?.note || '', project_id, date]);
     }
     else {
         const {rows: breakfastRows} = await db.query(`
@@ -67,7 +67,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
             WHERE project_id = $4 AND date = $5 AND type = 2 AND turn = 1
         RETURNING *
-    `, [lunch?.order || 0, turn1employees, lunch?.note || '', date, project_id]);
+    `, [lunch?.order || 0, turn1employees, lunch?.note || '', project_id, date]);
     }
     else {
         const {rows: lunchRows} = await db.query(`
@@ -82,7 +82,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
             WHERE project_id = $4 AND date = $5 AND type = 3 AND turn = 1
         RETURNING *
-    `, [dinner?.order || 0, turn1employees, dinner?.note || '', date, project_id]);
+    `, [dinner?.order || 0, turn1employees, dinner?.note || '', project_id, date]);
 
     }
     else {
@@ -98,7 +98,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
             WHERE project_id = $4 AND date = $5 AND type = 4 AND turn = 2
         RETURNING *
-    `, [nightLunch?.order || 0, turn1employees, breakfast?.note || '', date, project_id]);
+    `, [nightLunch?.order || 0, turn1employees, breakfast?.note || '', project_id, date]);
 
     }
     else {
