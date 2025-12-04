@@ -58,13 +58,13 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     `, [date, project_id, 2, 1, lunch?.order || 0, turn1employees, lunch?.note || '']);
 
     const {rows: dinnerRows} = await db.query(`
-        INSERT INTO food_reports_p (date, project_id, type, turn, order, employees, note)
+        INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
     `, [date, project_id, 3, 1, dinner?.order || 0, turn1employees, dinner?.note || '']);
 
     const {rows: nightLunchRows} = await db.query(`
-        INSERT INTO food_reports_p (date, project_id, type, turn, order, employees, note)
+        INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
     `, [date, project_id, 4, 2, nightLunch?.order || 0, turn1employees, nightLunch?.note || '']);
@@ -93,7 +93,7 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
 router.get('/report/list', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`
         SELECT *
-        FROM food_reports
+        FROM food_reports_p
         WHERE employee_id = $1
     `, [req.currentUserId]);
 
