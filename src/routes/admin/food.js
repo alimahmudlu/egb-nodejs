@@ -163,7 +163,7 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             p.id;
     `
 
-    const {rows: employees} = await db.query(query, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD')]);
+    const {rows: employees} = await db.query(query, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD')]);
 
     return res.status(200).json({
         success: true,
