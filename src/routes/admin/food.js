@@ -41,7 +41,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
 })*/
 
 router.post('/report/add', checkAuth, userPermission, async (req, res) => {
-    const {turn1 = {}, turn1employees = 0, turn2 = {}, turn2employees = 0, date, project_id} = req.body;
+    const {turn1 = {}, turn1employees = 0, turn2 = {}, turnextras = {}, turn2employees = 0, date, project_id} = req.body;
     const {breakfast, lunch, dinner} = turn1;
     const {lunch: nightLunch} = turn2;
     const {bread, kefir, sugar, tea} = turnextras;
@@ -126,7 +126,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     `, [date, project_id, 5, 1, bread?.order || 0, turn1employees+turn2employees, bread?.note || '']);
     }
 
-    if (controls.length > 0 && controls.some(control => control.type === 5 && control.turn === 1)) {
+    if (controls.length > 0 && controls.some(control => control.type === 6 && control.turn === 1)) {
         const {rows: kefirRows} = await db.query(`
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
             WHERE project_id = $4 AND date = $5 AND type = 6 AND turn = 1
@@ -142,7 +142,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     `, [date, project_id, 6, 1, kefir?.order || 0, turn1employees+turn2employees, kefir?.note || '']);
     }
 
-    if (controls.length > 0 && controls.some(control => control.type === 5 && control.turn === 1)) {
+    if (controls.length > 0 && controls.some(control => control.type === 7 && control.turn === 1)) {
         const {rows: sugarRows} = await db.query(`
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
             WHERE project_id = $4 AND date = $5 AND type = 7 AND turn = 1
@@ -158,7 +158,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     `, [date, project_id, 7, 1, sugar?.order || 0, turn1employees+turn2employees, sugar?.note || '']);
     }
 
-    if (controls.length > 0 && controls.some(control => control.type === 5 && control.turn === 1)) {
+    if (controls.length > 0 && controls.some(control => control.type === 8 && control.turn === 1)) {
         const {rows: teaRows} = await db.query(`
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
             WHERE project_id = $4 AND date = $5 AND type = 8 AND turn = 1
