@@ -68,7 +68,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
             FROM project_members pm1
                      JOIN project_members pm2 ON pm1.project_id = pm2.project_id
             WHERE pm1.employee_id = ea.employee_id
-              AND pm2.employee_id = $1
+              AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
         )
                                    ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         ORDER BY e.full_name ASC ${limits ? limits : ''}
@@ -248,7 +248,7 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
             FROM project_members pm1
                      JOIN project_members pm2 ON pm1.project_id = pm2.project_id
             WHERE pm1.employee_id = ea.employee_id
-              AND pm2.employee_id = $1
+              AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
         )
                                    ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         AND (ea.type = 2 OR ea.type = 4)

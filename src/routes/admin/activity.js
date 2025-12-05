@@ -213,7 +213,7 @@ router.post('/overtime', checkAuth, userPermission, async (req, res) => {
                     WHERE pm1.employee_id = er.employee_id
                       AND pm1.role_id = 2
                       AND pm2.employee_id = $1
-                      AND pm2.role_id = 1
+                      AND pm2.role_id = 1 AND pm1.status = 1 AND pm2.status = 1
 
                 );`, [req.currentUserId]);
 
@@ -344,7 +344,7 @@ router.post('/overtimeout', checkAuth, userPermission, async (req, res) => {
                     WHERE pm1.employee_id = er.employee_id
                       AND pm1.role_id = 2
                       AND pm2.employee_id = $1
-                      AND pm2.role_id = 1
+                      AND pm2.role_id = 1 AND pm1.status = 1 AND pm2.status = 1
 
                 );`, [req.currentUserId]);
 
@@ -505,7 +505,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
                     WHERE pm1.employee_id = er.employee_id
                       AND pm1.role_id = 2
                       AND pm2.employee_id = $1
-                      AND pm2.role_id = 1
+                      AND pm2.role_id = 1 AND pm1.status = 1 AND pm2.status = 1
 
                 );`, [req.currentUserId]);
 

@@ -80,8 +80,8 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
             SELECT 1
             FROM project_members pm1
             JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
-            WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1
-          AND pm2.employee_id = $1
+            WHERE pm1.employee_id = ea.employee_id
+          AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
             )
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         ORDER BY e.full_name ASC;
@@ -253,8 +253,8 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
             SELECT 1
             FROM project_members pm1
             JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
-            WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1
-          AND pm2.employee_id = $1
+            WHERE pm1.employee_id = ea.employee_id
+          AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
             )
             AND ea.type = 1 AND ea.status = 1
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
@@ -350,7 +350,7 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
             SELECT 1
             FROM project_members pm1
             JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
-            WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1
+            WHERE pm1.employee_id = ea.employee_id  AND pm1.status = 1 AND pm2.status = 1
           AND pm2.employee_id = $1
             )
             AND ea.type = 2 AND ea.status = 1 AND ea.completed_status = 0
@@ -446,7 +446,7 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
             SELECT 1
             FROM project_members pm1
             JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
-            WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1
+            WHERE pm1.employee_id = ea.employee_id  AND pm1.status = 1 AND pm2.status = 1
           AND pm2.employee_id = $1
             )
             AND ea.type = 1 AND ea.status = 2 AND ea.completed_status = 0
@@ -1076,7 +1076,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                     WHERE pm1.employee_id = er.employee_id
                       AND pm1.role_id = 2
                       AND pm2.employee_id = $1
-                      AND pm2.role_id = 2
+                      AND pm2.role_id = 2 AND pm1.status = 1 AND pm2.status = 1
 
                 );`, [req.currentUserId]);
 
@@ -1592,7 +1592,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
                     WHERE pm1.employee_id = er.employee_id
                       AND pm1.role_id = 2
                       AND pm2.employee_id = $1
-                      AND pm2.role_id = 2
+                      AND pm2.role_id = 2 AND pm1.status = 1 AND pm2.status = 1
 
                 );`, [req.currentUserId]);
 
