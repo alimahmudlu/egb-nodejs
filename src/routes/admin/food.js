@@ -115,7 +115,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
             WHERE project_id = $4 AND date = $5 AND type = 5 AND turn = 1
         RETURNING *
-    `, [bread?.order || 0, turn1employees+turn2employees, bread?.note || '', project_id, date]);
+    `, [bread?.order || 0, Number(turn1employees) + Number(turn2employees), bread?.note || '', project_id, date]);
 
     }
     else {
@@ -123,7 +123,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
-    `, [date, project_id, 5, 1, bread?.order || 0, turn1employees+turn2employees, bread?.note || '']);
+    `, [date, project_id, 5, 1, bread?.order || 0, Number(turn1employees) + Number(turn2employees), bread?.note || '']);
     }
 
     if (controls.length > 0 && controls.some(control => control.type === 6 && control.turn === 1)) {
@@ -131,7 +131,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
             WHERE project_id = $4 AND date = $5 AND type = 6 AND turn = 1
         RETURNING *
-    `, [kefir?.order || 0, turn1employees+turn2employees, kefir?.note || '', project_id, date]);
+    `, [kefir?.order || 0, Number(turn1employees) + Number(turn2employees), kefir?.note || '', project_id, date]);
 
     }
     else {
@@ -139,7 +139,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
-    `, [date, project_id, 6, 1, kefir?.order || 0, turn1employees+turn2employees, kefir?.note || '']);
+    `, [date, project_id, 6, 1, kefir?.order || 0, Number(turn1employees) + Number(turn2employees), kefir?.note || '']);
     }
 
     if (controls.length > 0 && controls.some(control => control.type === 7 && control.turn === 1)) {
@@ -147,7 +147,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
             WHERE project_id = $4 AND date = $5 AND type = 7 AND turn = 1
         RETURNING *
-    `, [sugar?.order || 0, turn1employees+turn2employees, sugar?.note || '', project_id, date]);
+    `, [sugar?.order || 0, Number(turn1employees) + Number(turn2employees), sugar?.note || '', project_id, date]);
 
     }
     else {
@@ -155,7 +155,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
-    `, [date, project_id, 7, 1, sugar?.order || 0, turn1employees+turn2employees, sugar?.note || '']);
+    `, [date, project_id, 7, 1, sugar?.order || 0, Number(turn1employees) + Number(turn2employees), sugar?.note || '']);
     }
 
     if (controls.length > 0 && controls.some(control => control.type === 8 && control.turn === 1)) {
@@ -163,7 +163,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3
             WHERE project_id = $4 AND date = $5 AND type = 8 AND turn = 1
         RETURNING *
-    `, [tea?.order || 0, turn1employees+turn2employees, tea?.note || '', project_id, date]);
+    `, [tea?.order || 0, Number(turn1employees) + Number(turn2employees), tea?.note || '', project_id, date]);
 
     }
     else {
@@ -171,7 +171,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
-    `, [date, project_id, 8, 1, tea?.order || 0, turn1employees+turn2employees, tea?.note || '']);
+    `, [date, project_id, 8, 1, tea?.order || 0, Number(turn1employees) + Number(turn2employees), tea?.note || '']);
     }
 
 
