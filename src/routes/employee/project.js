@@ -128,7 +128,7 @@ router.get('/tasks', checkAuth, userPermission, async (req, res) => {
         FROM employees e WHERE id = t.assigned_employee_id LIMIT 1) as assigned_employee,
        (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
         FROM employees e WHERE id = t.reporter_employee_id LIMIT 1) as reporter_employee
-                                   FROM tasks t WHERE t.assigned_employee_id = $2 AND deleted_at IS NULL AND
+                                   FROM tasks t WHERE t.assigned_employee_id = $1 AND deleted_at IS NULL AND
                                        EXISTS (
                                            SELECT 1
                                            FROM project_members pm1
