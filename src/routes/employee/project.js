@@ -111,9 +111,7 @@ router.get('/item/:id/tasks', checkAuth, userPermission, async (req, res) => {
 })
 
 
-router.get('/item/tasks', checkAuth, userPermission, async (req, res) => {
-    const {id} = req.params;
-
+router.get('/tasks', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT *,
       (SELECT json_build_object('id', ts.id, 'name', ts.name)
        FROM task_statuses ts
