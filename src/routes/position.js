@@ -15,4 +15,14 @@ router.get('/:id', checkAuth, async (req, res) => {
         data: rows?.[0] || {}
     })
 })
+
+router.get('/', checkAuth, async (req, res) => {
+    const {rows} = await db.query(`SELECT * FROM positions p`, [id])
+
+    res.json({
+        success: true,
+        message: 'Positions fetched successfully',
+        data: rows || []
+    })
+})
 export default router
