@@ -17,7 +17,7 @@ router.get('/:id', checkAuth, async (req, res) => {
 })
 
 router.get('/', checkAuth, async (req, res) => {
-    const {rows} = await db.query(`SELECT * FROM positions p`, [id])
+    const {rows} = await db.query(`SELECT * FROM positions p`, [])
 
     res.json({
         success: true,
