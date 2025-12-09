@@ -100,6 +100,44 @@ router.get('/list/active', checkAuth, userPermission, async (req, res) => {
     })
 })
 
+router.get('/list/check', checkAuth, userPermission, async (req, res) => {
+    const {rows} = await db.query(`SELECT
+                                       t.*,
+                                       (SELECT json_build_object('id', ts.id, 'name', ts.name)
+                                        FROM task_statuses ts
+                                        WHERE ts.id = COALESCE((
+                                                                   SELECT ta.status_id
+                                                                   FROM task_activities ta
+                                                                   WHERE ta.task_id = t.id
+                                                                   ORDER BY ta.created_at DESC
+                                                               LIMIT 1
+                                            ), 1)
+                                           LIMIT 1
+                                       ) as status,
+    (SELECT json_build_object('id', e.id, 'full_name', e.full_name) FROM employees e WHERE assigned_employee_id = e.id LIMIT 1) as assigned_employee,
+    (SELECT json_build_object('id', e.id, 'full_name', e.full_name) FROM employees e WHERE reporter_employee_id = e.id LIMIT 1) as reporter_employee
+                                   FROM tasks t
+                                       LEFT JOIN LATERAL (
+                                       SELECT ta.*
+                                       FROM task_activities ta
+                                       WHERE ta.task_id = t.id
+                                       ORDER BY ta.created_at DESC
+                                       LIMIT 1
+                                       ) last_ta ON TRUE
+                                           
+                                       LEFT JOIN task_statuses ts ON ts.id = COALESCE(last_ta.status_id, 1)
+                                   WHERE project_id IN (SELECT project_id FROM project_members WHERE employee_id = $1) AND deleted_at IS NULL
+                                     AND COALESCE(last_ta.status_id, 1) IN (3, 4);`, [req.currentUserId]);
+
+
+
+    res.status(200).json({
+        success: true,
+        message: 'Tasks fetched successfully',
+        data: rows
+    })
+})
+
 router.get('/list/completed', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT
                                         t.*,
