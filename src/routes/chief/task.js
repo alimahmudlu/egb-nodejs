@@ -318,7 +318,7 @@ router.delete('/:id', checkAuth, userPermission, async (req, res) => {
     })
 })
 
-router.get('/list/clickup', checkAuth, userPermission, async (req, res) => {
+router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
     const query = `
                     SELECT
                         t.*,
