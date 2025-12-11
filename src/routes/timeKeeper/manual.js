@@ -225,6 +225,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
 
 router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const { employee_id, employee_timezone, request_time, longitude, latitude, work_time } = req.body;
+    const turn = moment(request_time, "HH:mm").isBetween(moment("03:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
 
     const {rows: checkedInRows} =
         await db.query(`
@@ -260,9 +261,9 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
             completed_status,
             reject_reason,
             work_time,
-         is_manual
+         is_manual, turn
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *
     `,
                 [
                     null,
@@ -279,7 +280,8 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                     0,
                     null,
                     null,
-                    true
+                    true,
+                    turn
                 ]);
 
             const {rows: thisInsertedRow} = await db.query(`
