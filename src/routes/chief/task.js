@@ -347,9 +347,9 @@ router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
                         CASE 
                             WHEN t_a.status_id IS NULL THEN 1
                             
-                            WHEN t_a.status_id BETWEEN 2 AND 7 THEN 2
+                            WHEN t_a.status_id IN (2,3,4,5,6,8) THEN 2
                             
-                            WHEN t_a.status_id = 8 THEN 3
+                            WHEN t_a.status_id = 7 THEN 3
                             
                             ELSE t_a.status_id
                             END AS current_status_id_mapped,
