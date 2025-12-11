@@ -345,14 +345,14 @@ router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
                         (SELECT json_build_object('id', e.id, 'full_name', e.full_name) FROM employees e WHERE reporter_employee_id = e.id LIMIT 1) as reporter_employee,
                         COALESCE(t_a.status_id, 1) AS current_status_id,
                         CASE 
-                        WHEN t_a.status_id IS NULL THEN 1
-                        
-                        WHEN t_a.status_id BETWEEN 2 AND 7 THEN 2
-                        
-                        WHEN t_a.status_id = 8 THEN 3
-                        
-                        ELSE t_a.status_id
-                                    END AS current_status_id_mapped
+                            WHEN t_a.status_id IS NULL THEN 1
+                            
+                            WHEN t_a.status_id BETWEEN 2 AND 7 THEN 2
+                            
+                            WHEN t_a.status_id = 8 THEN 3
+                            
+                            ELSE t_a.status_id
+                            END AS current_status_id_mapped,
                         COUNT(t.id) OVER() AS total_tasks_count
                     FROM 
                         tasks t
