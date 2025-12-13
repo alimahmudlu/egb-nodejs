@@ -467,6 +467,7 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
 
 router.post('/accept', checkAuth, userPermission, async (req, res) => {
     const {activity_id, employee_id, type, confirm_time, timezone, confirm_type} = req.body
+    const turn = moment(confirm_time).isBetween(moment("03:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
 
     // const returnedRow = await timeKeeperActivityAccept({...req.body, currentUserId: req.currentUserId}, res)
 
@@ -696,17 +697,17 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
 
     const {rows: checkInRow} = await db.query(`
         UPDATE employee_activities ea
-        SET completed_status = $1, work_time = $6
+        SET completed_status = $1, work_time = $6, turn = $7
         WHERE employee_id = $2 and status = $3 and completed_status = $4 and type = $5
             RETURNING *;
-    `, [1, employee_id, 2, 0, 1, `${diff?.hours}:${diff?.minutes}`])
+    `, [1, employee_id, 2, 0, 1, `${diff?.hours}:${diff?.minutes}`, turn])
 
     const {rows} = await db.query(`
         UPDATE employee_activities
-        SET reviewer_employee_id = $1, reviewer_timezone = $2, review_time = $3, completed_status = $4, status = $9, confirm_type = $10
+        SET reviewer_employee_id = $1, reviewer_timezone = $2, review_time = $3, completed_status = $4, status = $9, confirm_type = $10, turn = $11
         WHERE id = $5 and employee_id = $6 and status = $7 and type = $8
             RETURNING *;
-    `, [req.currentUserId, timezone, confirm_time, type === 1 ? 0 : 1, activity_id, employee_id, 1,  type, 2, confirm_type])
+    `, [req.currentUserId, timezone, confirm_time, type === 1 ? 0 : 1, activity_id, employee_id, 1,  type, 2, confirm_type, turn])
 
 
     if (rows.length === 0 && (type === 2 ? checkInRow.length === 0 : false)) {
