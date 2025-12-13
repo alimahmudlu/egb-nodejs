@@ -303,7 +303,7 @@ router.get('/projects/:id', checkAuth, userPermission, async (req, res) => {
             (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 5 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS bread,
             (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 6 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS kefir,
             (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 7 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS sugar,
-            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 8 AND turn = 2 ORDER BY br_fr.id DESC LIMIT 1) AS tea
+            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 8 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS tea
         FROM projects AS p
             LEFT JOIN project_members AS pm ON p.id = pm.project_id
             AND pm.status = 1 
