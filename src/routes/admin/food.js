@@ -310,6 +310,10 @@ router.get('/projects/:id', checkAuth, userPermission, async (req, res) => {
             AND ea.type = 1
             AND DATE(ea.review_time) = $1
         WHERE p.id = $3
+        GROUP BY
+            p.id, p.name
+        ORDER BY
+            p.id;
     `
 
     const {rows: employees} = await db.query(query, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD'), req.params.id]);
