@@ -8,12 +8,7 @@ const router = express.Router()
 // OPTIONS
 router.get('/projects', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT
-                                       p.*,
-                                       (
-                                            SELECT json_build_object('id', r.id, 'name', r.name)  
-                                            FROM roles r
-                                            WHERE role_id = pm.role_id LIMIT 1
-                                       ) as role_id,
+                                       p.*
                                         (
                                             SELECT COALESCE(
                                                 jsonb_agg(
