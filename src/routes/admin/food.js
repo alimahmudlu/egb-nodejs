@@ -201,11 +201,33 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/report/list', checkAuth, userPermission, async (req, res) => {
+    const {start_date, end_date, full_name, project, page, limit} = req.query;
+    const filters = [];
+    const values = [];
+    let idx = 0;
+
+    if (start_date) {
+        filters.push(`date >= $${idx}`);
+        values.push(moment(start_date).format())
+        idx++
+    }
+    if (end_date) {
+        filters.push(`date <= $${idx}`);
+        values.push(moment(end_date).format())
+        idx++
+    }
+    if (project) {
+        filters.push(`project_id = $${idx}`);
+        values.push(project)
+        idx++
+    }
+
     const {rows} = await db.query(`
         SELECT *
         FROM food_reports_p
+                 ${filters.length > 0 ? `WHERE ${filters.join(' AND ')}` : ''}
         ORDER BY date DESC
-    `, []);
+    `, [...values]);
 
     return res.status(200).json({
         success: true,
