@@ -204,7 +204,7 @@ router.get('/report/list', checkAuth, userPermission, async (req, res) => {
     const {start_date, end_date, full_name, project, page, limit} = req.query;
     const filters = [];
     const values = [];
-    let idx = 0;
+    let idx = 1;
 
     if (start_date) {
         filters.push(`date >= $${idx}`);
