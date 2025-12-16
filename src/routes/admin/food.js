@@ -222,12 +222,18 @@ router.get('/report/list', checkAuth, userPermission, async (req, res) => {
         idx++
     }
 
-    const {rows} = await db.query(`
+    const query = `
         SELECT *
         FROM food_reports_p
                  ${filters.length > 0 ? `WHERE ${filters.join(' AND ')}` : ''}
         ORDER BY date DESC
-    `, [...values]);
+    `
+
+    console.log(query, [...values], 'queryy');
+
+    const {rows} = await db.query(query, [...values]);
+
+
 
     return res.status(200).json({
         success: true,
