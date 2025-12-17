@@ -43,13 +43,13 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
 })
 
 router.post('/report/add', checkAuth, userPermission, async (req, res) => {
-    const {turn1employees, turn2employees, date, projectId, countOfBus, countOfSeatInEveryBus, toProjectId, tripTypeId} = req.body;
+    const {turn1employees, turn2employees, date, projectId, countOfBus, countOfSeatInEveryBus, toProjectId, fromProjectId, tripTypeId} = req.body;
 
     const {rows} = await db.query(`
-        INSERT INTO bus_reports (project_id, turn1_employee_count, turn2_employee_count, bus_count, seat_count, date, employee_id, to_project_id, trip_type)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO bus_reports (project_id, turn1_employee_count, turn2_employee_count, bus_count, seat_count, date, employee_id, to_project_id, from_project_id, trip_type)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING *
-    `, [projectId, turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, date, req.currentUserId, toProjectId, tripTypeId]);
+    `, [projectId, turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, date, req.currentUserId, toProjectId, fromProjectId, tripTypeId]);
 
     return res.status(200).json({
         success: true,
