@@ -67,7 +67,7 @@ router.get('/projects/history', checkAuth, userPermission, async (req, res) => {
         FROM bus_reports br
                  LEFT JOIN projects AS p ON br.project_id = p.id
         ORDER BY
-            p.name;
+            br.date, br.id DESC;
     `
     const {rows: employees} = await db.query(query, []);
 
