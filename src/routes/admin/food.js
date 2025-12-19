@@ -201,7 +201,7 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/report/list', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, project, page, limit} = req.query;
+    const {start_date, end_date, date, full_name, project, page, limit} = req.query;
     const filters = [];
     const values = [];
     let idx = 1;
@@ -216,6 +216,11 @@ router.get('/report/list', checkAuth, userPermission, async (req, res) => {
         values.push(moment(end_date).format())
         idx++
     }
+    if (date) {
+        filters.push(`date = $${idx}`);
+        values.push(moment(date).format())
+        idx++
+    }
     if (project) {
         filters.push(`project_id = $${idx}`);
         values.push(project)
@@ -228,10 +233,7 @@ router.get('/report/list', checkAuth, userPermission, async (req, res) => {
                  ${filters.length > 0 ? `WHERE ${filters.join(' AND ')}` : ''}
         ORDER BY date DESC
     `
-
-    console.log(query, [...values], 'queryy');
-
-    const {rows} = await db.query(query, [...values]);
+    const {rows} = (project && date) ? await db.query(query, [...values]) : [];
 
 
 
