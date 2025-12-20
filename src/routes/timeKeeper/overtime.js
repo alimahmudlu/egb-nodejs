@@ -92,7 +92,7 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
         )`);
     }
     if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
         values.push(`%${full_name}%`);
         idx++
     }
@@ -188,7 +188,7 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
         )`);
     }
     if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
         values.push(`%${full_name}%`);
         idx++
     }
@@ -284,7 +284,7 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
         )`);
     }
     if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
         values.push(`%${full_name}%`);
         idx++
     }
@@ -562,7 +562,7 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
         idx++
     }
     if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
         values.push(`%${full_name}%`);
         idx++
     }
@@ -626,7 +626,7 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
         idx++
     }
     if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
         values.push(`%${full_name}%`);
         idx++
     }
