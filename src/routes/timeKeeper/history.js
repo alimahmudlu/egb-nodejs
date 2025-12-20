@@ -71,7 +71,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
               AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
         )
                                    ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-        ORDER BY e.full_name ASC ${limits ? limits : ''}
+        ORDER BY e.full_name ASC, ea.review_time DESC ${limits ? limits : ''}
         `, [req.currentUserId, ...values])
 
     res.status(200).json({
