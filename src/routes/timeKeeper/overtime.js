@@ -54,7 +54,48 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
-    const { page, limit} = req.query;
+    const {start_date, end_date, full_name, page, limit} = req.query;
+    const project = req.query?.['project[]']
+    const project2 = req.query?.['project']
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+
+    if (project) {
+        if (Array.isArray(project2) && (project || []).length > 0) {
+            filters.push(`EXISTS (
+                SELECT 1
+                FROM project_members pm1
+                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+                WHERE pm1.employee_id = ea.employee_id
+                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            )`);
+        }
+        else {
+            filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project} AND pm1.status = 1
+        )`);
+        }
+    }
+    if (project2) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project2} AND pm1.status = 1
+        )`);
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
+        idx++
+    }
 
     let limits = '';
     const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
@@ -93,8 +134,9 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
           AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
             )
             AND ea.type = 3 AND ea.status = 1
+            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         ORDER BY e.full_name ASC ${limits ? limits : ''};
-    `, [req.currentUserId])
+    `, [req.currentUserId, ...values])
 
     res.status(200).json({
         success: true,
@@ -108,7 +150,48 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
-    const {page, limit} = req.query;
+    const {start_date, end_date, full_name, page, limit} = req.query;
+    const project = req.query?.['project[]']
+    const project2 = req.query?.['project']
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+
+    if (project) {
+        if (Array.isArray(project2) && (project || []).length > 0) {
+            filters.push(`EXISTS (
+                SELECT 1
+                FROM project_members pm1
+                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+                WHERE pm1.employee_id = ea.employee_id
+                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            )`);
+        }
+        else {
+            filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project} AND pm1.status = 1
+        )`);
+        }
+    }
+    if (project2) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project2} AND pm1.status = 1
+        )`);
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
+        idx++
+    }
 
     let limits = '';
     const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
@@ -147,8 +230,9 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
           AND pm2.employee_id = $1
             )
             AND ea.type = 4 AND ea.status = 1 AND ea.completed_status = 0
+            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         ORDER BY e.full_name ASC ${limits ? limits : ''};
-    `, [req.currentUserId])
+    `, [req.currentUserId, ...values])
 
     res.status(200).json({
         success: true,
@@ -201,9 +285,9 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
           AND pm2.employee_id = $1
             )
             AND ea.type = 3 AND ea.status = 2 AND ea.completed_status = 0
-            
+            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}            
         ORDER BY e.full_name ASC ${limits ? limits : ''};
-    `, [req.currentUserId])
+    `, [req.currentUserId, ...values])
 
     res.status(200).json({
         success: true,
