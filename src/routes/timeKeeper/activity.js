@@ -423,9 +423,9 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
         values.push(`%${full_name}%`);
         idx++
     }
-    console.log(subcontractors, !!subcontractors, 'subcontractors')
+    console.log(subcontractors, typeof subcontractors, !!subcontractors, 'subcontractors')
     if (subcontractors) {
-        filters.push(`a.subcontract = true`);
+        filters.push(`a.subcontract = $${idx}`);
         values.push(!!subcontractors);
         idx++
     }
