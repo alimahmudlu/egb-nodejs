@@ -176,7 +176,7 @@ router.get('/list/count', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, page, limit} = req.query;
+    const {start_date, end_date, full_name, subcontractors, page, limit} = req.query;
     const project = req.query?.['project[]']
     const project2 = req.query?.['project']
     const filters = [];
@@ -218,6 +218,11 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
         values.push(`%${full_name}%`);
         idx++
     }
+    if (subcontractors) {
+        filters.push(`a.subcontract = $${idx}`);
+        values.push(!!subcontractors);
+        idx++
+    }
 
 
     let limits = '';
@@ -246,6 +251,7 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
                           LIMIT 1
             ) AS project
         FROM employee_activities ea
+            LEFT JOIN applications a ON a.id = e.application_id
             LEFT JOIN employees e ON e.id = ea.employee_id
             LEFT JOIN employee_roles er ON e.id = er.employee_id
             LEFT JOIN roles r ON r.id = er.role
@@ -273,7 +279,7 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, page, limit} = req.query;
+    const {start_date, end_date, full_name, subcontractors, page, limit} = req.query;
     const project = req.query?.['project[]']
     const project2 = req.query?.['project']
     const filters = [];
@@ -315,6 +321,11 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
         values.push(`%${full_name}%`);
         idx++
     }
+    if (subcontractors) {
+        filters.push(`a.subcontract = $${idx}`);
+        values.push(!!subcontractors);
+        idx++
+    }
 
 
     let limits = '';
@@ -343,6 +354,7 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
                           LIMIT 1
             ) AS project
         FROM employee_activities ea
+            LEFT JOIN applications a ON a.id = e.application_id
             LEFT JOIN employees e ON e.id = ea.employee_id
             LEFT JOIN employee_roles er ON e.id = er.employee_id
             LEFT JOIN roles r ON r.id = er.role
@@ -370,7 +382,7 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, page, limit} = req.query;
+    const {start_date, end_date, subcontractors, full_name, page, limit} = req.query;
     const project = req.query?.['project[]']
     const project2 = req.query?.['project']
     const filters = [];
@@ -411,6 +423,11 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
         values.push(`%${full_name}%`);
         idx++
     }
+    if (subcontractors) {
+        filters.push(`a.subcontract = $${idx}`);
+        values.push(!!subcontractors);
+        idx++
+    }
 
 
     let limits = '';
@@ -439,6 +456,7 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
                           LIMIT 1
             ) AS project
         FROM employee_activities ea
+            LEFT JOIN applications a ON a.id = e.application_id
             LEFT JOIN employees e ON e.id = ea.employee_id
             LEFT JOIN employee_roles er ON e.id = er.employee_id
             LEFT JOIN roles r ON r.id = er.role
