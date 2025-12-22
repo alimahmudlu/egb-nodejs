@@ -252,12 +252,12 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
     }
     if (checkStatus) {
         filters.push(`ea.is_manual = $${idx}`);
-        values.push(checkStatus === 1 ? true : (checkStatus === 2 ? false : null));
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
         idx++
     }
     if (checkType) {
         filters.push(`ea.type = $${idx}`);
-        values.push(checkStatus === 1 ? 2 : (checkStatus === 3 ? 4 : null));
+        values.push(Number(checkStatus) === 1 ? 2 : (Number(checkStatus) === 3 ? 4 : null));
         idx++
     }
     if (full_name) {
