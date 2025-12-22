@@ -128,8 +128,8 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
                           LIMIT 1
             ) AS project
         FROM employee_activities ea
-            LEFT JOIN applications a ON a.id = e.application_id
             LEFT JOIN employees e ON e.id = ea.employee_id
+            LEFT JOIN applications a ON a.id = e.application_id
             LEFT JOIN employee_roles er ON e.id = er.employee_id
             LEFT JOIN roles r ON r.id = er.role
         WHERE EXISTS (
@@ -230,8 +230,8 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
                           LIMIT 1
             ) AS project
         FROM employee_activities ea
-            LEFT JOIN applications a ON a.id = e.application_id
             LEFT JOIN employees e ON e.id = ea.employee_id
+            LEFT JOIN applications a ON a.id = e.application_id
             LEFT JOIN employee_roles er ON e.id = er.employee_id
             LEFT JOIN roles r ON r.id = er.role
         WHERE EXISTS (
@@ -332,8 +332,8 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
                           LIMIT 1
             ) AS project
         FROM employee_activities ea
-            LEFT JOIN applications a ON a.id = e.application_id
             LEFT JOIN employees e ON e.id = ea.employee_id
+            LEFT JOIN applications a ON a.id = e.application_id
             LEFT JOIN employee_roles er ON e.id = er.employee_id
             LEFT JOIN roles r ON r.id = er.role
         WHERE EXISTS (
