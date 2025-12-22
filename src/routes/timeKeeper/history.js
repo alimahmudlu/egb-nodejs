@@ -99,12 +99,12 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
     }
     if (checkStatus) {
         filters.push(`ea.is_manual = $${idx}`);
-        values.push(checkStatus === 1 ? true : (checkStatus === 2 ? false : null));
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
         idx++
     }
     if (checkType) {
         filters.push(`ea.type = $${idx}`);
-        values.push(checkStatus === 1 ? 1 : (checkStatus === 3 ? 3 : null));
+        values.push(Number(checkStatus) === 1 ? 1 : (Number(checkStatus) === 3 ? 3 : null));
         idx++
     }
     if (project) {
