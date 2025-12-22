@@ -104,7 +104,7 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
     }
     if (checkType) {
         filters.push(`ea.type = $${idx}`);
-        values.push(Number(checkStatus) === 1 ? 1 : (Number(checkStatus) === 3 ? 3 : null));
+        values.push(Number(checkType) === 1 ? 1 : (Number(checkType) === 3 ? 3 : null));
         idx++
     }
     if (project) {
@@ -257,7 +257,7 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
     }
     if (checkType) {
         filters.push(`ea.type = $${idx}`);
-        values.push(Number(checkStatus) === 1 ? 2 : (Number(checkStatus) === 3 ? 4 : null));
+        values.push(Number(checkType) === 1 ? 2 : (Number(checkType) === 3 ? 4 : null));
         idx++
     }
     if (full_name) {
