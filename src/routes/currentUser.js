@@ -242,7 +242,7 @@ router.get('/activities/work_hours', checkAuth, async (req, res) => {
               AND entry.employee_id = $1
                 ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
 
-
+            UNION ALL
 
             SELECT
                 (SELECT full_name FROM employees e WHERE e.id = entry.reviewer_employee_id) AS check_in_timekeeper,
