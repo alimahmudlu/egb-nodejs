@@ -84,7 +84,7 @@ router.get('/history/:employee_id/checkin', checkAuth, userPermission, async (re
                                             LEFT JOIN employees e ON e.id = ea.employee_id
                                             LEFT JOIN employee_roles er ON e.id = er.employee_id
                                             LEFT JOIN roles r ON r.id = er.role
-        WHERE ea.employee_id = $1 AND ea.type = 1 AND ea.status > 0
+        WHERE ea.employee_id = $1 AND ea.type IN (1, 3) AND ea.status > 0
         ORDER BY ea.id DESC;
         `, [employee_id])
 
@@ -111,7 +111,7 @@ router.get('/history/:employee_id/checkout', checkAuth, userPermission, async (r
                                             LEFT JOIN employees e ON e.id = ea.employee_id
                                             LEFT JOIN employee_roles er ON e.id = er.employee_id
                                             LEFT JOIN roles r ON r.id = er.role
-        WHERE ea.employee_id = $1 AND ea.type = 2 AND ea.status > 0
+        WHERE ea.employee_id = $1 AND ea.type IN () AND ea.status > 0
         ORDER BY ea.id DESC;
         `, [employee_id])
 
