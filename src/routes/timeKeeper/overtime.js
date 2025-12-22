@@ -96,9 +96,9 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
         values.push(`%${full_name}%`);
         idx++
     }
-    if (subcontractors) {
+    if (subcontractors && Number(subcontractors)) {
         filters.push(`a.subcontract = $${idx}`);
-        values.push(!!subcontractors);
+        values.push(!!Number(subcontractors));
         idx++
     }
 
@@ -198,9 +198,9 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
         values.push(`%${full_name}%`);
         idx++
     }
-    if (subcontractors) {
+    if (subcontractors && Number(subcontractors)) {
         filters.push(`a.subcontract = $${idx}`);
-        values.push(!!subcontractors);
+        values.push(!!Number(subcontractors));
         idx++
     }
 
@@ -300,9 +300,9 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
         values.push(`%${full_name}%`);
         idx++
     }
-    if (subcontractors) {
+    if (subcontractors && Number(subcontractors)) {
         filters.push(`a.subcontract = $${idx}`);
-        values.push(!!subcontractors);
+        values.push(!!Number(subcontractors));
         idx++
     }
 
