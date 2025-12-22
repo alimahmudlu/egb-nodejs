@@ -143,14 +143,7 @@ router.get('/activities/work_hours', checkAuth, async (req, res) => {
                 exit.review_time        AS exit_time,
                 exit.latitude           AS exit_latitude,
                 exit.longitude          AS exit_longitude,
-                CASE
-                    WHEN exit.status = 2 THEN
-                        to_char(
-                                make_interval(secs := ROUND(EXTRACT(EPOCH FROM (exit.review_time - entry.review_time)))),
-                                'HH24:MI'
-                        )
-                    ELSE NULL
-                    END                     AS work_duration,
+                entry.work_time         AS work_duration,
                 CASE
                     WHEN exit.status = 3 THEN 'Rejected Exit'
                     ELSE 'Completed'

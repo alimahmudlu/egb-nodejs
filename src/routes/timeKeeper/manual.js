@@ -363,7 +363,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() !== 2
+            moment().tz("Europe/Moscow").weekday() !== 7
         ) {
             diff = {
                 hours: 10,
@@ -375,7 +375,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() === 2
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 8,
@@ -387,7 +387,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 4 &&
-            moment().tz("Europe/Moscow").weekday() === 2
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 10,
@@ -398,7 +398,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() !== 2
+            moment().tz("Europe/Moscow").weekday() !== 7
         ) {
             diff = {
                 hours: 10,
@@ -409,7 +409,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() === 2
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 8,
@@ -420,7 +420,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 4 &&
-            moment().tz("Europe/Moscow").weekday() === 2
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 10,
@@ -474,7 +474,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() !== 2
+            moment().tz("Europe/Moscow").weekday() !== 7
         ) {
             diff = {
                 hours: 10,
@@ -486,7 +486,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() === 2
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 8,
@@ -498,7 +498,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 4 &&
-            moment().tz("Europe/Moscow").weekday() === 2
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 10,
