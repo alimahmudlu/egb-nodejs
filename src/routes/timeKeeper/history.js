@@ -132,6 +132,45 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
         limits = ` LIMIT ${limit} OFFSET ${offset} `;
     }
 
+    console.log(`
+        SELECT
+            COUNT(*) OVER() AS total_count,
+            ea.*,
+            (
+                SELECT json_build_object(
+                               'id', p.id,
+                               'name', p.name
+                       )
+                FROM project_members pm
+                         LEFT JOIN projects p ON p.id = pm.project_id
+                WHERE e.id = pm.employee_id AND pm.status = 1
+                LIMIT 1
+            ) AS project,
+            json_build_object(
+                'id', e.id,
+                'full_name', e.full_name,
+                'manual', e.dont_have_phone,
+                'role', json_build_object(
+                        'id', er.id,
+                        'name', r.name
+                        )
+                     ) as employee FROM employee_activities ea
+                                            LEFT JOIN employees e ON e.id = ea.employee_id
+                                            LEFT JOIN employee_roles er ON e.id = er.employee_id
+                                            LEFT JOIN roles r ON r.id = er.role
+
+        WHERE EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+              AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
+        )
+                                   ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+        AND (ea.type = 1 OR ea.type = 3)
+
+        ORDER BY e.full_name ASC, ea.review_time DESC ${limits ? limits : ''}
+        `, [req.currentUserId, ...values])
 
     const {rows} = await db.query(`
         SELECT
@@ -235,6 +274,45 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
         limits = ` LIMIT ${limit} OFFSET ${offset} `;
     }
 
+
+    console.log(`
+        SELECT
+            COUNT(*) OVER() AS total_count,
+            ea.*,
+            (
+                SELECT json_build_object(
+                               'id', p.id,
+                               'name', p.name
+                       )
+                FROM project_members pm
+                         LEFT JOIN projects p ON p.id = pm.project_id
+                WHERE e.id = pm.employee_id AND pm.status = 1
+                LIMIT 1
+            ) AS project,
+            json_build_object(
+                'id', e.id,
+                'full_name', e.full_name,
+                'manual', e.dont_have_phone,
+                'role', json_build_object(
+                        'id', er.id,
+                        'name', r.name
+                        )
+                     ) as employee FROM employee_activities ea
+                                            LEFT JOIN employees e ON e.id = ea.employee_id
+                                            LEFT JOIN employee_roles er ON e.id = er.employee_id
+                                            LEFT JOIN roles r ON r.id = er.role
+
+        WHERE EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+              AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
+        )
+                                   ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+        AND (ea.type = 2 OR ea.type = 4)
+        ORDER BY e.full_name ASC, ea.review_time DESC ${limits ? limits : ''}
+        `, [req.currentUserId, ...values])
 
     const {rows} = await db.query(`
         SELECT
