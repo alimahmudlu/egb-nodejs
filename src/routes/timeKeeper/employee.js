@@ -111,7 +111,7 @@ router.get('/history/:employee_id/checkout', checkAuth, userPermission, async (r
                                             LEFT JOIN employees e ON e.id = ea.employee_id
                                             LEFT JOIN employee_roles er ON e.id = er.employee_id
                                             LEFT JOIN roles r ON r.id = er.role
-        WHERE ea.employee_id = $1 AND ea.type IN () AND ea.status > 0
+        WHERE ea.employee_id = $1 AND ea.type IN (2, 4) AND ea.status > 0
         ORDER BY ea.id DESC;
         `, [employee_id])
 
