@@ -82,7 +82,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, project, page, limit} = req.query;
+    const {start_date, end_date, full_name, project, checkStatus, checkType, page, limit} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -95,6 +95,16 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
     if (end_date) {
         filters.push(`review_time <= $${idx}`);
         values.push(moment(end_date).format())
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`ea.is_manual = $${idx}`);
+        values.push(checkStatus === 1 ? true : (checkStatus === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`ea.type = $${idx}`);
+        values.push(checkStatus === 1 ? 1 : (checkStatus === 3 ? 3 : null));
         idx++
     }
     if (project) {
@@ -175,7 +185,7 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, project, page, limit} = req.query;
+    const {start_date, end_date, full_name, project, checkStatus, checkType, page, limit} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -199,6 +209,16 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
             AND pm1.project_id = $${idx}
         )`);
         values.push(project)
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`ea.is_manual = $${idx}`);
+        values.push(checkStatus === 1 ? true : (checkStatus === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`ea.type = $${idx}`);
+        values.push(checkStatus === 1 ? 2 : (checkStatus === 3 ? 4 : null));
         idx++
     }
     if (full_name) {
