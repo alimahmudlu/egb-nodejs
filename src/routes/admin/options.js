@@ -40,4 +40,16 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
     })
 })
 
+router.get('/camps', checkAuth, userPermission, async (req, res) => {
+    const {rows} = await db.query(`SELECT
+                                       c.*
+                                   FROM camps c`, [])
+
+    res.json({
+        success: true,
+        message: 'Option Camps fetched successfully',
+        data: rows
+    })
+})
+
 export default router
