@@ -249,7 +249,7 @@ router.get('/report/today', checkAuth, userPermission, async (req, res) => {
         SELECT fr.*
         FROM food_reports_p fr
         WHERE date = $1
-    `, [moment().add(1, 'days').format('YYYY-MM-DD')]);
+    `, [moment().format('YYYY-MM-DD')]);
 
     const {rows: employees} = await db.query(`
             SELECT COUNT(ea.id) as total_employees,
@@ -303,7 +303,7 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             p.id;
     `
 
-    const {rows: employees} = await db.query(query, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD')]);
+    const {rows: employees} = await db.query(query, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD')]);
 
     return res.status(200).json({
         success: true,
@@ -350,7 +350,7 @@ router.get('/projects/:id', checkAuth, userPermission, async (req, res) => {
             p.id;
     `
 
-    const {rows: employees} = await db.query(query, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD'), req.params.id]);
+    const {rows: employees} = await db.query(query, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), req.params.id]);
 
     return res.status(200).json({
         success: true,
