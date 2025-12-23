@@ -45,15 +45,8 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
 router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     const {turn1employees, turn2employees, date, projectId, countOfBus, countOfSeatInEveryBus, toProjectId, fromProjectId, tripTypeId} = req.body;
 
-    console.log(turn1employees, turn2employees, date, projectId, countOfBus, countOfSeatInEveryBus, toProjectId, fromProjectId, tripTypeId)
-    console.log(`
-        INSERT INTO bus_reports (project_id, turn1_employee_count, turn2_employee_count, bus_count, seat_count, date, employee_id, to_project_id, from_project_id, trip_type, bus_type_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-        RETURNING *
-    `, [projectId, turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, date, req.currentUserId, toProjectId, fromProjectId, tripTypeId, tripTypeId])
-
     const {rows} = await db.query(`
-        INSERT INTO bus_reports (project_id, turn1_employee_count, turn2_employee_count, bus_count, seat_count, date, employee_id, employee_id, to_project_id, from_project_id, trip_type, bus_type_id)
+        INSERT INTO bus_reports (project_id, turn1_employee_count, turn2_employee_count, bus_count, seat_count, date, employee_id, to_project_id, from_project_id, trip_type, bus_type_id)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         RETURNING *
     `, [projectId, turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, date, req.currentUserId, toProjectId, fromProjectId, tripTypeId, tripTypeId]);
