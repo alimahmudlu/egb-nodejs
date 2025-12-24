@@ -21,15 +21,6 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                         'name', r.name
                         )
                      ) as employee,
---                (
---                    SELECT json_build_object(
---                                   'id', e.id,
---                                   'full_name', e.full_name
---                           )
---                    FROM employees e
---                    WHERE e.id = ea.reviewer_employee_id
---                           LIMIT 1
---             ) AS reviewer,
                (
                    SELECT json_build_object(
                                   'id', p.id,
@@ -37,7 +28,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                           )
                    FROM project_members pm
                    LEFT JOIN projects p ON p.id = pm.project_id
-                   WHERE e.id = pm.employee_id
+                   WHERE e.id = pm.employee_id AND pm.status = 1
                           LIMIT 1
             ) AS project
         FROM employee_activities ea
@@ -59,6 +50,342 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         success: true,
         message: 'Activity fetched successfully',
         data: rows
+    })
+})
+
+router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
+    const {start_date, end_date, full_name, subcontractors, checkType, checkStatus, page, limit} = req.query;
+    const project = req.query?.['project[]']
+    const project2 = req.query?.['project']
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+
+    if (project) {
+        if (Array.isArray(project2) && (project || []).length > 0) {
+            filters.push(`EXISTS (
+                SELECT 1
+                FROM project_members pm1
+                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+                WHERE pm1.employee_id = ea.employee_id
+                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            )`);
+        }
+        else {
+            filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project} AND pm1.status = 1
+        )`);
+        }
+    }
+    if (project2) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project2} AND pm1.status = 1
+        )`);
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
+        idx++
+    }
+    if (subcontractors && Number(subcontractors)) {
+        filters.push(`a.subcontract = $${idx}`);
+        values.push(!!Number(subcontractors));
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`ea.is_manual = $${idx}`);
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`ea.type = $${idx}`);
+        values.push(Number(checkType) === 1 ? 1 : (Number(checkType) === 3 ? 3 : null));
+        idx++
+    }
+
+    let limits = '';
+    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
+
+    if (page && limit) {
+        limits = ` LIMIT ${limit} OFFSET ${offset} `;
+    }
+
+    const {rows} = await db.query(`
+        SELECT ea.*,
+               COUNT(*) OVER() AS total_count, json_build_object(
+                'id', e.id,
+                'full_name', e.full_name,
+                'role', json_build_object(
+                        'name', r.name
+                        )
+                     ) as employee,
+               (
+                   SELECT json_build_object(
+                                  'name', p.name
+                          )
+                   FROM project_members pm
+                   LEFT JOIN projects p ON p.id = pm.project_id
+                   WHERE e.id = pm.employee_id AND pm.status = 1
+                          LIMIT 1
+            ) AS project
+        FROM employee_activities ea
+            LEFT JOIN employees e ON e.id = ea.employee_id
+            LEFT JOIN applications a ON a.id = e.application_id
+            LEFT JOIN employee_roles er ON e.id = er.employee_id
+            LEFT JOIN roles r ON r.id = er.role
+        WHERE EXISTS (
+            SELECT 1
+            FROM project_members pm1
+            JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
+            WHERE pm1.employee_id = ea.employee_id
+          AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
+            )
+            AND ea.type = 3 AND ea.status = 1
+            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+        ORDER BY e.full_name ASC ${limits ? limits : ''};
+    `, [req.currentUserId, ...values])
+
+    res.status(200).json({
+        success: true,
+        message: 'Activity fetched successfully',
+        data: {
+            total: rows?.[0]?.total_count || 0,
+            page: page,
+            data: rows
+        }
+    })
+})
+
+router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
+    const {start_date, end_date, full_name, subcontractors, checkType, checkStatus, page, limit} = req.query;
+    const project = req.query?.['project[]']
+    const project2 = req.query?.['project']
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+
+    if (project) {
+        if (Array.isArray(project2) && (project || []).length > 0) {
+            filters.push(`EXISTS (
+                SELECT 1
+                FROM project_members pm1
+                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+                WHERE pm1.employee_id = ea.employee_id
+                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            )`);
+        }
+        else {
+            filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project} AND pm1.status = 1
+        )`);
+        }
+    }
+    if (project2) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project2} AND pm1.status = 1
+        )`);
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
+        idx++
+    }
+    if (subcontractors && Number(subcontractors)) {
+        filters.push(`a.subcontract = $${idx}`);
+        values.push(!!Number(subcontractors));
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`ea.is_manual = $${idx}`);
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`ea.type = $${idx}`);
+        values.push(Number(checkType) === 1 ? 1 : (Number(checkType) === 3 ? 3 : null));
+        idx++
+    }
+
+    let limits = '';
+    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
+
+    if (page && limit) {
+        limits = ` LIMIT ${limit} OFFSET ${offset} `;
+    }
+
+    const {rows} = await db.query(`
+        SELECT ea.*,
+               COUNT(*) OVER() AS total_count, json_build_object(
+                'id', e.id,
+                'full_name', e.full_name,
+                'role', json_build_object(
+                        'name', r.name
+                        )
+                     ) as employee,
+               (
+                   SELECT json_build_object(
+                                  'name', p.name
+                          )
+                   FROM project_members pm
+                   LEFT JOIN projects p ON p.id = pm.project_id
+                   WHERE e.id = pm.employee_id AND pm.status = 1
+                          LIMIT 1
+            ) AS project
+        FROM employee_activities ea
+            LEFT JOIN employees e ON e.id = ea.employee_id
+            LEFT JOIN applications a ON a.id = e.application_id
+            LEFT JOIN employee_roles er ON e.id = er.employee_id
+            LEFT JOIN roles r ON r.id = er.role
+        WHERE EXISTS (
+            SELECT 1
+            FROM project_members pm1
+            JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
+            WHERE pm1.employee_id = ea.employee_id  AND pm1.status = 1 AND pm2.status = 1
+          AND pm2.employee_id = $1
+            )
+            AND ea.type = 4 AND ea.status = 1 AND ea.completed_status = 0
+            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+        ORDER BY e.full_name ASC ${limits ? limits : ''};
+    `, [req.currentUserId, ...values])
+
+    res.status(200).json({
+        success: true,
+        message: 'Activity fetched successfully',
+        data: {
+            total: rows?.[0]?.total_count || 0,
+            page: page,
+            data: rows
+        }
+    })
+})
+
+router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
+    const {start_date, end_date, full_name, subcontractors, checkType, checkStatus, page, limit} = req.query;
+    const project = req.query?.['project[]']
+    const project2 = req.query?.['project']
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+
+    if (project) {
+        if (Array.isArray(project2) && (project || []).length > 0) {
+            filters.push(`EXISTS (
+                SELECT 1
+                FROM project_members pm1
+                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+                WHERE pm1.employee_id = ea.employee_id
+                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            )`);
+        }
+        else {
+            filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project} AND pm1.status = 1
+        )`);
+        }
+    }
+    if (project2) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project2} AND pm1.status = 1
+        )`);
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
+        idx++
+    }
+    if (subcontractors && Number(subcontractors)) {
+        filters.push(`a.subcontract = $${idx}`);
+        values.push(!!Number(subcontractors));
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`ea.is_manual = $${idx}`);
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`ea.type = $${idx}`);
+        values.push(Number(checkType) === 1 ? 1 : (Number(checkType) === 3 ? 3 : null));
+        idx++
+    }
+
+    let limits = '';
+    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
+
+    if (page && limit) {
+        limits = ` LIMIT ${limit} OFFSET ${offset} `;
+    }
+
+    const {rows} = await db.query(`
+        SELECT ea.*,
+               COUNT(*) OVER() AS total_count, json_build_object(
+                'id', e.id,
+                'full_name', e.full_name,
+                'role', json_build_object(
+                        'name', r.name
+                        )
+                     ) as employee,
+               (
+                   SELECT json_build_object(
+                                  'name', p.name
+                          )
+                   FROM project_members pm
+                   LEFT JOIN projects p ON p.id = pm.project_id
+                   WHERE e.id = pm.employee_id AND pm.status = 1
+                          LIMIT 1
+            ) AS project
+        FROM employee_activities ea
+            LEFT JOIN employees e ON e.id = ea.employee_id
+            LEFT JOIN applications a ON a.id = e.application_id
+            LEFT JOIN employee_roles er ON e.id = er.employee_id
+            LEFT JOIN roles r ON r.id = er.role
+        WHERE EXISTS (
+            SELECT 1
+            FROM project_members pm1
+            JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
+            WHERE pm1.employee_id = ea.employee_id  AND pm1.status = 1 AND pm2.status = 1
+          AND pm2.employee_id = $1
+            )
+            AND ea.type = 3 AND ea.status = 2 AND ea.completed_status = 0
+            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}            
+        ORDER BY e.full_name ASC ${limits ? limits : ''};
+    `, [req.currentUserId, ...values])
+
+    res.status(200).json({
+        success: true,
+        message: 'Activity fetched successfully',
+        data: {
+            total: rows?.[0]?.total_count || 0,
+            page: page,
+            data: rows
+        }
     })
 })
 
@@ -93,6 +420,25 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             hours: Math.floor(newDuration.asHours()),
             minutes: newDuration.minutes()
         }
+
+        if (confirm_type === 1) {
+            diff = {
+                hours: 3,
+                minutes: 0
+            };
+        }
+        else if (confirm_type === 2) {
+            diff = {
+                hours: Math.floor(newDuration.asHours()),
+                minutes: newDuration.minutes()
+            }
+        }
+        else if (confirm_type === 3) {
+            diff = {
+                hours: 0,
+                minutes: 0
+            }
+        }
     }
 
     const {rows: checkInRow} = await db.query(`
@@ -101,8 +447,6 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         WHERE employee_id = $2 and status = $3 and completed_status = $4 and type = $5
             RETURNING *;
     `, [1, employee_id, 2, 0, 3, `${diff?.hours}:${diff?.minutes}`])
-
-    console.log(checkInRow, 'checkInRow')
 
     const {rows} = await db.query(`
         UPDATE employee_activities
@@ -146,8 +490,14 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
     )
 
 
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
     const io = getIO();
     const socketId = userSocketMap.get(employee_id);
+
+    sendPushNotification(employee_id, type === 3 ? 'Overtime Check-in request accepted' : 'Overtime Check-out request accepted', `${empData?.[0]?.full_name} accepted a request for ${type === 2 ? 'Overtime check-in' : 'Overtime check-out'} at now`, {
+        url: '/timeKeeper/',
+        utm_source: 'push_notification'
+    })
 
     if (socketId) {
         io.to(socketId).emit("update_activity", {
@@ -218,6 +568,12 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
             data: returnedRow?.[0]
         });
     }
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
+
+    sendPushNotification(employee_id, type === 3 ? 'Overtime Check-in request accepted' : 'Overtime Check-out request accepted', `${empData?.[0]?.full_name} accepted a request for ${type === 2 ? 'Overtime check-in' : 'Overtime check-out'} at now`, {
+        url: '/timeKeeper/',
+        utm_source: 'push_notification'
+    })
 
     return res.status(200).json({
         success: true,
@@ -254,7 +610,7 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
         idx++
     }
     if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
         values.push(`%${full_name}%`);
         idx++
     }
@@ -318,7 +674,7 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
         idx++
     }
     if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
         values.push(`%${full_name}%`);
         idx++
     }

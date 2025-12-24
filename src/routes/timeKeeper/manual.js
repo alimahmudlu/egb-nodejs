@@ -1,7 +1,7 @@
 import express from 'express'
 import db from '../../helper/db.js'
 import checkAuth from '../../middleware/checkAuth.js'
-import moment from "moment";
+import moment from "moment-timezone";
 import userPermission from "../../middleware/userPermission.js";
 
 const router = express.Router()
@@ -25,7 +25,7 @@ const router = express.Router()
         idx++
     }
     if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
         values.push(`%${full_name}%`);
         idx++
     }
@@ -74,7 +74,7 @@ const router = express.Router()
 })*/
 
 router.get('/list', checkAuth, userPermission, async (req, res) => {
-    const {full_name, project, application_status, ios, page, limit} = req.query;
+    const {full_name, project, application_status, ios, subcontractors, page, limit} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -99,7 +99,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         idx++
     }
     if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
         values.push(`%${full_name}%`);
         idx++
     }
@@ -110,12 +110,16 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         filters.push(`e.is_draft = false`);
     }
     if (ios === '1') {
-        console.log('ios', ios)
         filters.push(
             `
                 EXISTS (SELECT 1 FROM employee_ios ei WHERE ei.employee_id = e.id AND ei.status = 1)
             `
         );
+    }
+    if (subcontractors && Number(subcontractors)) {
+        filters.push(`a.subcontract = $${idx}`);
+        values.push(!!Number(subcontractors));
+        idx++
     }
 
     const {rows} = await db.query(`
@@ -181,6 +185,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                 ) as overtimeCheckout
         FROM employees e
             LEFT JOIN employee_roles er ON e.id = er.employee_id
+            LEFT JOIN applications a ON a.id = e.application_id
 --             LEFT JOIN employee_ios ei ON e.id = ei.employee_id and ei.status = 1
             LEFT JOIN roles r ON r.id = er.role
         WHERE e.is_active = true
@@ -226,6 +231,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
 
 router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const { employee_id, employee_timezone, request_time, longitude, latitude, work_time } = req.body;
+    const turn = moment(request_time).isBetween(moment("03:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
 
     const {rows: checkedInRows} =
         await db.query(`
@@ -261,9 +267,9 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
             completed_status,
             reject_reason,
             work_time,
-         is_manual
+         is_manual, turn
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *
     `,
                 [
                     null,
@@ -280,7 +286,8 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                     0,
                     null,
                     null,
-                    true
+                    true,
+                    turn
                 ]);
 
             const {rows: thisInsertedRow} = await db.query(`
@@ -361,7 +368,32 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
-            confirm_type === 1
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() !== 7
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 8,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 4 &&
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 10,
@@ -371,7 +403,30 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
         else if (
             // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             duration.asHours() < 24 &&
-            confirm_type === 1
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() !== 7
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 8,
+                minutes: 0
+            };
+        }
+        else if (
+            // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 4 &&
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 10,
@@ -424,7 +479,32 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
             moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
             duration.asHours() < 24 &&
-            confirm_type === 1
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() !== 7
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 8,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 4 &&
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 10,
@@ -591,6 +671,25 @@ router.post('/overtime_checkout', checkAuth, userPermission, async (req, res) =>
         diff = {
             hours: Math.floor(newDuration.asHours()),
             minutes: newDuration.minutes()
+        }
+
+        if (confirm_type === 1) {
+            diff = {
+                hours: 3,
+                minutes: 0
+            };
+        }
+        else if (confirm_type === 2) {
+            diff = {
+                hours: Math.floor(newDuration.asHours()),
+                minutes: newDuration.minutes()
+            }
+        }
+        else if (confirm_type === 3) {
+            diff = {
+                hours: 0,
+                minutes: 0
+            }
         }
     }
 

@@ -34,7 +34,7 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
         WHERE pm1.project_id = p.id
     ) AS members
                                    FROM project_members pm
-                                       LEFT JOIN projects p ON p.id = pm.project_id
+                                       JOIN projects p ON p.id = pm.project_id
                                    WHERE pm.employee_id = $1`, [req.currentUserId])
 
     res.json({

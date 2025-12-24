@@ -1,7 +1,7 @@
 import express from 'express'
 import db from '../../helper/db.js'
 import checkAuth from '../../middleware/checkAuth.js'
-import moment from 'moment'
+import moment from 'moment-timezone'
 
 import { getIO, userSocketMap } from "./../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
@@ -38,7 +38,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         )`);
     }
     if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
         values.push(`%${full_name}%`);
         idx++
     }
@@ -80,8 +80,8 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
             SELECT 1
             FROM project_members pm1
             JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
-            WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1
-          AND pm2.employee_id = $1
+            WHERE pm1.employee_id = ea.employee_id
+          AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
             )
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         ORDER BY e.full_name ASC;
@@ -94,11 +94,431 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     })
 })
 
+router.get('/list/count', checkAuth, userPermission, async (req, res) => {
+    const {start_date, end_date, full_name, page, limit} = req.query;
+    const project = req.query?.['project[]']
+    const project2 = req.query?.['project']
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+    if (start_date) {
+        filters.push(`ea.review_time >= $${idx}`);
+        values.push(start_date)
+        idx++
+    }
+    if (end_date) {
+        filters.push(`ea.review_time <= $${idx}`);
+        values.push(end_date)
+        idx++
+    }
+    if (project && (project || []).length > 0) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+        )`);
+    }
+    if (project2) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project2} AND pm1.status = 1
+        )`);
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
+        idx++
+    }
+
+    const {rows} = await db.query(`
+        SELECT
+            COALESCE(SUM(CASE WHEN ea.type = 1 AND ea.status > 0 THEN 1 ELSE 0 END), 0) AS checkin_count,
+
+            COALESCE(SUM(CASE WHEN ea.type = 2 AND ea.status > 0 THEN 1 ELSE 0 END), 0) AS checkout_count
+        FROM
+            employees e
+                JOIN
+            project_members pm_self ON pm_self.employee_id = e.id AND pm_self.status = 1
+                JOIN
+            projects p ON p.id = pm_self.project_id
+                LEFT JOIN
+            positions ps ON ps.id = e.position
+                LEFT JOIN
+            roles r ON r.id = pm_self.role_id -- Rolu layihə üzvlüyündən götürürük
+                LEFT JOIN
+            employee_activities ea ON ea.employee_id = e.id AND ea.status > 0 -- Bütün fəaliyyətləri daxil edirik
+
+        WHERE
+            e.is_active = TRUE
+          -- EXISTS şərti: Bu işçi ($1) ilə eyni layihədə olanları seçir
+          AND EXISTS (
+            SELECT 1
+            FROM project_members pm_other
+            WHERE
+                pm_other.project_id = pm_self.project_id
+              AND pm_other.employee_id = $1
+              AND pm_other.status = 1
+        )
+            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+    `, [req.currentUserId, ...values])
+
+    res.status(200).json({
+        success: true,
+        message: 'Activity fetched successfully',
+        data: rows?.[0]
+    })
+})
+
+router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
+    const {start_date, end_date, full_name, subcontractors, checkStatus, checkType, page, limit} = req.query;
+    const project = req.query?.['project[]']
+    const project2 = req.query?.['project']
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+
+    if (project) {
+        if (Array.isArray(project2) && (project || []).length > 0) {
+            filters.push(`EXISTS (
+                SELECT 1
+                FROM project_members pm1
+                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+                WHERE pm1.employee_id = ea.employee_id
+                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            )`);
+        }
+        else {
+            filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project} AND pm1.status = 1
+        )`);
+        }
+    }
+    if (project2) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project2} AND pm1.status = 1
+        )`);
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
+        idx++
+    }
+    if (subcontractors && Number(subcontractors)) {
+        filters.push(`a.subcontract = $${idx}`);
+        values.push(!!Number(subcontractors));
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`ea.is_manual = $${idx}`);
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`ea.type = $${idx}`);
+        values.push(Number(checkType) === 1 ? 1 : (Number(checkType) === 3 ? 3 : null));
+        idx++
+    }
+
+
+    let limits = '';
+    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
+
+    if (page && limit) {
+        limits = ` LIMIT ${limit} OFFSET ${offset} `;
+    }
+
+    const {rows} = await db.query(`
+        SELECT ea.*,
+               COUNT(*) OVER() AS total_count, json_build_object(
+                'id', e.id,
+                'full_name', e.full_name,
+                'role', json_build_object(
+                        'name', r.name
+                        )
+                     ) as employee,
+               (
+                   SELECT json_build_object(
+                                  'name', p.name
+                          )
+                   FROM project_members pm
+                   LEFT JOIN projects p ON p.id = pm.project_id
+                   WHERE e.id = pm.employee_id AND pm.status = 1
+                          LIMIT 1
+            ) AS project
+        FROM employee_activities ea
+            LEFT JOIN employees e ON e.id = ea.employee_id
+            LEFT JOIN applications a ON a.id = e.application_id
+            LEFT JOIN employee_roles er ON e.id = er.employee_id
+            LEFT JOIN roles r ON r.id = er.role
+        WHERE EXISTS (
+            SELECT 1
+            FROM project_members pm1
+            JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
+            WHERE pm1.employee_id = ea.employee_id
+          AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
+            )
+            AND ea.type = 1 AND ea.status = 1
+            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+        ORDER BY e.full_name ASC ${limits ? limits : ''};
+    `, [req.currentUserId, ...values])
+
+    res.status(200).json({
+        success: true,
+        message: 'Activity fetched successfully',
+        data: {
+            total: rows?.[0]?.total_count || 0,
+            page: page,
+            data: rows
+        }
+    })
+})
+
+router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
+    const {start_date, end_date, full_name, subcontractors, checkType, checkStatus, page, limit} = req.query;
+    const project = req.query?.['project[]']
+    const project2 = req.query?.['project']
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+
+    if (project) {
+        if (Array.isArray(project2) && (project || []).length > 0) {
+            filters.push(`EXISTS (
+                SELECT 1
+                FROM project_members pm1
+                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+                WHERE pm1.employee_id = ea.employee_id
+                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            )`);
+        }
+        else {
+            filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project} AND pm1.status = 1
+        )`);
+        }
+    }
+    if (project2) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project2} AND pm1.status = 1
+        )`);
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
+        idx++
+    }
+    if (subcontractors && Number(subcontractors)) {
+        filters.push(`a.subcontract = $${idx}`);
+        values.push(!!Number(subcontractors));
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`ea.is_manual = $${idx}`);
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`ea.type = $${idx}`);
+        values.push(Number(checkType) === 1 ? 1 : (Number(checkType) === 3 ? 3 : null));
+        idx++
+    }
+
+
+    let limits = '';
+    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
+
+    if (page && limit) {
+        limits = ` LIMIT ${limit} OFFSET ${offset} `;
+    }
+
+    const {rows} = await db.query(`
+        SELECT ea.*,
+               COUNT(*) OVER() AS total_count, json_build_object(
+                'id', e.id,
+                'full_name', e.full_name,
+                'role', json_build_object(
+                        'name', r.name
+                        )
+                     ) as employee,
+               (
+                   SELECT json_build_object(
+                                  'name', p.name
+                          )
+                   FROM project_members pm
+                   LEFT JOIN projects p ON p.id = pm.project_id
+                   WHERE e.id = pm.employee_id AND pm.status = 1
+                          LIMIT 1
+            ) AS project
+        FROM employee_activities ea
+            LEFT JOIN employees e ON e.id = ea.employee_id
+            LEFT JOIN applications a ON a.id = e.application_id
+            LEFT JOIN employee_roles er ON e.id = er.employee_id
+            LEFT JOIN roles r ON r.id = er.role
+        WHERE EXISTS (
+            SELECT 1
+            FROM project_members pm1
+            JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
+            WHERE pm1.employee_id = ea.employee_id  AND pm1.status = 1 AND pm2.status = 1
+          AND pm2.employee_id = $1
+            )
+            AND ea.type = 2 AND ea.status = 1 AND ea.completed_status = 0
+            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+        ORDER BY e.full_name ASC ${limits ? limits : ''};
+    `, [req.currentUserId, ...values])
+
+    res.status(200).json({
+        success: true,
+        message: 'Activity fetched successfully',
+        data: {
+            total: rows?.[0]?.total_count || 0,
+            page: page,
+            data: rows
+        }
+    })
+})
+
+router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
+    const {start_date, end_date, subcontractors, full_name, checkType, checkStatus, page, limit} = req.query;
+    const project = req.query?.['project[]']
+    const project2 = req.query?.['project']
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+    if (project) {
+        if (Array.isArray(project2) && (project || []).length > 0) {
+            filters.push(`EXISTS (
+                SELECT 1
+                FROM project_members pm1
+                         JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+                WHERE pm1.employee_id = ea.employee_id
+                AND pm1.project_id IN (${(project || [])?.join(', ')}) AND pm1.status = 1
+            )`);
+        }
+        else {
+            filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project} AND pm1.status = 1
+        )`);
+        }
+    }
+    if (project2) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+            AND pm1.project_id = ${project2} AND pm1.status = 1
+        )`);
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
+        idx++
+    }
+    if (subcontractors && Number(subcontractors)) {
+        filters.push(`a.subcontract = $${idx}`);
+        values.push(!!Number(subcontractors));
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`ea.is_manual = $${idx}`);
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`ea.type = $${idx}`);
+        values.push(Number(checkType) === 1 ? 1 : (Number(checkType) === 3 ? 3 : null));
+        idx++
+    }
+
+
+    let limits = '';
+    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
+
+    if (page && limit) {
+        limits = ` LIMIT ${limit} OFFSET ${offset} `;
+    }
+
+    const {rows} = await db.query(`
+        SELECT ea.*,
+               COUNT(*) OVER() AS total_count, json_build_object(
+                'id', e.id,
+                'full_name', e.full_name,
+                'role', json_build_object(
+                        'name', r.name
+                        )
+                     ) as employee,
+               (
+                   SELECT json_build_object(
+                                  'name', p.name
+                          )
+                   FROM project_members pm
+                   LEFT JOIN projects p ON p.id = pm.project_id
+                   WHERE e.id = pm.employee_id AND pm.status = 1
+                          LIMIT 1
+            ) AS project
+        FROM employee_activities ea
+            LEFT JOIN employees e ON e.id = ea.employee_id
+            LEFT JOIN applications a ON a.id = e.application_id
+            LEFT JOIN employee_roles er ON e.id = er.employee_id
+            LEFT JOIN roles r ON r.id = er.role
+        WHERE EXISTS (
+            SELECT 1
+            FROM project_members pm1
+            JOIN project_members pm2 ON pm1.project_id = pm2.project_id AND pm2.status = 1
+            WHERE pm1.employee_id = ea.employee_id  AND pm1.status = 1 AND pm2.status = 1
+          AND pm2.employee_id = $1
+            )
+            AND ea.type = 1 AND ea.status = 2 AND ea.completed_status = 0
+            ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+        ORDER BY e.full_name ASC ${limits ? limits : ''};
+    `, [req.currentUserId, ...values])
+
+    res.status(200).json({
+        success: true,
+        message: 'Activity fetched successfully',
+        data: {
+            total: rows?.[0]?.total_count || 0,
+            page: page,
+            data: rows
+        }
+    })
+})
 router.post('/accept', checkAuth, userPermission, async (req, res) => {
     const {activity_id, employee_id, type, confirm_time, timezone, confirm_type} = req.body
+    const turn = moment(confirm_time).isBetween(moment("03:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
 
     // const returnedRow = await timeKeeperActivityAccept({...req.body, currentUserId: req.currentUserId}, res)
 
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
     if (!activity_id || !employee_id || !type) {
         return res.status(400).json({
             success: false,
@@ -134,7 +554,43 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
-            confirm_type === 1
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() !== 7
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 4 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 8,
+                minutes: 0
+            };
+        }
+        else if (
+            // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() !== 7
         ) {
             diff = {
                 hours: 10,
@@ -144,10 +600,22 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         else if (
             // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             duration.asHours() < 24 &&
-            confirm_type === 1
+            confirm_type === 4 &&
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 8,
                 minutes: 0
             };
         }
@@ -197,7 +665,32 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
             moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
             duration.asHours() < 24 &&
-            confirm_type === 1
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() !== 7
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 8,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 4 &&
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 10,
@@ -251,17 +744,17 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
 
     const {rows: checkInRow} = await db.query(`
         UPDATE employee_activities ea
-        SET completed_status = $1, work_time = $6
+        SET completed_status = $1, work_time = $6, turn = $7
         WHERE employee_id = $2 and status = $3 and completed_status = $4 and type = $5
             RETURNING *;
-    `, [1, employee_id, 2, 0, 1, `${diff?.hours}:${diff?.minutes}`])
+    `, [1, employee_id, 2, 0, 1, `${diff?.hours}:${diff?.minutes}`, turn])
 
     const {rows} = await db.query(`
         UPDATE employee_activities
-        SET reviewer_employee_id = $1, reviewer_timezone = $2, review_time = $3, completed_status = $4, status = $9, confirm_type = $10
+        SET reviewer_employee_id = $1, reviewer_timezone = $2, review_time = $3, completed_status = $4, status = $9, confirm_type = $10, turn = $11
         WHERE id = $5 and employee_id = $6 and status = $7 and type = $8
             RETURNING *;
-    `, [req.currentUserId, timezone, confirm_time, type === 1 ? 0 : 1, activity_id, employee_id, 1,  type, 2, confirm_type])
+    `, [req.currentUserId, timezone, confirm_time, type === 1 ? 0 : 1, activity_id, employee_id, 1,  type, 2, confirm_type, turn])
 
 
     if (rows.length === 0 && (type === 2 ? checkInRow.length === 0 : false)) {
@@ -290,7 +783,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
     const io = getIO();
     const socketId = userSocketMap.get(employee_id);
 
-    console.log('socket_id', socketId, returnedRow?.[0])
+    console.log(socketId, 'socketId')
 
     if (socketId) {
         io.to(socketId).emit("update_activity", {
@@ -301,7 +794,10 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         });
     }
 
-    sendPushNotification(employee_id, 'test', 'salam')
+    sendPushNotification(employee_id, type === 1 ? 'Check-in request accepted' : 'Check-out request accepted', `${empData?.[0]?.full_name} accepted a request for ${type === 1 ? 'check-in' : 'check-out'} at now`, {
+        url: '/timeKeeper/',
+        utm_source: 'push_notification'
+    })
 
     return res.status(200).json({
         success: true,
@@ -319,6 +815,8 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
             message: 'Activity ID, Employee ID, type and reject_reason are required'
         })
     }
+
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
 
     const {rows} = await db.query(`
                 UPDATE employee_activities
@@ -362,6 +860,11 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
         });
     }
 
+    sendPushNotification(employee_id, type === 1 ? 'Check-in request rejected' : 'Check-out request rejected', `${empData?.[0]?.full_name} rejected a request for ${type === 1 ? 'check-in' : 'check-out'} at now`, {
+        url: '/timeKeeper/',
+        utm_source: 'push_notification'
+    })
+
     return res.status(200).json({
         success: true,
         message: 'Activity rejected successfully',
@@ -397,7 +900,7 @@ router.get('/checkin', checkAuth, userPermission, async (req, res) => {
         idx++
     }
     if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
         values.push(`%${full_name}%`);
         idx++
     }
@@ -471,7 +974,7 @@ router.get('/checkout', checkAuth, userPermission, async (req, res) => {
         idx++
     }
     if (full_name) {
-        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}))`);
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
         values.push(`%${full_name}%`);
         idx++
     }
@@ -522,6 +1025,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude} = req.body;
     const status = 1;
     const type = 1;
+    const turn = moment(time).isBetween(moment("03:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
 
     const {rows: checkedInRows} =
         await db.query(`
@@ -550,11 +1054,12 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                             completed_status,
                             reject_reason,
                             work_time,
-                         is_manual
+                         is_manual,
+                         turn
                         )
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *
                 `,
-                [null, req.currentUserId, timezone, time, type, longitude, latitude, req.currentUserId, timezone, time, 2, 0, null, null, false])
+                [null, req.currentUserId, timezone, time, type, longitude, latitude, req.currentUserId, timezone, time, 2, 0, null, null, false, turn])
 
         if (rows.length > 0) {
             const {rows: thisInsertedRow} = await db.query(`
@@ -598,7 +1103,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                     WHERE pm1.employee_id = er.employee_id
                       AND pm1.role_id = 2
                       AND pm2.employee_id = $1
-                      AND pm2.role_id = 2
+                      AND pm2.role_id = 2 AND pm1.status = 1 AND pm2.status = 1
 
                 );`, [req.currentUserId]);
 
@@ -616,7 +1121,6 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
-                    sendPushNotification(el?.employee_id, 'test', 'salam')
                 })
             }
         }
@@ -781,7 +1285,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
 * CHECKOUT: without Timekeeper control
 * */
 router.post('/checkout', checkAuth, userPermission, async (req, res) => {
-    const {time, timezone, latitude, longitude, activity_id} = req.body;
+    const {time, timezone, latitude, longitude, activity_id, confirm_type} = req.body;
     const status = 1;
     const type = 2;
 
@@ -810,13 +1314,94 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
 
         if (
             moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("19:31", "HH:mm")) &&
-            duration.asHours() < 24
+            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() !== 7
         ) {
             diff = {
                 hours: 10,
                 minutes: 0
             };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 8,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 4 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() !== 7
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 8,
+                minutes: 0
+            };
+        }
+        else if (
+            // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 4 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("12:59", "HH:mm"), moment("14:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 2
+        ) {
+            diff = {
+                hours: 5,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBefore(moment("14:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 2
+        ) {
+            diff = {
+                hours: Math.floor(duration.asHours() - 1),
+                minutes: duration.minutes()
+            }
         }
         /*else if (
             moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
@@ -841,13 +1426,110 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
         else if (
             moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
             moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
-            duration.asHours() < 24
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() !== 7
         ) {
             diff = {
                 hours: 10,
                 minutes: 0
             };
         }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 8,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 4 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("00:59", "HH:mm"), moment("02:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 2
+        ) {
+            diff = {
+                hours: 5,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBefore(moment("02:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 2
+        ) {
+            diff = {
+                hours: Math.floor(duration.asHours() - 1),
+                minutes: duration.minutes()
+            }
+        }
+        else if (
+            confirm_type === 3
+        ) {
+            diff = {
+                hours: 0,
+                minutes: 0
+            }
+        }
+        //
+        // if (
+        //     moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+        //     moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("19:31", "HH:mm")) &&
+        //     duration.asHours() < 24
+        // ) {
+        //     diff = {
+        //         hours: 10,
+        //         minutes: 0
+        //     };
+        // }
+        // /*else if (
+        //     moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+        //     moment(endHourMinute, "HH:mm").isBetween(moment("19:59", "HH:mm"), moment("20:31", "HH:mm")) &&
+        //     duration.asHours() < 24
+        // ) {
+        //     diff = {
+        //         hours: 11,
+        //         minutes: 30
+        //     };
+        // }
+        // else if (
+        //     moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+        //     moment(endHourMinute, "HH:mm").isBetween(moment("20:59", "HH:mm"), moment("21:31", "HH:mm")) &&
+        //     duration.asHours() < 24
+        // ) {
+        //     diff = {
+        //         hours: 13,
+        //         minutes: 0
+        //     };
+        // }*/
+        // else if (
+        //     moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+        //     moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
+        //     duration.asHours() < 24
+        // ) {
+        //     diff = {
+        //         hours: 10,
+        //         minutes: 0
+        //     };
+        // }
     }
 
     const {rows: checkInRow} = await db.query(`
@@ -937,7 +1619,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
                     WHERE pm1.employee_id = er.employee_id
                       AND pm1.role_id = 2
                       AND pm2.employee_id = $1
-                      AND pm2.role_id = 2
+                      AND pm2.role_id = 2 AND pm1.status = 1 AND pm2.status = 1
 
                 );`, [req.currentUserId]);
 
@@ -954,7 +1636,6 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
-                    sendPushNotification(el?.employee_id, 'test', 'salam')
                 })
             }
 

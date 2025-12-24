@@ -110,6 +110,39 @@ router.get('/item/:id/tasks', checkAuth, userPermission, async (req, res) => {
     })
 })
 
+
+router.get('/tasks', checkAuth, userPermission, async (req, res) => {
+    const {rows} = await db.query(`SELECT *,
+      (SELECT json_build_object('id', ts.id, 'name', ts.name)
+       FROM task_statuses ts
+       WHERE ts.id = COALESCE((
+                                  SELECT ta.status_id
+                                  FROM task_activities ta
+                                  WHERE ta.task_id = t.id
+                                  ORDER BY ta.created_at DESC
+                              LIMIT 1
+           ), 1)
+          LIMIT 1
+        ) as status,
+       (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
+        FROM employees e WHERE id = t.assigned_employee_id LIMIT 1) as assigned_employee,
+       (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
+        FROM employees e WHERE id = t.reporter_employee_id LIMIT 1) as reporter_employee
+                                   FROM tasks t WHERE t.assigned_employee_id = $1 AND deleted_at IS NULL AND
+                                       EXISTS (
+                                           SELECT 1
+                                           FROM project_members pm1
+                                           WHERE pm1.employee_id = $1
+                                                 AND pm1.status = 1
+                                       )`, [req?.currentUserId])
+
+    res.json({
+        success: true,
+        message: 'Project tasks fetched successfully by ID',
+        data: rows || []
+    })
+})
+
 router.get('/item/:id/tasks/item/:task_id', checkAuth, userPermission, async (req, res) => {
     const {id, task_id} = req.params;
 
@@ -164,8 +197,6 @@ router.get('/item/:id/tasks/item/:task_id', checkAuth, userPermission, async (re
 router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, async (req, res) => {
     const {task_id, id} = req.params;
     const {date, status, files} = req.body;
-
-    console.log(task_id, id)
 
     const {rows} = await db.query(`
                 INSERT INTO task_activities
@@ -244,8 +275,6 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, a
     if (returnedTask.length > 0) {
         const io = getIO();
         const socketId = userSocketMap.get(returnedTask?.[0]?.reporter_employee_id);
-
-        console.log(returnedTask?.[0]?.reporter_employee_id, socketId, returnedTask)
 
         if (socketId) {
             io.to(socketId).emit("change_task__by_employee", {

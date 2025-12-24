@@ -36,7 +36,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         WHERE pm1.project_id = p.id AND pm1.status = 1
     ) AS members
                                    FROM project_members pm
-                                       LEFT JOIN projects p ON p.id = pm.project_id
+                                       JOIN projects p ON p.id = pm.project_id
                                    WHERE pm.employee_id = $1 AND pm.status = 1`, [req.currentUserId])
 
     res.json({
@@ -237,8 +237,6 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, a
     if (returnedTask.length > 0) {
         const io = getIO();
         const socketId = userSocketMap.get(returnedTask?.[0]?.assigned_employee_id);
-
-        console.log(returnedTask?.[0]?.assigned_employee_id, socketId, returnedTask)
 
         if (socketId) {
             io.to(socketId).emit("change_task__by_employee", {

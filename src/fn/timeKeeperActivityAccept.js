@@ -1,7 +1,7 @@
 import sendPushNotification from "../helper/sendPushNotification.js";
 import {getIO, userSocketMap} from "../socketManager.js";
 import db from "../helper/db.js";
-import moment from "moment";
+import moment from "moment-timezone";
 
 export default async function timeKeeperActivityAccept(req, res) {
     const {activity_id, employee_id, type, confirm_time, timezone, confirm_type, overTime = false} = req
@@ -41,7 +41,32 @@ export default async function timeKeeperActivityAccept(req, res) {
             moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
-            confirm_type === 1
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() !== 7
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 8,
+                minutes: 0
+            };
+        }
+        if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 4 &&
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 10,
@@ -72,7 +97,32 @@ export default async function timeKeeperActivityAccept(req, res) {
             moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
             moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
             duration.asHours() < 24 &&
-            confirm_type === 1
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() !== 7
+        ) {
+            diff = {
+                hours: 10,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() === 7
+        ) {
+            diff = {
+                hours: 8,
+                minutes: 0
+            };
+        }
+        else if (
+            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
+            moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
+            duration.asHours() < 24 &&
+            confirm_type === 4 &&
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 10,

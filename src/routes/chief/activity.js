@@ -4,6 +4,7 @@ import checkAuth from '../../middleware/checkAuth.js'
 import {getIO, userSocketMap} from "../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
 import userPermission from "../../middleware/userPermission.js";
+import moment from "moment";
 
 const router = express.Router()
 
@@ -77,6 +78,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude} = req.body;
     const status = 1;
     const type = 1;
+    const turn = moment(time).isBetween(moment("03:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
 
     const {rows: checkedInRows} =
         await db.query(`
@@ -85,6 +87,8 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
             ORDER BY id DESC
                 LIMIT 1
         `, [req.currentUserId])
+
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
 
     if (checkedInRows.length === 0) {
         const {rows} =
@@ -105,11 +109,11 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                             completed_status,
                             reject_reason,
                             work_time,
-                         is_manual
+                         is_manual, turn
                         )
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *
                 `,
-                [null, req.currentUserId, timezone, time, type, longitude, latitude, null, null, null, status, 0, null, null, false])
+                [null, req.currentUserId, timezone, time, type, longitude, latitude, null, null, null, status, 0, null, null, false, turn])
 
         if (rows.length > 0) {
             const {rows: thisInsertedRow} = await db.query(`
@@ -153,7 +157,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                     WHERE pm1.employee_id = er.employee_id
                       AND pm1.role_id = 2
                       AND pm2.employee_id = $1
-                      AND pm2.role_id = 3
+                      AND pm2.role_id = 3 AND pm1.status = 1 AND pm2.status = 1
 
                 );`, [req.currentUserId]);
 
@@ -171,7 +175,10 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
-                    sendPushNotification(el?.employee_id, 'test', 'salam')
+                    sendPushNotification(el?.employee_id, 'New Check-in request', `${empData?.[0]?.full_name} sent a request for check-in at now`, {
+                        url: '/chief/',
+                        utm_source: 'push_notification'
+                    })
                 })
             }
         }
@@ -206,6 +213,8 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             ORDER BY id DESC 
                 LIMIT 1
         `, [req.currentUserId])
+
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
 
     if (checkedOutRows.length === 0) {
         const {rows} =
@@ -268,7 +277,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
                     WHERE pm1.employee_id = er.employee_id
                       AND pm1.role_id = 2
                       AND pm2.employee_id = $1
-                      AND pm2.role_id = 3
+                      AND pm2.role_id = 3 AND pm1.status = 1 AND pm2.status = 1
 
                 );`, [req.currentUserId]);
 
@@ -285,7 +294,10 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
                             data: thisInsertedRow[0]
                         });
                     }
-                    sendPushNotification(el?.employee_id, 'test', 'salam')
+                    sendPushNotification(el?.employee_id, 'New Check-out request', `${empData?.[0]?.full_name} sent a request for check-out at now`, {
+                        url: '/chief/',
+                        utm_source: 'push_notification'
+                    })
                 })
             }
         }
@@ -499,8 +511,6 @@ router.get('/', checkAuth, userPermission, async (req, res) => {
                                        ) AS reviewer FROM employee_activities ea
                                    WHERE employee_id = $1 AND completed_status = 0
                                    ORDER BY id DESC LIMIT 2`, [req.currentUserId]);
-
-    console.log(rows)
 
     return res.status(200).json({
         success: true,

@@ -1,43 +1,65 @@
 import express from "express";
 import db from "../helper/db.js";
+import checkAuth from "../middleware/checkAuth.js";
+import userPermission from "../middleware/userPermission.js";
 
 const router = express.Router()
 
-router.post('/token/create', async (req, res) => {
-    const {userId, token} = req.body;
+router.post('/token/create', checkAuth, userPermission, async (req, res) => {
+    const {token} = req.body;
+    const userId = req.currentUserId;
 
+    const {rows: existingRows} = await db.query(`SELECT * FROM notification_tokens WHERE user_id = $1 AND token = $2`, [userId, token])
+
+    if (existingRows.length > 0) {
+        const query = `
+            UPDATE notification_tokens
+            SET status = 1
+            WHERE user_id = ${userId} AND token = '${token}' RETURNING *`
+
+        const {rows: existingUpdateRows} = await db.query(query, [])
+
+        return res.status(201).json({
+            success: true,
+            message: 'Token update successfully',
+            data: {salam: 'aaaa'}
+        })
+    }
     const {rows: createdRows} = await db.query(`INSERT INTO notification_tokens
                                                     (user_id, token, status)
                                                 VALUES ($1, $2, 1)
-                                                    ON CONFLICT (token) DO NOTHING
 RETURNING *`,
         [userId, token]
     )
 
-    console.log(createdRows, 'createdRows')
-
-    res.status(201).json({
+    return res.status(201).json({
         success: true,
         message: 'Token created successfully',
         data: {salam: 'aaaa'}
     })
 })
 
-router.post('/token/delete', async (req, res) => {
-    const {userId, token} = req.body;
+router.post('/token/delete', checkAuth, userPermission, async (req, res) => {
+    const {token} = req.body;
+    const userId = req.currentUserId;
 
-    console.log(userId, token, 'userId, token')
+    const query = `
+        UPDATE notification_tokens 
+        SET status = 0
+        WHERE user_id = ${userId} AND token = '${token}' RETURNING *`
 
-    const {rows: createdRows} = await db.query(`INSERT INTO notification_tokens 
-                        (user_id, token, status)  
-                        VALUES ($1, $2, 1) RETURNING * `,
-        [userId, token]
-    )
+    const {rows: existingRows} = await db.query(query, [])
 
+    if (existingRows.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: 'Token does not exists'
+        })
+    }
     res.status(201).json({
         success: true,
         message: 'Token created successfully',
-        data: createdRows[0]
+        data: existingRows?.[0]
     })
 })
 

@@ -7,8 +7,6 @@ const router = express.Router()
 
 router.get('/details/:employee_id', checkAuth, userPermission, async (req, res) => {
     const {employee_id} = req.params;
-
-    console.log(employee_id)
     
     const {rows} = await db.query(`
         SELECT

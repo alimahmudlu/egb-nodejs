@@ -34,6 +34,8 @@ import chiefEmployee from "./routes/chief/employee.js";
 import foodAdmin from "./routes/admin/food.js";
 import busAdmin from "./routes/admin/bus.js";
 import activityAdmin from "./routes/admin/activity.js";
+import projectsAdmin from "./routes/admin/projects.js";
+import adminOptions from "./routes/admin/options.js";
 
 
 
@@ -82,6 +84,8 @@ app.use('/api/chief/employee', chiefEmployee)
 app.use('/api/admin/activity', activityAdmin)
 app.use('/api/admin/food', foodAdmin)
 app.use('/api/admin/bus', busAdmin)
+app.use('/api/admin/projects', projectsAdmin)
+app.use('/api/admin/options', adminOptions)
 
 app.use('/api/notification', notification)
 app.use('/api/notifications', notifications)

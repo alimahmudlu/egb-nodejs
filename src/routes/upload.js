@@ -16,7 +16,6 @@ const router = express.Router();
 
 router.post('/file', upload.single('file'), async (req, res) => {
     try {
-        console.log(req.file, 'req.file');
         const { originalname, mimetype, buffer } = req.file;
 
         const blob = await put(originalname, buffer, {
@@ -30,8 +29,6 @@ router.post('/file', upload.single('file'), async (req, res) => {
             'INSERT INTO uploads (filename, filepath, mimetype, filesize) VALUES ($1, $2, $3, $4) RETURNING *',
             [originalname, blob.url, mimetype, 100]
         );
-
-        console.log(rows)
 
         res.json({
             success: true,
