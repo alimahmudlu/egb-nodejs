@@ -30,6 +30,7 @@ import chiefTask from './routes/chief/task.js';
 import chiefOptions from './routes/chief/options.js';
 import docChief from "./routes/chief/doc.js";
 import chiefEmployee from "./routes/chief/employee.js";
+import chiefReports from "./routes/chief/reports.js";
 
 import foodAdmin from "./routes/admin/food.js";
 import busAdmin from "./routes/admin/bus.js";
@@ -80,6 +81,7 @@ app.use('/api/chief/task', chiefTask)
 app.use('/api/chief/options', chiefOptions)
 app.use('/api/chief/doc', docChief)
 app.use('/api/chief/employee', chiefEmployee)
+app.use('/api/chief/reports', chiefReports)
 
 app.use('/api/admin/activity', activityAdmin)
 app.use('/api/admin/food', foodAdmin)

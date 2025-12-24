@@ -512,6 +512,7 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
         }
     })
 })
+
 router.post('/accept', checkAuth, userPermission, async (req, res) => {
     const {activity_id, employee_id, type, confirm_time, timezone, confirm_type} = req.body
     const turn = moment(confirm_time).isBetween(moment("03:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
@@ -754,7 +755,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         SET reviewer_employee_id = $1, reviewer_timezone = $2, review_time = $3, completed_status = $4, status = $9, confirm_type = $10, turn = $11
         WHERE id = $5 and employee_id = $6 and status = $7 and type = $8
             RETURNING *;
-    `, [req.currentUserId, timezone, confirm_time, type === 1 ? 0 : 1, activity_id, employee_id, 1,  type, 2, confirm_type, turn])
+    `, [req.currentUserId, timezone, confirm_time, type === 1 ? 0 : (type === 2 ? 1 : 0), activity_id, employee_id, 1,  type, 2, confirm_type, turn])
 
 
     if (rows.length === 0 && (type === 2 ? checkInRow.length === 0 : false)) {

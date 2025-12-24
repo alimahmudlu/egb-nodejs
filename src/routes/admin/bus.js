@@ -70,7 +70,7 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: 'Bus report added successfully',
+            message: 'Bus report delete successfully',
             data: rows?.[0]
         })
     }
@@ -87,6 +87,18 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
             data: rows?.[0]
         })
     }
+})
+
+router.delete('/report/delete/:id', checkAuth, userPermission, async (req, res) => {
+    const {rows} = await db.query(`
+        DELETE FROM bus_reports WHERE id = $1 RETURNING *
+    `, [req.params.id]);
+
+    return res.status(200).json({
+        success: true,
+        message: 'Bus report deleted successfully',
+        data: rows?.[0]
+    })
 })
 
 router.get('/projects/history', checkAuth, userPermission, async (req, res) => {
