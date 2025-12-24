@@ -31,7 +31,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         : 'WHERE 1=1';
     const whereClause2 = filters2.length
         ? ` AND ${filters2.join(' AND ')}`
-        : '1=1';
+        : ' AND 1=1';
     const query = `SELECT
                        p.name,
                        p.id,
