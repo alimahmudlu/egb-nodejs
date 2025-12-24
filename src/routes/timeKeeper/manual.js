@@ -74,7 +74,7 @@ const router = express.Router()
 })*/
 
 router.get('/list', checkAuth, userPermission, async (req, res) => {
-    const {full_name, project, application_status, ios, page, limit} = req.query;
+    const {full_name, project, application_status, ios, subcontractors, page, limit} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -115,6 +115,11 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                 EXISTS (SELECT 1 FROM employee_ios ei WHERE ei.employee_id = e.id AND ei.status = 1)
             `
         );
+    }
+    if (subcontractors && Number(subcontractors)) {
+        filters.push(`a.subcontract = $${idx}`);
+        values.push(!!Number(subcontractors));
+        idx++
     }
 
     const {rows} = await db.query(`
@@ -180,6 +185,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                 ) as overtimeCheckout
         FROM employees e
             LEFT JOIN employee_roles er ON e.id = er.employee_id
+            LEFT JOIN applications a ON a.id = e.application_id
 --             LEFT JOIN employee_ios ei ON e.id = ei.employee_id and ei.status = 1
             LEFT JOIN roles r ON r.id = er.role
         WHERE e.is_active = true

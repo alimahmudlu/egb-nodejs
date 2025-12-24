@@ -200,6 +200,18 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
     })
 })
 
+router.delete('/report/delete/:id', checkAuth, userPermission, async (req, res) => {
+    const {rows} = await db.query(`
+        DELETE FROM food_reports_p WHERE id = $1 RETURNING *
+    `, [req.params.id]);
+
+    return res.status(200).json({
+        success: true,
+        message: 'Food report added successfully',
+        data: rows?.[0]
+    })
+})
+
 router.get('/report/list', checkAuth, userPermission, async (req, res) => {
     const {start_date, end_date, date, full_name, project, page, limit} = req.query;
     const filters = [];
@@ -293,7 +305,6 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             LEFT JOIN employees AS e ON e.id = pm.employee_id
             LEFT JOIN employee_activities AS ea ON ea.employee_id = e.id
             AND ea.status = 2
-            AND ea.completed_status = 1
             AND ea.type = 1
             AND DATE(ea.review_time) = $1
 

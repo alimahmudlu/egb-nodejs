@@ -16,7 +16,7 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             '${moment().format('YYYY-MM-DD')}' as date,
             COUNT(CASE WHEN ea.turn = 1 THEN 1 END) AS turn1Employees,
             COUNT(CASE WHEN ea.turn = 2 THEN 1 END) AS turn2Employees,
-            (SELECT to_jsonb(br.*) FROM bus_reports br WHERE br.project_id = p.id AND Date(br.date) = $1 ORDER BY br.id DESC LIMIT 1) AS report_status
+--             (SELECT to_jsonb(br.*) FROM bus_reports br WHERE br.project_id = p.id AND Date(br.date) = $1 ORDER BY br.id DESC LIMIT 1) AS report_status
         FROM projects AS p
             LEFT JOIN project_members AS pm ON p.id = pm.project_id
             AND pm.status = 1 
@@ -45,17 +45,34 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
 router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     const {turn1employees, turn2employees, date, projectId, countOfBus, countOfSeatInEveryBus, toProjectId, fromProjectId, campId, tripTypeId} = req.body;
 
-    const {rows} = await db.query(`
+    const {rows: checkReport} = await db.query(`SELECT * FROM bus_reports WHERE project_id = $1 AND date = $2`, [projectId, date]);
+
+    if (checkReport.length > 0) {
+        const {rows} = await db.query(`
+            UPDATE bus_reports 
+            SET turn1_employee_count = $1, turn2_employee_count = $2, bus_count = $3, seat_count = $4, camp_id = $5, trip_type = $6, bus_type_id = $7, to_project_id = $8
+            WHERE project_id = $9 AND date = $10
+        `, [turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, campId, tripTypeId, toProjectId, projectId, date])
+
+        return res.status(200).json({
+            success: true,
+            message: 'Bus report added successfully',
+            data: rows?.[0]
+        })
+    }
+    else {
+        const {rows} = await db.query(`
         INSERT INTO bus_reports (project_id, turn1_employee_count, turn2_employee_count, bus_count, seat_count, date, employee_id, to_project_id, camp_id, trip_type, bus_type_id)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         RETURNING *
     `, [projectId, turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, date, req.currentUserId, toProjectId, campId, tripTypeId, tripTypeId]);
 
-    return res.status(200).json({
-        success: true,
-        message: 'Bus report added successfully',
-        data: rows?.[0]
-    })
+        return res.status(200).json({
+            success: true,
+            message: 'Bus report added successfully',
+            data: rows?.[0]
+        })
+    }
 })
 
 router.get('/projects/history', checkAuth, userPermission, async (req, res) => {
