@@ -125,10 +125,11 @@ router.get('/projects/history', checkAuth, userPermission, async (req, res) => {
             p.id AS project_id
         FROM bus_reports br
                  LEFT JOIN projects AS p ON br.project_id = p.id
+            ${filters.length > 0 ? `WHERE ${filters.join(' AND ')}` : ''}
         ORDER BY
             br.date DESC, br.id DESC;
     `
-    const {rows: employees} = await db.query(query, []);
+    const {rows: employees} = (project && date) ? await db.query(query, [...values]) : [];
 
     return res.status(200).json({
         success: true,
