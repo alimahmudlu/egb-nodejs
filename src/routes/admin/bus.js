@@ -58,17 +58,15 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     })
 })
 
-router.post('/report/edit', checkAuth, userPermission, async (req, res) => {
+router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
     const {turn1employees, turn2employees, date, projectId, countOfBus, countOfSeatInEveryBus, toProjectId, fromProjectId, campId, tripTypeId} = req.body;
 
-    const {rows: checkReport} = await db.query(`SELECT * FROM bus_reports WHERE project_id = $1 AND date = $2`, [projectId, date]);
-
-    if (checkReport.length > 0) {
+    if (req.params.id) {
         const {rows} = await db.query(`
             UPDATE bus_reports 
-            SET turn1_employee_count = $1, turn2_employee_count = $2, bus_count = $3, seat_count = $4, camp_id = $5, trip_type = $6, bus_type_id = $7, to_project_id = $8
+            SET  bus_count = $3, seat_count = $4, camp_id = $5, trip_type = $6, bus_type_id = $7, to_project_id = $8
             WHERE project_id = $9 AND date = $10
-        `, [turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, campId, tripTypeId, toProjectId, projectId, date])
+        `, [ countOfBus, countOfSeatInEveryBus, campId, tripTypeId, tripTypeId, toProjectId, projectId, date])
 
         return res.status(200).json({
             success: true,
