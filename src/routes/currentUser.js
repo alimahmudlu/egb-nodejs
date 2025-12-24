@@ -64,7 +64,7 @@ router.get('/rating', checkAuth, async (req, res) => {
 })
 
 router.get('/activities/list', checkAuth, async (req, res) => {
-    const {start_date, end_date} = req.query;
+    const {start_date, end_date, checkType, checkStatus} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -77,6 +77,16 @@ router.get('/activities/list', checkAuth, async (req, res) => {
     if (end_date) {
         filters.push(`ea.review_time <= $${idx}`);
         values.push(moment(end_date).format())
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`ea.is_manual = $${idx}`);
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`ea.type = $${idx}`);
+        values.push(Number(checkType) === 1 ? 1 : (Number(checkType) === 3 ? 3 : null));
         idx++
     }
 
@@ -111,7 +121,7 @@ router.get('/activities/list', checkAuth, async (req, res) => {
 })
 
 router.get('/activities/work_hours', checkAuth, async (req, res) => {
-    const {start_date, end_date} = req.query;
+    const {start_date, end_date, checkType, checkStatus} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -124,6 +134,16 @@ router.get('/activities/work_hours', checkAuth, async (req, res) => {
     if (end_date) {
         filters.push(`entry.review_time <= $${idx}`);
         values.push(moment(end_date).format())
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`entry.is_manual = $${idx}`);
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`entry.type = $${idx}`);
+        values.push(Number(checkType) === 1 ? 1 : (Number(checkType) === 3 ? 3 : null));
         idx++
     }
 

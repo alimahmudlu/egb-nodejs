@@ -176,7 +176,7 @@ router.get('/list/count', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, subcontractors, page, limit} = req.query;
+    const {start_date, end_date, full_name, subcontractors, checkStatus, checkType, page, limit} = req.query;
     const project = req.query?.['project[]']
     const project2 = req.query?.['project']
     const filters = [];
@@ -221,6 +221,16 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
     if (subcontractors && Number(subcontractors)) {
         filters.push(`a.subcontract = $${idx}`);
         values.push(!!Number(subcontractors));
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`ea.is_manual = $${idx}`);
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`ea.type = $${idx}`);
+        values.push(Number(checkType) === 1 ? 1 : (Number(checkType) === 3 ? 3 : null));
         idx++
     }
 
@@ -279,7 +289,7 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, full_name, subcontractors, page, limit} = req.query;
+    const {start_date, end_date, full_name, subcontractors, checkType, checkStatus, page, limit} = req.query;
     const project = req.query?.['project[]']
     const project2 = req.query?.['project']
     const filters = [];
@@ -324,6 +334,16 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
     if (subcontractors && Number(subcontractors)) {
         filters.push(`a.subcontract = $${idx}`);
         values.push(!!Number(subcontractors));
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`ea.is_manual = $${idx}`);
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`ea.type = $${idx}`);
+        values.push(Number(checkType) === 1 ? 1 : (Number(checkType) === 3 ? 3 : null));
         idx++
     }
 
@@ -382,7 +402,7 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
-    const {start_date, end_date, subcontractors, full_name, page, limit} = req.query;
+    const {start_date, end_date, subcontractors, full_name, checkType, checkStatus, page, limit} = req.query;
     const project = req.query?.['project[]']
     const project2 = req.query?.['project']
     const filters = [];
@@ -426,6 +446,16 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
     if (subcontractors && Number(subcontractors)) {
         filters.push(`a.subcontract = $${idx}`);
         values.push(!!Number(subcontractors));
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`ea.is_manual = $${idx}`);
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`ea.type = $${idx}`);
+        values.push(Number(checkType) === 1 ? 1 : (Number(checkType) === 3 ? 3 : null));
         idx++
     }
 
