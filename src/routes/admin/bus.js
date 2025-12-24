@@ -92,6 +92,32 @@ router.post('/report/edit', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/projects/history', checkAuth, userPermission, async (req, res) => {
+    const {start_date, end_date, date, project} = req.query;
+    const filters = [];
+    const values = [];
+    let idx = 1;
+
+    if (start_date) {
+        filters.push(`br.date >= $${idx}`);
+        values.push(moment(start_date).format())
+        idx++
+    }
+    if (end_date) {
+        filters.push(`br.date <= $${idx}`);
+        values.push(moment(end_date).format())
+        idx++
+    }
+    if (date) {
+        filters.push(`br.date = $${idx}`);
+        values.push(moment(date).format())
+        idx++
+    }
+    if (project) {
+        filters.push(`br.project_id = $${idx}`);
+        values.push(project)
+        idx++
+    }
+
     const query = `
         SELECT
             br.*,
