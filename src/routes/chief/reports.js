@@ -28,7 +28,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
 
     const whereClause = filters.length
         ? `WHERE ${filters.join(' AND ')}`
-        : '1=1';
+        : 'WHERE 1=1';
     const whereClause2 = filters2.length
         ? ` AND ${filters2.join(' AND ')}`
         : '1=1';
