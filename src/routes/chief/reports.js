@@ -58,7 +58,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                                       ON activity_checkin.employee_id = e.id
 
                        ${whereClause}
-                   AND pm.employee_id = ${req.currentUserId}
+--                    AND pm.employee_id = ${req.currentUserId}
                    GROUP BY p.id, p.name
                    ORDER BY p.id DESC;`
     const {rows} = await db.query(query, [])
