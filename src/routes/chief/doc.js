@@ -65,7 +65,7 @@ router.post('/remove', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/history', checkAuth, userPermission, async (req, res) => {
-    const {replaced} = req.params
+    const {replaced} = req.query
 
     const query = `SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, u.id, au.type
                                    FROM application_uploads au
