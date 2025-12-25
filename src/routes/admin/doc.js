@@ -64,12 +64,31 @@ router.post('/remove', checkAuth, async (req, res) => {
     })
 })
 
+
+
 router.get('/history', checkAuth, userPermission, async (req, res) => {
-    const {rows} = await db.query(`SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, u.id, au.type
+    const {replaced} = req.query
+
+    const query = `SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, u.id, au.type
                                    FROM application_uploads au
                                             JOIN uploads u ON u.id = au.upload_id
-                                   WHERE au.application_id IN (SELECT application_id FROM employees WHERE id = $1) and au.date_of_expiry < now();
-    `, [req.currentUserId])
+                                   WHERE au.application_id IN (SELECT application_id FROM employees WHERE id = $1) and au.date_of_expiry < now() 
+                                        ${replaced ? (replaced === '1' ? ` AND EXISTS (
+      SELECT 1 
+      FROM application_uploads au2 
+      WHERE au2.application_id = au.application_id 
+        AND au2.type = au.type 
+        AND au2.id > au.id
+  );` : ` AND NOT EXISTS (
+      SELECT 1 
+      FROM application_uploads au2 
+      WHERE au2.application_id = au.application_id 
+        AND au2.type = au.type 
+        AND au2.id > au.id
+  );`) : ''};
+    `
+
+    const {rows} = await db.query(query, [req.currentUserId])
 
     res.json({
         success: true,

@@ -85,7 +85,6 @@ router.get('/history', checkAuth, userPermission, async (req, res) => {
         AND au2.id > au.id
   );`) : ''};
     `
-    console.log(query, req.currentUserId, 'asx')
 
     const {rows} = await db.query(query, [req.currentUserId])
 
