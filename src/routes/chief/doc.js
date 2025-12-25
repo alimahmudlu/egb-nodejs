@@ -71,7 +71,7 @@ router.get('/history', checkAuth, userPermission, async (req, res) => {
                                    FROM application_uploads au
                                             JOIN uploads u ON u.id = au.upload_id
                                    WHERE au.application_id IN (SELECT application_id FROM employees WHERE id = $1) and au.date_of_expiry < now() 
-                                        ${replaced ? (replaced === 1 ? ` AND EXISTS (
+                                        ${replaced ? (replaced === '1' ? ` AND EXISTS (
       SELECT 1 
       FROM application_uploads au2 
       WHERE au2.application_id = au.application_id 
