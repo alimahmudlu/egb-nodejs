@@ -66,7 +66,8 @@ router.post('/remove', checkAuth, userPermission, async (req, res) => {
 
 router.get('/history', checkAuth, userPermission, async (req, res) => {
     const {replaced} = req.params
-    const {rows} = await db.query(`SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, u.id, au.type
+
+    const query = `SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, u.id, au.type
                                    FROM application_uploads au
                                             JOIN uploads u ON u.id = au.upload_id
                                    WHERE au.application_id IN (SELECT application_id FROM employees WHERE id = $1) and au.date_of_expiry < now() 
@@ -83,7 +84,10 @@ router.get('/history', checkAuth, userPermission, async (req, res) => {
         AND au2.type = au.type 
         AND au2.id > au.id
   );`) : ''};
-    `, [req.currentUserId])
+    `
+    console.log(query, req.currentUserId, 'asx')
+
+    const {rows} = await db.query(query, [req.currentUserId])
 
     res.json({
         success: true,
