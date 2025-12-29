@@ -146,7 +146,15 @@ router.post('/overtime', checkAuth, userPermission, async (req, res) => {
                 LIMIT 1
         `, [req.currentUserId])
 
-    if (checkedInRows.length === 0) {
+    const {rows: normalCheckedInRows} =
+        await db.query(`
+            SELECT * FROM employee_activities
+            WHERE employee_id = $1 AND status != 3 AND type = 1 AND completed_status = 0
+            ORDER BY id DESC
+                LIMIT 1
+        `, [req.currentUserId])
+
+    if (checkedInRows.length === 0 && normalCheckedInRows.length === 0) {
         const {rows} =
             await db.query(`
                         INSERT INTO employee_activities
