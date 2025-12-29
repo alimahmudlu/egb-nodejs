@@ -1168,15 +1168,6 @@ router.post('/overtime', checkAuth, userPermission, async (req, res) => {
     const status = 1;
     const type = 3;
 
-    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
-    const {rows: checkedInRows} =
-        await db.query(`
-            SELECT * FROM employee_activities
-            WHERE employee_id = $1 AND status != 3 AND type = 3 AND completed_status = 0
-            ORDER BY id DESC
-                LIMIT 1
-        `, [req.currentUserId])
-
     const {rows: normalCheckedInRows} =
         await db.query(`
             SELECT * FROM employee_activities
@@ -1185,7 +1176,8 @@ router.post('/overtime', checkAuth, userPermission, async (req, res) => {
                 LIMIT 1
         `, [req.currentUserId])
 
-    if (overCheckedInRows.length > 0) {
+
+    if (normalCheckedInRows.length > 0) {
         return res.status(400).json({
             success: false,
             message: {
@@ -1196,6 +1188,36 @@ router.post('/overtime', checkAuth, userPermission, async (req, res) => {
             data: null
         })
     }
+
+    const {rows: normalCheckedInRows2} =
+        await db.query(`
+            SELECT * FROM employee_activities
+            WHERE employee_id = $1 AND status = 2 AND type IN (1, 2) AND completed_status = 1 AND DATE(review_time) = DATE(NOW())
+            ORDER BY id DESC
+                LIMIT 1
+        `, [req.currentUserId])
+
+    if (normalCheckedInRows2.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: {
+                en: 'You have not checked in normally today. Please check in normally first.',
+                ru: 'Сегодня вы не прошли обычную регистрацию. Пожалуйста, сначала пройдите обычную регистрацию.',
+                uz: "Bugun odatdagidek ro'yxatdan o'tmadingiz. Iltimos, avval odatdagidek ro'yxatdan o'ting.",
+            },
+            data: null
+        })
+    }
+
+    const {rows: checkedInRows} =
+        await db.query(`
+            SELECT * FROM employee_activities
+            WHERE employee_id = $1 AND status != 3 AND type = 3 AND completed_status = 0
+            ORDER BY id DESC
+                LIMIT 1
+        `, [req.currentUserId])
+
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
 
     if (checkedInRows.length === 0 && normalCheckedInRows.length === 0) {
         const {rows} =
