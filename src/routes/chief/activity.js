@@ -98,6 +98,19 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                 LIMIT 1
         `, [req.currentUserId])
 
+
+    if (overCheckedInRows.length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: {
+                en: 'You have already checked in for overtime.',
+                ru: 'Вы уже зарегистрировались на сверхурочную работу.',
+                uz: "Siz allaqachon qo'shimcha ish uchun ro'yxatdan o'tgansiz.",
+            },
+            data: null
+        })
+    }
+
     if (checkedInRows.length === 0 && overCheckedInRows.length === 0) {
         const {rows} =
             await db.query(`
@@ -227,6 +240,18 @@ router.post('/overtime', checkAuth, userPermission, async (req, res) => {
             ORDER BY id DESC
                 LIMIT 1
         `, [req.currentUserId])
+
+    if (overCheckedInRows.length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: {
+                en: 'You have already checked in for normal work.',
+                ru: 'Вы уже зарегистрировались для выполнения обычной работы.',
+                uz: "Siz allaqachon odatiy ish uchun ro'yxatdan o'tgansiz.",
+            },
+            data: null
+        })
+    }
 
     if (checkedInRows.length === 0 && normalCheckedInRows.length === 0) {
         const {rows} =
