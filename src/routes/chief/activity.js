@@ -80,6 +80,8 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const type = 1;
     const turn = moment(time).isBetween(moment("03:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
 
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
+
     const {rows: checkedInRows} =
         await db.query(`
             SELECT * FROM employee_activities
@@ -88,9 +90,15 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
                 LIMIT 1
         `, [req.currentUserId])
 
-    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
+    const {rows: overCheckedInRows} =
+        await db.query(`
+            SELECT * FROM employee_activities
+            WHERE employee_id = $1 AND status != 3 AND type = 3 AND completed_status = 0
+            ORDER BY id DESC
+                LIMIT 1
+        `, [req.currentUserId])
 
-    if (checkedInRows.length === 0) {
+    if (checkedInRows.length === 0 && overCheckedInRows.length === 0) {
         const {rows} =
             await db.query(`
                         INSERT INTO employee_activities
