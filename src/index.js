@@ -23,6 +23,7 @@ import timeKeeperOptions from "./routes/timeKeeper/options.js";
 import docTimeKeeper from "./routes/timeKeeper/doc.js";
 import manualTimeKeeper from "./routes/timeKeeper/manual.js";
 import timeKeeperOverTime from "./routes/timeKeeper/overtime.js";
+import timeKeeperProject from "./routes/timeKeeper/projects.js";
 
 import chiefActivity from './routes/chief/activity.js';
 import chiefProject from './routes/chief/project.js';
@@ -74,6 +75,7 @@ app.use('/api/timekeeper/doc', docTimeKeeper)
 app.use('/api/timekeeper/manual', manualTimeKeeper)
 app.use('/api/timekeeper/overtime', timeKeeperOverTime)
 app.use('/api/timekeeper/options', timeKeeperOptions)
+app.use('/api/timekeeper/project', timeKeeperProject)
 
 app.use('/api/chief/activity', chiefActivity)
 app.use('/api/chief/project', chiefProject)
