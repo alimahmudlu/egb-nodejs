@@ -4,7 +4,7 @@ import checkAuth from '../../middleware/checkAuth.js'
 import {getIO, userSocketMap} from "../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
 import userPermission from "../../middleware/userPermission.js";
-import moment from "moment";
+import moment from "moment-timezone";
 
 const router = express.Router()
 
@@ -373,7 +373,7 @@ router.get('/projects/:id', checkAuth, userPermission, async (req, res) => {
             p.id;
     `
 
-    console.log(query, [moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), req.params.id]);
+    console.log(query, [moment().tz("Europe/Moscow").format('YYYY-MM-DD'), moment().tz("Europe/Moscow").format('YYYY-MM-DD'), req.params.id]);
 
     const {rows: employees} = await db.query(query, [moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), req.params.id]);
 
