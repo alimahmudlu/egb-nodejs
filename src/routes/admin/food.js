@@ -54,7 +54,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3, missing=$6, rest=$7
             WHERE project_id = $4 AND date = $5 AND type = 1 AND turn = 1
         RETURNING *
-    `, [breakfast?.order || 0, turn1employees, breakfast?.note || '', project_id, date, Number(breakfast?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : Number(breakfast?.order) - Number((thisItem?.real || 0)) * -1, Number(breakfast?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(breakfast?.order) - Number((thisItem?.real || 0))]);
+    `, [breakfast?.order || 0, turn1employees, breakfast?.note || '', project_id, date, Number(breakfast?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : (Number(breakfast?.order) - Number((thisItem?.real || 0))) * -1, Number(breakfast?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(breakfast?.order) - Number((thisItem?.real || 0))]);
     }
     else {
         const {rows: breakfastRows} = await db.query(`
@@ -70,7 +70,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3, missing=$6, rest=$7
             WHERE project_id = $4 AND date = $5 AND type = 2 AND turn = 1
         RETURNING *
-    `, [lunch?.order || 0, turn1employees, lunch?.note || '', project_id, date, Number(lunch?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : Number(lunch?.order) - Number((thisItem?.real || 0)) * -1, Number(lunch?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(lunch?.order) - Number((thisItem?.real || 0))]);
+    `, [lunch?.order || 0, turn1employees, lunch?.note || '', project_id, date, Number(lunch?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : (Number(lunch?.order) - Number((thisItem?.real || 0))) * -1, Number(lunch?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(lunch?.order) - Number((thisItem?.real || 0))]);
     }
     else {
         const {rows: lunchRows} = await db.query(`
@@ -86,7 +86,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3, missing=$6, rest=$7
             WHERE project_id = $4 AND date = $5 AND type = 3 AND turn = 1
         RETURNING *
-    `, [dinner?.order || 0, turn1employees, dinner?.note || '', project_id, date, Number(dinner?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : Number(dinner?.order) - Number((thisItem?.real || 0)) * -1, Number(dinner?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(dinner?.order) - Number((thisItem?.real || 0))]);
+    `, [dinner?.order || 0, turn1employees, dinner?.note || '', project_id, date, Number(dinner?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : (Number(dinner?.order) - Number((thisItem?.real || 0))) * -1, Number(dinner?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(dinner?.order) - Number((thisItem?.real || 0))]);
 
     }
     else {
@@ -103,7 +103,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3, missing=$6, rest=$7
             WHERE project_id = $4 AND date = $5 AND type = 4 AND turn = 2
         RETURNING *
-    `, [nightLunch?.order || 0, turn1employees, breakfast?.note || '', project_id, date, Number(nightLunch?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : Number(nightLunch?.order) - Number((thisItem?.real || 0)) * -1, Number(nightLunch?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(nightLunch?.order) - Number((thisItem?.real || 0))]);
+    `, [nightLunch?.order || 0, turn1employees, breakfast?.note || '', project_id, date, Number(nightLunch?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : (Number(nightLunch?.order) - Number((thisItem?.real || 0))) * -1, Number(nightLunch?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(nightLunch?.order) - Number((thisItem?.real || 0))]);
 
     }
     else {
@@ -120,7 +120,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3, missing=$6, rest=$7
             WHERE project_id = $4 AND date = $5 AND type = 5 AND turn = 1
         RETURNING *
-    `, [bread?.order || 0, Number(turn1employees) + Number(turn2employees), bread?.note || '', project_id, date, Number(bread?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : Number(bread?.order) - Number((thisItem?.real || 0)) * -1, Number(bread?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(bread?.order) - Number((thisItem?.real || 0))]);
+    `, [bread?.order || 0, Number(turn1employees) + Number(turn2employees), bread?.note || '', project_id, date, Number(bread?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : (Number(bread?.order) - Number((thisItem?.real || 0))) * -1, Number(bread?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(bread?.order) - Number((thisItem?.real || 0))]);
 
     }
     else {
@@ -137,7 +137,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3, missing=$6, rest=$7
             WHERE project_id = $4 AND date = $5 AND type = 6 AND turn = 1
         RETURNING *
-    `, [kefir?.order || 0, Number(turn1employees) + Number(turn2employees), kefir?.note || '', project_id, date, Number(kefir?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : Number(kefir?.order) - Number((thisItem?.real || 0)) * -1, Number(kefir?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(kefir?.order) - Number((thisItem?.real || 0))]);
+    `, [kefir?.order || 0, Number(turn1employees) + Number(turn2employees), kefir?.note || '', project_id, date, Number(kefir?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : (Number(kefir?.order) - Number((thisItem?.real || 0))) * -1, Number(kefir?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(kefir?.order) - Number((thisItem?.real || 0))]);
 
     }
     else {
@@ -154,7 +154,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3, missing=$6, rest=$7
             WHERE project_id = $4 AND date = $5 AND type = 7 AND turn = 1
         RETURNING *
-    `, [sugar?.order || 0, Number(turn1employees) + Number(turn2employees), sugar?.note || '', project_id, date, Number(sugar?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : Number(sugar?.order) - Number((thisItem?.real || 0)) * -1, Number(sugar?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(sugar?.order) - Number((thisItem?.real || 0))]);
+    `, [sugar?.order || 0, Number(turn1employees) + Number(turn2employees), sugar?.note || '', project_id, date, Number(sugar?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : (Number(sugar?.order) - Number((thisItem?.real || 0))) * -1, Number(sugar?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(sugar?.order) - Number((thisItem?.real || 0))]);
 
     }
     else {
@@ -171,7 +171,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3, missing=$6, rest=$7
             WHERE project_id = $4 AND date = $5 AND type = 8 AND turn = 1
         RETURNING *
-    `, [tea?.order || 0, Number(turn1employees) + Number(turn2employees), tea?.note || '', project_id, date, Number(tea?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : Number(tea?.order) - Number((thisItem?.real || 0)) * -1, Number(tea?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(tea?.order) - Number((thisItem?.real || 0))]);
+    `, [tea?.order || 0, Number(turn1employees) + Number(turn2employees), tea?.note || '', project_id, date, Number(tea?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : (Number(tea?.order) - Number((thisItem?.real || 0))) * -1, Number(tea?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(tea?.order) - Number((thisItem?.real || 0))]);
 
     }
     else {
