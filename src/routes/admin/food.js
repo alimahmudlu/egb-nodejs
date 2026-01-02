@@ -375,7 +375,7 @@ router.get('/projects/:id', checkAuth, userPermission, async (req, res) => {
 
     console.log(query, [moment().tz("Europe/Moscow").format('YYYY-MM-DD'), moment().tz("Europe/Moscow").format('YYYY-MM-DD'), req.params.id]);
 
-    const {rows: employees} = await db.query(query, [moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), req.params.id]);
+    const {rows: employees} = await db.query(query, [moment().tz("Europe/Moscow").format('YYYY-MM-DD'), moment().tz("Europe/Moscow").format('YYYY-MM-DD'), req.params.id]);
 
     return res.status(200).json({
         success: true,
