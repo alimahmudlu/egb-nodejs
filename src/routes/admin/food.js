@@ -373,6 +373,8 @@ router.get('/projects/:id', checkAuth, userPermission, async (req, res) => {
             p.id;
     `
 
+    console.log(query, [moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), req.params.id]);
+
     const {rows: employees} = await db.query(query, [moment().format('YYYY-MM-DD'), moment().format('YYYY-MM-DD'), req.params.id]);
 
     return res.status(200).json({
