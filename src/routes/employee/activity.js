@@ -16,6 +16,8 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
     const turn = moment(time).isBetween(moment("03:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
 
+    console.log(turn, time, moment("03:00", "HH:mm"), moment("17:00", "HH:mm"))
+
     const {rows: checkedInRows} =
         await db.query(`
             SELECT * FROM employee_activities
