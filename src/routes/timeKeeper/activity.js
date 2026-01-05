@@ -748,10 +748,10 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
     if (type === 2) {
         const {rows: checkInRow} = await db.query(`
         UPDATE employee_activities ea
-        SET completed_status = $1, work_time = $6, turn = $7
+        SET completed_status = $1, work_time = $6
         WHERE employee_id = $2 and status = $3 and completed_status = $4 and type = $5
             RETURNING *;
-    `, [1, employee_id, 2, 0, 1, `${diff?.hours}:${diff?.minutes}`, turn])
+    `, [1, employee_id, 2, 0, 1, `${diff?.hours}:${diff?.minutes}`])
     }
 
     const {rows} = await db.query(`
