@@ -42,6 +42,9 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
 
 router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     const {turn1 = {}, turn1employees = 0, turn2 = {}, turnextras = {}, turn2employees = 0, date, project_id} = req.body;
+    const newDate = moment(date).tz("Europe/Moscow").format('YYYY-MM-DD');
+    console.log(newDate);
+
     const {breakfast, lunch, dinner} = turn1;
     const {lunch: nightLunch} = turn2;
     const {bread, kefir, sugar, tea} = turnextras;
@@ -278,7 +281,7 @@ router.get('/report/today', checkAuth, userPermission, async (req, res) => {
                 COUNT(DISTINCT ea.employee_id) FILTER (WHERE ea.turn = 2) AS turn2employees
             FROM employee_activities ea 
             WHERE ea.type = 1 AND ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.review_time) = $1
-    `, [moment().add(-1, 'days').format('YYYY-MM-DD')]);
+    `, [moment().tz("Europe/Moscow").add(-1, 'days').format('YYYY-MM-DD')]);
 
     return res.status(200).json({
         success: true,
@@ -326,7 +329,7 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             p.id;
     `
 
-    const {rows: employees} = await db.query(query, [moment().add(-1, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD')]);
+    const {rows: employees} = await db.query(query, [moment().tz("Europe/Moscow").add(-1, 'days').tz("Europe/Moscow").format('YYYY-MM-DD'), moment().format('YYYY-MM-DD')]);
 
     return res.status(200).json({
         success: true,
