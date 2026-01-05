@@ -295,8 +295,8 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
         SELECT
             p.name AS project_name,
             p.id AS project_id,
-            COUNT(CASE WHEN ea.turn = 1 THEN 1 END) AS turn1Employees,
-            COUNT(CASE WHEN ea.turn = 2 THEN 1 END) AS turn2Employees,
+            COUNT(DISTINCT CASE WHEN ea.turn = 1 THEN ea.employee_id END) AS turn1Employees,
+            COUNT(DISTINCT CASE WHEN ea.turn = 2 THEN ea.employee_id END) AS turn2Employees,
             /*(SELECT COALESCE(
                        jsonb_agg(
                                to_jsonb(fr.*)
