@@ -33,7 +33,7 @@ router.post('/', async (req, res) => {
             data: null
         });
     }
-    if (typeof Number(id) === 'number') {
+    if (!isNaN(id)) {
         const {rows: userAuthRows} = await db.query('SELECT * FROM employee_auth WHERE employee_id = $1', [id])
 
         if(userAuthRows.length > 0 && isValidPassword(password, userAuthRows?.[0]?.password)) {
