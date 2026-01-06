@@ -515,9 +515,9 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
 
 router.post('/accept', checkAuth, userPermission, async (req, res) => {
     const {activity_id, employee_id, type, confirm_time, timezone, confirm_type} = req.body
-    const turn = moment(confirm_time).isBetween(moment("03:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
+    const turn = moment(confirm_time).isBetween(moment("01:00", "HH:mm"), moment("16:00", "HH:mm")) ? 1 : 2;
 
-    console.log(turn, confirm_time, moment("03:00", "HH:mm"), moment("17:00", "HH:mm"))
+    console.log(turn, confirm_time, moment("01:00", "HH:mm"), moment("16:00", "HH:mm"))
 
     // const returnedRow = await timeKeeperActivityAccept({...req.body, currentUserId: req.currentUserId}, res)
 
@@ -1030,7 +1030,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude} = req.body;
     const status = 1;
     const type = 1;
-    const turn = moment(time).isBetween(moment("03:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
+    const turn = moment(time).isBetween(moment("01:00", "HH:mm"), moment("16:00", "HH:mm")) ? 1 : 2;
 
     const {rows: checkedInRows} =
         await db.query(`

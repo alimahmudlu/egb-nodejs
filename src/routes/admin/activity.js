@@ -12,9 +12,9 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const {time, timezone, latitude, longitude} = req.body;
     const status = 1;
     const type = 1;
-    const turn = moment(time).isBetween(moment("03:00", "HH:mm"), moment("17:00", "HH:mm")) ? 1 : 2;
+    const turn = moment(time).isBetween(moment("01:00", "HH:mm"), moment("16:00", "HH:mm")) ? 1 : 2;
 
-    console.log(turn, time, moment("03:00", "HH:mm"), moment("17:00", "HH:mm"))
+    console.log(turn, time, moment("01:00", "HH:mm"), moment("16:00", "HH:mm"))
 
 
     const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
@@ -150,7 +150,11 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     else {
         return res.status(400).json({
             success: false,
-            message: 'activity already exists for this status',
+            message: {
+                en: 'You have already checked in.',
+                ru: 'Вы уже зарегистрировались.',
+                uz: "Siz allaqachon ro'yxatdan o'tgansiz.",
+            },
             data: null
         })
     }
