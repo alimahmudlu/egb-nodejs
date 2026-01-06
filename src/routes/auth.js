@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
     const {id, password} = req.body;
 
     if (!id || !password) {
-        return res.status(400).json({error: 'Email and password are required'});
+        return res.status(200).json({error: 'Email and password are required'});
     }
     if (typeof Number(id) === 'number') {
         const {rows: userAuthRows} = await db.query('SELECT * FROM employee_auth WHERE employee_id = $1', [id])
@@ -96,7 +96,7 @@ router.post('/', async (req, res) => {
             }));
         }
         else {
-            return res.status(500).json({
+            return res.status(200).json({
                 success: false,
                 message: 'Password or id is incorrect ',
                 data: null
@@ -152,7 +152,7 @@ router.post('/', async (req, res) => {
             }));
         }
         else {
-            return res.status(500).json({
+            return res.status(200).json({
                 success: false,
                 message: 'Password or id is incorrect ',
                 data: null

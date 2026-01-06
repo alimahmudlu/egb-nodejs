@@ -43,7 +43,6 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
 router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     const {turn1 = {}, turn1employees = 0, turn2 = {}, turnextras = {}, turn2employees = 0, date, project_id} = req.body;
     const newDate = moment(date).tz("Europe/Moscow").format('YYYY-MM-DD');
-    console.log(newDate, date, 'aaa');
 
     const {breakfast, lunch, dinner} = turn1;
     const {lunch: nightLunch} = turn2;
