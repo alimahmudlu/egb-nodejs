@@ -13,10 +13,10 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     const status = 1;
     const type = 1;
 
+    console.log(`--------------${req.currentUserId}---START--------------`)
+
     const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
     const turn = moment(time).isBetween(moment("01:00", "HH:mm"), moment("16:00", "HH:mm")) ? 1 : 2;
-
-    console.log(turn, time, moment("01:00", "HH:mm"), moment("16:00", "HH:mm"))
 
     const {rows: checkedInRows} =
         await db.query(`
@@ -47,6 +47,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     }
 
     if (checkedInRows.length === 0 && overCheckedInRows.length === 0) {
+        console.log(`--------------${req.currentUserId}---INSERT--------------`)
         const {rows} =
             await db.query(`
                         INSERT INTO employee_activities
@@ -142,6 +143,8 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
             }
         }
 
+        console.log(`--------------${req.currentUserId}---END---CREATE--------------`)
+
         return res.status(201).json({
             success: true,
             message: 'Activity created successfully',
@@ -149,6 +152,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
         })
     }
     else {
+        console.log(`--------------${req.currentUserId}---END---ERROR400--------------`)
         return res.status(400).json({
             success: false,
             message: 'activity already exists for this status',
@@ -266,11 +270,6 @@ router.post('/overtime', checkAuth, userPermission, async (req, res) => {
             ORDER BY ea.id DESC;
         `, [rows?.[0]?.id])
 
-
-            // BUTUN TIMEKEEPERLER
-            // const {rows: timeKeepersList} = await db.query(`SELECT * FROM employee_roles WHERE role = 2`);
-
-            // QOSULU OLDUGU PROJECTLERIN TIMEKEEPERLERI
             const {rows: timeKeepersList} = await db.query(`SELECT * FROM employee_roles er WHERE er.role = 2
                                                                                               AND EXISTS (
                     SELECT *
