@@ -217,7 +217,7 @@ router.get('/list/:user_id', checkAuth, userPermission, async (req, res) => {
 })
 
 router.post('/create', checkAuth, userPermission, async (req, res) => {
-    const {title, deadline, point, description, assigned_employee_id, project_id} = req.body;
+    const {title, deadline, point, description, assigned_employee_id, project_id, files} = req.body;
 
     const {rows: createdRows} = await db.query(`INSERT INTO tasks 
                         (name, deadline, points, description, status, reporter_employee_id, assigned_employee_id, project_id, created_employee_id) 
@@ -231,6 +231,41 @@ router.post('/create', checkAuth, userPermission, async (req, res) => {
             message: 'Task creat error',
             data: createdRows[0]
         })
+    }
+
+    const {rows} = await db.query(`
+                INSERT INTO task_activities
+                (
+                    task_id,
+                    status_id,
+                    created_at,
+                    created_employee_id
+                )
+                VALUES ($1, $2, $3, $4) RETURNING *
+        `,
+        [createdRows?.[0]?.id, 1, new Date(), req.currentUserId])
+
+    if (files?.length > 0) {
+        const valuesClause = files.map(
+            (row, i) => `($${i * 4 + 1}, $${i * 4 + 2}, $${i * 4 + 3}, $${i * 4 + 4}, $${i * 4 + 5})`
+        ).join(', ');
+
+        const values = files.map((row, i) => (
+            [rows?.[0]?.id, row, date, req.currentUserId, task_id]
+        )).flat()
+
+        const {rows: createFileRows} = await db.query(`
+                    INSERT INTO task_files
+                    (
+                        task_activity_id,
+                        upload_id,
+                        created_at,
+                        created_employee_id,
+                        task_id
+                    )
+                    VALUES ${valuesClause} RETURNING *
+            `,
+            values)
     }
 
     const {rows: insertedRow} = await db.query(`SELECT *,
