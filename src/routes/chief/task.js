@@ -233,6 +233,9 @@ router.post('/create', checkAuth, userPermission, async (req, res) => {
         })
     }
 
+    const task_id = createdRows?.[0]?.id
+    const date = new Date()
+
     const {rows} = await db.query(`
                 INSERT INTO task_activities
                 (
@@ -243,7 +246,7 @@ router.post('/create', checkAuth, userPermission, async (req, res) => {
                 )
                 VALUES ($1, $2, $3, $4) RETURNING *
         `,
-        [createdRows?.[0]?.id, 1, new Date(), req.currentUserId])
+        [task_id, 1, date, req.currentUserId])
 
     if (files?.length > 0) {
         const valuesClause = files.map(
