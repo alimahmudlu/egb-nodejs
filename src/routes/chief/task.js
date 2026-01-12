@@ -250,7 +250,7 @@ router.post('/create', checkAuth, userPermission, async (req, res) => {
 
     if (files?.length > 0) {
         const valuesClause = files.map(
-            (row, i) => `($${i * 4 + 1}, $${i * 4 + 2}, $${i * 4 + 3}, $${i * 4 + 4}, $${i * 4 + 5})`
+            (row, i) => `($${i * 5 + 1}, $${i * 5 + 2}, $${i * 5 + 3}, $${i * 5 + 4}, $${i * 5 + 5})`
         ).join(', ');
 
         const values = files.map((row, i) => (
