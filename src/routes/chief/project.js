@@ -181,7 +181,7 @@ router.get('/item/:id/tasks/item/:task_id', checkAuth, userPermission, async (re
 
 router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, async (req, res) => {
     const {task_id, id} = req.params;
-    const {date, status} = req.body;
+    const {date, status, files} = req.body;
 
     const {rows} = await db.query(`
                 INSERT INTO task_activities
@@ -194,6 +194,31 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, a
                 VALUES ($1, $2, $3, $4) RETURNING *
         `,
         [task_id, status, date, req.currentUserId])
+
+
+
+    if (files?.length > 0) {
+        const valuesClause = files.map(
+            (row, i) => `($${i * 5 + 1}, $${i * 5 + 2}, $${i * 5 + 3}, $${i * 5 + 4}, $${i * 5 + 5})`
+        ).join(', ');
+
+        const values = files.map((row, i) => (
+            [rows?.[0]?.id, row, date, req.currentUserId, task_id]
+        )).flat()
+
+        const {rows: createFileRows} = await db.query(`
+                    INSERT INTO task_files
+                    (
+                        task_activity_id,
+                        upload_id,
+                        created_at,
+                        created_employee_id,
+                        task_id
+                    )
+                    VALUES ${valuesClause} RETURNING *
+            `,
+            values)
+    }
 
     const {rows: returnedTask} = await db.query(`
         SELECT t.*,
