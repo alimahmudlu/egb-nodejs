@@ -65,7 +65,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
             const {rows: insertBusCamps} = await db.query(`INSERT INTO bus_report_camps (bus_report_id, camp_id) VALUES ${campValuesClause}`, campValues);
         }
 
-        if (projectId && projectId.length > 0) {
+        if (toProjectId && toProjectId.length > 0) {
             const projectValuesClause = toProjectId?.map(
                 (row, i) => `($${i * 2 + 1}, $${i * 2 + 2})`
             ).join(', ');
