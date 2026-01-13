@@ -61,6 +61,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
             const campValues = campId?.map((row) => (
                 [id, row]
             )).flat()
+            console.log(`INSERT INTO bus_report_camps (bus_report_id, camp_id) VALUES ${campValuesClause}`, campValues)
             const {rows: insertBusCamps} = await db.query(`INSERT INTO bus_report_camps (bus_report_id, camp_id) VALUES ${campValuesClause}`, campValues);
         }
 
@@ -71,6 +72,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
             const projectValues = toProjectId?.map((row) => (
                 [id, row]
             )).flat()
+            console.log(`INSERT INTO bus_report_projects (bus_report_id, project_id) VALUES ${projectValuesClause}`, projectValues)
             const {rows: insertBusProject} = await db.query(`INSERT INTO bus_report_projects (bus_report_id, project_id) VALUES ${projectValuesClause}`, projectValues);
         }
 
