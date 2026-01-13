@@ -261,7 +261,7 @@ router.get('/projects/history', checkAuth, userPermission, async (req, res) => {
             p.name AS project_name,
             p.id AS project_id,
             (SELECT json_agg(json_build_object('id', brc.camp_id, 'name', brcC.name)) FROM bus_report_camps brc LEFT JOIN camps brcC ON brcC.id = brc.camp_id WHERE brc.bus_report_id = br.id ) AS camp_ids,
-            (SELECT ARRAY_AGG(broc.address) FROM bus_report_other_camps broc WHERE broc.bus_report_id = br.id ) AS otherCamps,
+            (SELECT ARRAY_AGG(broc.address) FROM bus_report_other_camps broc WHERE broc.bus_report_id = br.id ) AS othercamps,
             (SELECT json_agg(json_build_object('id', brp.project_id, 'name', brpP.name)) FROM bus_report_projects brp LEFT JOIN projects brpP ON brpP.id = brp.project_id WHERE brp.bus_report_id = br.id ) AS to_project_ids
         FROM bus_reports br
                  LEFT JOIN projects AS p ON br.project_id = p.id
