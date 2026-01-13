@@ -10,8 +10,6 @@ async function checkAuth (req, res, next) {
         const {rows: userAuthRows} = await db.query('SELECT * FROM employee_auth WHERE employee_id = $1', [id])
         const {rows: userRole} = await db.query('SELECT * FROM employee_roles WHERE employee_id = $1', [id])
 
-        console.log(access_token, id, userAuthRows, userRole, '---------------------------,--------------,-----')
-
         if (!userAuthRows || userAuthRows.length === 0) {
             throw new Error('User not found');
         }
