@@ -43,7 +43,7 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
 })
 
 router.post('/report/add', checkAuth, userPermission, async (req, res) => {
-    const {turn1employees, turn2employees, date, projectId, countOfBus, countOfSeatInEveryBus, toProjectId, fromProjectId, campId, tripTypeId} = req.body;
+    const {turn1employees, turn2employees, date, projectId, countOfBus, countOfSeatInEveryBus, toProjectId, fromProjectId, campId, tripTypeId, otherCamps} = req.body;
 
     const {rows} = await db.query(`
     INSERT INTO bus_reports (project_id, turn1_employee_count, turn2_employee_count, bus_count, seat_count, date, employee_id, trip_type, bus_type_id)
@@ -61,7 +61,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
             const campValues = campId?.map((row) => (
                 [id, row]
             )).flat()
-            console.log(`INSERT INTO bus_report_camps (bus_report_id, camp_id) VALUES ${campValuesClause}`, campValues)
+
             const {rows: insertBusCamps} = await db.query(`INSERT INTO bus_report_camps (bus_report_id, camp_id) VALUES ${campValuesClause}`, campValues);
         }
 
@@ -72,10 +72,20 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
             const projectValues = toProjectId?.map((row) => (
                 [id, row]
             )).flat()
-            console.log(`INSERT INTO bus_report_projects (bus_report_id, project_id) VALUES ${projectValuesClause}`, projectValues)
+
             const {rows: insertBusProject} = await db.query(`INSERT INTO bus_report_projects (bus_report_id, project_id) VALUES ${projectValuesClause}`, projectValues);
         }
 
+        if (otherCamps && otherCamps.length > 0) {
+            const otherCampsValuesClause = otherCamps?.map(
+                (row, i) => `($${i * 2 + 1}, $${i * 2 + 2})`
+            ).join(', ');
+            const otherCampsValues = otherCamps?.map((row) => (
+                [id, row]
+            ))
+
+            const {rows: insertOtherCamps} = await db.query(`INSERT INTO bus_report_other_camps (bus_report_id, address) VALUES ${otherCampsValuesClause}`, otherCampsValues);
+        }
     }
 
     return res.status(200).json({
