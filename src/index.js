@@ -15,6 +15,7 @@ import myTeam from "./routes/myTeam.js";
 import project from './routes/employee/project.js';
 import activity from "./routes/employee/activity.js";
 import docEmployee from "./routes/employee/doc.js";
+import taskEmployee from "./routes/employee/task.js";
 
 import timeKeeperActivity from "./routes/timeKeeper/activity.js";
 import timeKeeperEmployee from "./routes/timeKeeper/employee.js";
@@ -67,6 +68,7 @@ app.use('/api/upload', upload)
 app.use('/api/employee/project', project)
 app.use('/api/employee/activity', activity)
 app.use('/api/employee/doc', docEmployee)
+app.use('/api/employee/task', taskEmployee)
 
 app.use('/api/timekeeper/activity', timeKeeperActivity)
 app.use('/api/timekeeper/employee', timeKeeperEmployee)
