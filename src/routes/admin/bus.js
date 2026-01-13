@@ -46,10 +46,35 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     const {turn1employees, turn2employees, date, projectId, countOfBus, countOfSeatInEveryBus, toProjectId, fromProjectId, campId, tripTypeId} = req.body;
 
     const {rows} = await db.query(`
-    INSERT INTO bus_reports (project_id, turn1_employee_count, turn2_employee_count, bus_count, seat_count, date, employee_id, to_project_id, camp_id, trip_type, bus_type_id)
+    INSERT INTO bus_reports (project_id, turn1_employee_count, turn2_employee_count, bus_count, seat_count, date, employee_id, trip_type, bus_type_id)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING *
-`, [projectId, turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, date, req.currentUserId, toProjectId, campId, tripTypeId, tripTypeId]);
+`, [projectId, turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, date, req.currentUserId, tripTypeId, tripTypeId]);
+
+    if (rows.length > 0) {
+        const id = rows?.[0].id;
+
+        if (campId && campId.length > 0) {
+            const campValuesClause = campId?.map(
+                (row, i) => `($${i * 2 + 1}, $${i * 2 + 2})`
+            ).join(', ');
+            const campValues = campId?.map((row) => (
+                [id, row]
+            )).flat()
+            const {rows: insertBusCamps} = await db.query(`INSERT INTO bus_report_camps (bus_report_id, camp_id) VALUES ${campValuesClause}`, campValues);
+        }
+
+        if (projectId && projectId.length > 0) {
+            const projectValuesClause = toProjectId?.map(
+                (row, i) => `($${i * 2 + 1}, $${i * 2 + 2})`
+            ).join(', ');
+            const projectValues = toProjectId?.map((row) => (
+                [id, row]
+            )).flat()
+            const {rows: insertBusProject} = await db.query(`INSERT INTO bus_report_projects (bus_report_id, project_id) VALUES ${projectValuesClause}`, projectValues);
+        }
+
+    }
 
     return res.status(200).json({
         success: true,
