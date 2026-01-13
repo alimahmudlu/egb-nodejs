@@ -65,6 +65,7 @@ router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
                     ORDER BY
                          current_status_id, t.created_at DESC;`
 
+    console.log(query, [req.currentUserId])
     const {rows} = await db.query(query, [req.currentUserId]);
 
     res.status(200).json({
