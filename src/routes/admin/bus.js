@@ -84,6 +84,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
                 [id, row]
             ))
 
+            console.log(`INSERT INTO bus_report_other_camps (bus_report_id, address) VALUES ${otherCampsValuesClause}`, otherCampsValues)
             const {rows: insertOtherCamps} = await db.query(`INSERT INTO bus_report_other_camps (bus_report_id, address) VALUES ${otherCampsValuesClause}`, otherCampsValues);
         }
     }
