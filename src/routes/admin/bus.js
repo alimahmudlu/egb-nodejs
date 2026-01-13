@@ -96,7 +96,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
 })
 
 router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
-    const {turn1employees, turn2employees, date, projectId, countOfBus, countOfSeatInEveryBus, toProjectId, fromProjectId, campId, tripTypeId} = req.body;
+    const {turn1employees, turn2employees, date, projectId, countOfBus, countOfSeatInEveryBus, toProjectId, fromProjectId, campId, tripTypeId, otherCamps} = req.body;
 
     if (req.params.id) {
         const {rows} = await db.query(`
@@ -112,6 +112,9 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
         const {rows: deletedBusProjects} = await db.query(`
         DELETE FROM bus_report_projects WHERE bus_report_id = $1 RETURNING *
     `, [id]);
+        const {rows: deletedBusOtherCamps} = await db.query(`
+        DELETE FROM bus_report_other_camps WHERE bus_report_id = $1 RETURNING *
+    `, [req.params.id]);
 
         if (campId && campId.length > 0) {
             const campValuesClause = campId?.map(
@@ -133,6 +136,17 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
             )).flat()
 
             const {rows: insertBusProject} = await db.query(`INSERT INTO bus_report_projects (bus_report_id, project_id) VALUES ${projectValuesClause}`, projectValues);
+        }
+
+        if (otherCamps && otherCamps.length > 0) {
+            const otherCampsValuesClause = otherCamps?.map(
+                (row, i) => `($${i * 2 + 1}, $${i * 2 + 2})`
+            ).join(', ');
+            const otherCampsValues = otherCamps?.map((row) => (
+                [id, row]
+            )).flat()
+
+            const {rows: insertOtherCamps} = await db.query(`INSERT INTO bus_report_other_camps (bus_report_id, address) VALUES ${otherCampsValuesClause}`, otherCampsValues);
         }
 
         return res.status(200).json({
@@ -173,6 +187,17 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
                 const {rows: insertBusProject} = await db.query(`INSERT INTO bus_report_projects (bus_report_id, project_id) VALUES ${projectValuesClause}`, projectValues);
             }
 
+            if (otherCamps && otherCamps.length > 0) {
+                const otherCampsValuesClause = otherCamps?.map(
+                    (row, i) => `($${i * 2 + 1}, $${i * 2 + 2})`
+                ).join(', ');
+                const otherCampsValues = otherCamps?.map((row) => (
+                    [id, row]
+                )).flat()
+
+                const {rows: insertOtherCamps} = await db.query(`INSERT INTO bus_report_other_camps (bus_report_id, address) VALUES ${otherCampsValuesClause}`, otherCampsValues);
+            }
+
         }
         return res.status(200).json({
             success: true,
@@ -191,6 +216,9 @@ router.delete('/report/delete/:id', checkAuth, userPermission, async (req, res) 
     `, [req.params.id]);
     const {rows: deletedBusProjects} = await db.query(`
         DELETE FROM bus_report_projects WHERE bus_report_id = $1 RETURNING *
+    `, [req.params.id]);
+    const {rows: deletedBusOtherCamps} = await db.query(`
+        DELETE FROM bus_report_other_camps WHERE bus_report_id = $1 RETURNING *
     `, [req.params.id]);
 
     return res.status(200).json({
@@ -233,6 +261,7 @@ router.get('/projects/history', checkAuth, userPermission, async (req, res) => {
             p.name AS project_name,
             p.id AS project_id,
             (SELECT json_agg(json_build_object('id', brc.camp_id, 'name', brcC.name)) FROM bus_report_camps brc LEFT JOIN camps brcC ON brcC.id = brc.camp_id WHERE brc.bus_report_id = br.id ) AS camp_ids,
+            (SELECT ARRAY_AGG(broc.address) FROM bus_report_other_camps broc WHERE broc.bus_report_id = br.id ) AS otherCamps,
             (SELECT json_agg(json_build_object('id', brp.project_id, 'name', brpP.name)) FROM bus_report_projects brp LEFT JOIN projects brpP ON brpP.id = brp.project_id WHERE brp.bus_report_id = br.id ) AS to_project_ids
         FROM bus_reports br
                  LEFT JOIN projects AS p ON br.project_id = p.id
