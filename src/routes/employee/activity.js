@@ -14,152 +14,156 @@ router.post('/checkin', checkAuth, userPermission, apiLimiter, async (req, res) 
     const status = 1;
     const type = 1;
 
-    // console.log(`--------------${req.currentUserId}---START--------------`)
-    //
-    // const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
-    // const turn = moment(time).isBetween(moment("01:00", "HH:mm"), moment("16:00", "HH:mm")) ? 1 : 2;
-    //
-    // const {rows: checkedInRows} =
-    //     await db.query(`
-    //         SELECT * FROM employee_activities
-    //         WHERE employee_id = $1 AND status != 3 AND type = 1 AND completed_status = 0
-    //         ORDER BY id DESC
-    //             LIMIT 1
-    //     `, [req.currentUserId])
-    //
-    // const {rows: overCheckedInRows} =
-    //     await db.query(`
-    //         SELECT * FROM employee_activities
-    //         WHERE employee_id = $1 AND status != 3 AND type = 3 AND completed_status = 0
-    //         ORDER BY id DESC
-    //             LIMIT 1
-    //     `, [req.currentUserId])
-    //
-    // if (overCheckedInRows.length > 0) {
-    //     return res.status(400).json({
-    //         success: false,
-    //         message: {
-    //             en: 'You have already checked in for overtime.',
-    //             ru: 'Вы уже зарегистрировались на сверхурочную работу.',
-    //             uz: "Siz allaqachon qo'shimcha ish uchun ro'yxatdan o'tgansiz.",
-    //         },
-    //         data: null
-    //     })
-    // }
-    //
-    // if (checkedInRows.length === 0 && overCheckedInRows.length === 0) {
-    //     console.log(`--------------${req.currentUserId}---INSERT--------------`)
-    //     const {rows} =
-    //         await db.query(`
-    //                     INSERT INTO employee_activities
-    //                     (
-    //                         activity_id,
-    //                         employee_id,
-    //                         employee_timezone,
-    //                         request_time,
-    //                         type,
-    //                         longitude,
-    //                         latitude,
-    //                         reviewer_employee_id,
-    //                         reviewer_timezone,
-    //                         review_time,
-    //                         status,
-    //                         completed_status,
-    //                         reject_reason,
-    //                         work_time,
-    //                      is_manual,
-    //                      turn
-    //                     )
-    //                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *
-    //             `,
-    //             [null, req.currentUserId, timezone, time, type, longitude, latitude, null, null, null, status, 0, null, null, false, turn])
-    //
-    //     if (rows.length > 0) {
-    //         const {rows: thisInsertedRow} = await db.query(`
-    //         SELECT ea.*, (
-    //             SELECT json_build_object(
-    //                            'id', p.id,
-    //                            'name', p.name
-    //                    )
-    //             FROM project_members pm
-    //                      LEFT JOIN projects p ON p.id = pm.project_id
-    //             WHERE e.id = pm.employee_id AND pm.status = 1
-    //             LIMIT 1
-    //             ) AS project,
-    //              json_build_object(
-    //                 'id', e.id,
-    //                 'full_name', e.full_name,
-    //                 'email', e.email,
-    //                 'role', json_build_object(
-    //                         'id', er.id,
-    //                         'name', r.name
-    //                         )
-    //                      ) as employee FROM employee_activities ea
-    //                                             LEFT JOIN employees e ON e.id = ea.employee_id
-    //                                             LEFT JOIN employee_roles er ON e.id = er.employee_id
-    //                                             LEFT JOIN roles r ON r.id = er.role
-    //
-    //                                    WHERE ea.id = $1
-    //         ORDER BY ea.id DESC;
-    //     `, [rows?.[0]?.id])
-    //
-    //
-    //         // BUTUN TIMEKEEPERLER
-    //         // const {rows: timeKeepersList} = await db.query(`SELECT * FROM employee_roles WHERE role = 2`);
-    //
-    //         // QOSULU OLDUGU PROJECTLERIN TIMEKEEPERLERI
-    //         const {rows: timeKeepersList} = await db.query(`SELECT * FROM employee_roles er WHERE er.role = 2
-    //                                                                                           AND EXISTS (
-    //                 SELECT *
-    //                 FROM project_members pm1
-    //                          JOIN project_members pm2
-    //                               ON pm1.project_id = pm2.project_id
-    //                 WHERE pm1.employee_id = er.employee_id
-    //                   AND pm1.role_id = 2
-    //                   AND pm2.employee_id = $1
-    //                   AND pm2.role_id = 1 AND pm1.status = 1 AND pm2.status = 1
-    //
-    //             );`, [req.currentUserId]);
-    //
-    //
-    //         if (timeKeepersList.length > 0) {
-    //             timeKeepersList.map(el => {
-    //                 const io = getIO();
-    //                 const socketId = userSocketMap.get(el?.employee_id);
-    //
-    //                 if (socketId) {
-    //                     io.to(socketId).emit("new_activity", {
-    //                         success: true,
-    //                         from: req.currentUserId,
-    //                         message: 'Activity status changed successfully',
-    //                         data: thisInsertedRow[0]
-    //                     });
-    //                 }
-    //
-    //                 sendPushNotification(el?.employee_id, 'New Check-in request', `${empData?.[0]?.full_name} sent a request for check-in at now`, {
-    //                     url: '/timeKeeper/',
-    //                     utm_source: 'push_notification'
-    //                 })
-    //             })
-    //         }
-    //     }
-    //
-    //     console.log(`--------------${req.currentUserId}---END---CREATE--------------`)
-    //
-    //     return res.status(201).json({
-    //         success: true,
-    //         message: 'Activity created successfully',
-    //         data: rows[0]
-    //     })
-    // }
-    // else {
-    //     console.log(`--------------${req.currentUserId}---END---ERROR400--------------`)
+    console.log(`--------------${req.currentUserId}---START--------------`)
+
+    const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
+    const turn = moment(time).isBetween(moment("01:00", "HH:mm"), moment("16:00", "HH:mm")) ? 1 : 2;
+
+    const {rows: checkedInRows} =
+        await db.query(`
+            SELECT * FROM employee_activities
+            WHERE employee_id = $1 AND status != 3 AND type = 1 AND completed_status = 0
+            ORDER BY id DESC
+                LIMIT 1
+        `, [req.currentUserId])
+
+    const {rows: overCheckedInRows} =
+        await db.query(`
+            SELECT * FROM employee_activities
+            WHERE employee_id = $1 AND status != 3 AND type = 3 AND completed_status = 0
+            ORDER BY id DESC
+                LIMIT 1
+        `, [req.currentUserId])
+
+    if (overCheckedInRows.length > 0) {
         return res.status(400).json({
             success: false,
-            message: 'activity already exists for this status',
+            message: {
+                en: 'You have already checked in for overtime.',
+                ru: 'Вы уже зарегистрировались на сверхурочную работу.',
+                uz: "Siz allaqachon qo'shimcha ish uchun ro'yxatdan o'tgansiz.",
+            },
             data: null
         })
-    // }
+    }
+
+    if (checkedInRows.length === 0 && overCheckedInRows.length === 0) {
+        console.log(`--------------${req.currentUserId}---INSERT--------------`)
+        const {rows} =
+            await db.query(`
+                        INSERT INTO employee_activities
+                        (
+                            activity_id,
+                            employee_id,
+                            employee_timezone,
+                            request_time,
+                            type,
+                            longitude,
+                            latitude,
+                            reviewer_employee_id,
+                            reviewer_timezone,
+                            review_time,
+                            status,
+                            completed_status,
+                            reject_reason,
+                            work_time,
+                         is_manual,
+                         turn
+                        )
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *
+                `,
+                [null, req.currentUserId, timezone, time, type, longitude, latitude, null, null, null, status, 0, null, null, false, turn])
+
+        if (rows.length > 0) {
+            const {rows: thisInsertedRow} = await db.query(`
+            SELECT ea.*, (
+                SELECT json_build_object(
+                               'id', p.id,
+                               'name', p.name
+                       )
+                FROM project_members pm
+                         LEFT JOIN projects p ON p.id = pm.project_id
+                WHERE e.id = pm.employee_id AND pm.status = 1
+                LIMIT 1
+                ) AS project,
+                 json_build_object(
+                    'id', e.id,
+                    'full_name', e.full_name,
+                    'email', e.email,
+                    'role', json_build_object(
+                            'id', er.id,
+                            'name', r.name
+                            )
+                         ) as employee FROM employee_activities ea
+                                                LEFT JOIN employees e ON e.id = ea.employee_id
+                                                LEFT JOIN employee_roles er ON e.id = er.employee_id
+                                                LEFT JOIN roles r ON r.id = er.role
+
+                                       WHERE ea.id = $1
+            ORDER BY ea.id DESC;
+        `, [rows?.[0]?.id])
+
+
+            // BUTUN TIMEKEEPERLER
+            // const {rows: timeKeepersList} = await db.query(`SELECT * FROM employee_roles WHERE role = 2`);
+
+            // QOSULU OLDUGU PROJECTLERIN TIMEKEEPERLERI
+            const {rows: timeKeepersList} = await db.query(`SELECT * FROM employee_roles er WHERE er.role = 2
+                                                                                              AND EXISTS (
+                    SELECT *
+                    FROM project_members pm1
+                             JOIN project_members pm2
+                                  ON pm1.project_id = pm2.project_id
+                    WHERE pm1.employee_id = er.employee_id
+                      AND pm1.role_id = 2
+                      AND pm2.employee_id = $1
+                      AND pm2.role_id = 1 AND pm1.status = 1 AND pm2.status = 1
+
+                );`, [req.currentUserId]);
+
+
+            if (timeKeepersList.length > 0) {
+                timeKeepersList.map(el => {
+                    const io = getIO();
+                    const socketId = userSocketMap.get(el?.employee_id);
+
+                    if (socketId) {
+                        io.to(socketId).emit("new_activity", {
+                            success: true,
+                            from: req.currentUserId,
+                            message: 'Activity status changed successfully',
+                            data: thisInsertedRow[0]
+                        });
+                    }
+
+                    sendPushNotification(el?.employee_id, 'New Check-in request', `${empData?.[0]?.full_name} sent a request for check-in at now`, {
+                        url: '/timeKeeper/',
+                        utm_source: 'push_notification'
+                    })
+                })
+            }
+        }
+
+        console.log(`--------------${req.currentUserId}---END---CREATE--------------`)
+
+        return res.status(201).json({
+            success: true,
+            message: 'Activity created successfully',
+            data: rows[0]
+        })
+    }
+    else {
+        console.log(`--------------${req.currentUserId}---END---ERROR400--------------`)
+        return res.status(400).json({
+            success: false,
+            message: {
+                en: 'activity already exists for this status.',
+                ru: 'Для этого статуса уже существует активность.',
+                uz: "Bu holat uchun faollik allaqachon mavjud.",
+            },
+            data: null
+        })
+    }
 })
 
 router.post('/overtime', checkAuth, userPermission, async (req, res) => {
