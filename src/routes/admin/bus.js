@@ -91,9 +91,9 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
     if (req.params.id) {
         const {rows} = await db.query(`
             UPDATE bus_reports 
-            SET  bus_count = $1, seat_count = $2, camp_id = $3, trip_type = $4, bus_type_id = $5, to_project_id = $6
-            WHERE id = $7
-        `, [ countOfBus, countOfSeatInEveryBus, campId, tripTypeId, tripTypeId, toProjectId, req.params.id])
+            SET  bus_count = $1, seat_count = $2, trip_type = $3, bus_type_id = $4
+            WHERE id = $5
+        `, [ countOfBus, countOfSeatInEveryBus, tripTypeId, tripTypeId, req.params.id])
 
         const id = req.params.id;
         const {rows: deletedBusCamps} = await db.query(`
