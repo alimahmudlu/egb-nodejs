@@ -160,8 +160,8 @@ router.get('/projects/history', checkAuth, userPermission, async (req, res) => {
             br.*,
             p.name AS project_name,
             p.id AS project_id,
-            (SELECT ARRAY_AGG(brc.id) FROM bus_report_camps brc WHERE brc.bus_report_id = br.id ) AS camp_id,
-            (SELECT ARRAY_AGG(brp.id) FROM bus_report_projects brp WHERE brp.bus_report_id = br.id ) AS to_project_id
+            (SELECT ARRAY_AGG(brc.id) FROM bus_report_camps brc WHERE brc.bus_report_id = br.id ) AS camp_ids,
+            (SELECT ARRAY_AGG(brp.id) FROM bus_report_projects brp WHERE brp.bus_report_id = br.id ) AS to_project_ids
         FROM bus_reports br
                  LEFT JOIN projects AS p ON br.project_id = p.id
             ${filters.length > 0 ? `WHERE ${filters.join(' AND ')}` : ''}
