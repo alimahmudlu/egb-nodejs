@@ -95,6 +95,36 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
             WHERE id = $7
         `, [ countOfBus, countOfSeatInEveryBus, campId, tripTypeId, tripTypeId, toProjectId, req.params.id])
 
+        const id = req.params.id;
+        const {rows: deletedBusCamps} = await db.query(`
+        DELETE FROM bus_report_camps WHERE bus_report_id = $1 RETURNING *
+    `, [id]);
+        const {rows: deletedBusProjects} = await db.query(`
+        DELETE FROM bus_report_projects WHERE bus_report_id = $1 RETURNING *
+    `, [id]);
+
+        if (campId && campId.length > 0) {
+            const campValuesClause = campId?.map(
+                (row, i) => `($${i * 2 + 1}, $${i * 2 + 2})`
+            ).join(', ');
+            const campValues = campId?.map((row) => (
+                [id, row]
+            )).flat()
+
+            const {rows: insertBusCamps} = await db.query(`INSERT INTO bus_report_camps (bus_report_id, camp_id) VALUES ${campValuesClause}`, campValues);
+        }
+
+        if (toProjectId && toProjectId.length > 0) {
+            const projectValuesClause = toProjectId?.map(
+                (row, i) => `($${i * 2 + 1}, $${i * 2 + 2})`
+            ).join(', ');
+            const projectValues = toProjectId?.map((row) => (
+                [id, row]
+            )).flat()
+
+            const {rows: insertBusProject} = await db.query(`INSERT INTO bus_report_projects (bus_report_id, project_id) VALUES ${projectValuesClause}`, projectValues);
+        }
+
         return res.status(200).json({
             success: true,
             message: 'Bus report delete successfully',
@@ -103,11 +133,37 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
     }
     else {
         const {rows} = await db.query(`
-        INSERT INTO bus_reports (project_id, turn1_employee_count, turn2_employee_count, bus_count, seat_count, date, employee_id, to_project_id, camp_id, trip_type, bus_type_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        RETURNING *
-    `, [projectId, turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, date, req.currentUserId, toProjectId, campId, tripTypeId, tripTypeId]);
+            INSERT INTO bus_reports (project_id, turn1_employee_count, turn2_employee_count, bus_count, seat_count, date, employee_id, trip_type, bus_type_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                RETURNING *
+        `, [projectId, turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, date, req.currentUserId, tripTypeId, tripTypeId]);
 
+        if (rows.length > 0) {
+            const id = rows?.[0].id;
+
+            if (campId && campId.length > 0) {
+                const campValuesClause = campId?.map(
+                    (row, i) => `($${i * 2 + 1}, $${i * 2 + 2})`
+                ).join(', ');
+                const campValues = campId?.map((row) => (
+                    [id, row]
+                )).flat()
+                console.log(`INSERT INTO bus_report_camps (bus_report_id, camp_id) VALUES ${campValuesClause}`, campValues)
+                const {rows: insertBusCamps} = await db.query(`INSERT INTO bus_report_camps (bus_report_id, camp_id) VALUES ${campValuesClause}`, campValues);
+            }
+
+            if (toProjectId && toProjectId.length > 0) {
+                const projectValuesClause = toProjectId?.map(
+                    (row, i) => `($${i * 2 + 1}, $${i * 2 + 2})`
+                ).join(', ');
+                const projectValues = toProjectId?.map((row) => (
+                    [id, row]
+                )).flat()
+                console.log(`INSERT INTO bus_report_projects (bus_report_id, project_id) VALUES ${projectValuesClause}`, projectValues)
+                const {rows: insertBusProject} = await db.query(`INSERT INTO bus_report_projects (bus_report_id, project_id) VALUES ${projectValuesClause}`, projectValues);
+            }
+
+        }
         return res.status(200).json({
             success: true,
             message: 'Bus report added successfully',
@@ -119,6 +175,12 @@ router.post('/report/edit/:id', checkAuth, userPermission, async (req, res) => {
 router.delete('/report/delete/:id', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`
         DELETE FROM bus_reports WHERE id = $1 RETURNING *
+    `, [req.params.id]);
+    const {rows: deletedBusCamps} = await db.query(`
+        DELETE FROM bus_report_camps WHERE bus_report_id = $1 RETURNING *
+    `, [req.params.id]);
+    const {rows: deletedBusProjects} = await db.query(`
+        DELETE FROM bus_report_projects WHERE bus_report_id = $1 RETURNING *
     `, [req.params.id]);
 
     return res.status(200).json({
