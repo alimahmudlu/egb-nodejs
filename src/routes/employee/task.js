@@ -55,10 +55,17 @@ router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
                         FROM
                             task_activities
                     ) t_a ON t.id = t_a.task_id AND t_a.rn = 1
+                                WHERE t.assigned_employee_id = $1 AND deleted_at IS NULL AND
+                                    EXISTS (
+                                        SELECT 1
+                                        FROM project_members pm1
+                                        WHERE pm1.employee_id = $1
+                                        AND pm1.status = 1
+                                    )
                     ORDER BY
                          current_status_id, t.created_at DESC;`
 
-    const {rows} = await db.query(query);
+    const {rows} = await db.query(query, [req.currentUserId]);
 
     console.log(rows, 'rows')
 
