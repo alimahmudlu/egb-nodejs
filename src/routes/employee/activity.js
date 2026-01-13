@@ -5,10 +5,11 @@ import {getIO, userSocketMap} from "../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
 import moment from "moment";
 import userPermission from "../../middleware/userPermission.js";
+import apiLimiter from "../../middleware/rateLimit.js";
 
 const router = express.Router()
 
-router.post('/checkin', checkAuth, userPermission, async (req, res) => {
+router.post('/checkin', checkAuth, userPermission, apiLimiter, async (req, res) => {
     const {time, timezone, latitude, longitude} = req.body;
     const status = 1;
     const type = 1;
