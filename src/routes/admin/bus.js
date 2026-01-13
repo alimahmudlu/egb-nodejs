@@ -47,7 +47,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
 
     const {rows} = await db.query(`
     INSERT INTO bus_reports (project_id, turn1_employee_count, turn2_employee_count, bus_count, seat_count, date, employee_id, trip_type, bus_type_id)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING *
 `, [projectId, turn1employees, turn2employees, countOfBus, countOfSeatInEveryBus, date, req.currentUserId, tripTypeId, tripTypeId]);
 
