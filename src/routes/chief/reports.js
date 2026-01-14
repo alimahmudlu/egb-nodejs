@@ -75,6 +75,7 @@ router.get('/statistics', checkAuth, userPermission, async (req, res) => {
 
     const filters = [];
     const filters2 = [];
+    const filters3 = [];
 
 
     if (project && Array.isArray(project) && (project || []).length > 0) {
@@ -88,14 +89,18 @@ router.get('/statistics', checkAuth, userPermission, async (req, res) => {
     }
     if (end_date) {
         filters2.push(`DATE(ea.review_time) <= '${end_date}'`);
+        filters3.push(`DATE(a.employees_non_official_start_date) <= '${end_date}'`);
     }
 
     const whereClause = filters.length
-        ? `AND ${filters.join(' AND ')}`
-        : '1=1';
+        ? ` AND ${filters.join(' AND ')}`
+        : ' AND 1=1';
     const whereClause2 = filters2.length
         ? ` AND ${filters2.join(' AND ')}`
-        : '1=1';
+        : ' AND 1=1';
+    const whereClause3 = filters3.length
+        ? ` AND ${filters3.join(' AND ')}`
+        : ' AND 1=1';
 
 
     const query = `
@@ -103,18 +108,25 @@ router.get('/statistics', checkAuth, userPermission, async (req, res) => {
             SELECT DISTINCT
                 pm.employee_id,
                 ps.status AS position_status,
+                e.is_draft, -- is_draft sütununu götürürük
+                CASE WHEN ei.employee_id IS NOT NULL THEN TRUE ELSE FALSE END AS is_ios_user, -- iOS yoxlaması
                 CASE WHEN activity_checkin.employee_id IS NOT NULL THEN TRUE ELSE FALSE END AS has_checked_in,
                 CASE WHEN activity_manual_checkin.employee_id IS NOT NULL THEN TRUE ELSE FALSE END AS has_manual_checked_in
             FROM project_members pm
                      INNER JOIN employees e ON e.id = pm.employee_id
+                     JOIN applications a ON a.id = e.application_id
                      LEFT JOIN positions ps ON ps.id = e.position
+                -- iOS istifadəçilərini yoxlamaq üçün join
+                     LEFT JOIN employee_ios ei ON ei.employee_id = e.id
 
+                -- 1. Həmin tarixdə fəaliyyəti olanlar
                      LEFT JOIN (
                 SELECT DISTINCT ea.employee_id
                 FROM employee_activities ea
                 WHERE (ea.type = 1 OR ea.type = 3) AND ea.status = 2 ${whereClause2}
             ) AS activity_checkin ON activity_checkin.employee_id = e.id
 
+                -- 2. Manual olanlar
                      LEFT JOIN (
                 SELECT DISTINCT ea.employee_id
                 FROM employee_activities ea
@@ -124,25 +136,31 @@ router.get('/statistics', checkAuth, userPermission, async (req, res) => {
             WHERE pm.status = 1
             ${whereClause}
             AND (e.is_active = TRUE OR activity_checkin.employee_id IS NOT NULL)
+            ${whereClause3}
             )
         SELECT
             COUNT(um.employee_id) AS member_count,
             COUNT(CASE WHEN um.position_status = 1 THEN 1 END) AS direct_member_count,
             COUNT(CASE WHEN um.position_status = 2 THEN 1 END) AS indirect_member_count,
             COUNT(CASE WHEN um.has_checked_in = TRUE THEN 1 END) AS total_checkin_count,
+
             COUNT(CASE WHEN um.has_manual_checked_in = TRUE THEN 1 END) AS total_manual_checkin_count,
+
+            COUNT(CASE WHEN um.has_manual_checked_in = TRUE AND um.is_draft = TRUE THEN 1 END) AS manual_draft_count,
+
+            COUNT(CASE WHEN um.has_manual_checked_in = TRUE AND um.is_ios_user = TRUE THEN 1 END) AS manual_ios_count,
+
             COUNT(CASE WHEN um.position_status = 1 AND um.has_checked_in = TRUE THEN 1 END) AS direct_checkin_count,
             COUNT(CASE WHEN um.position_status = 2 AND um.has_checked_in = TRUE THEN 1 END) AS indirect_checkin_count
         FROM
-            UniqueMembers um;
-    `;
+            UniqueMembers um;`
 
     const {rows} = await db.query(query, [])
 
     res.json({
         success: true,
         message: 'Projects fetched successfully',
-        data: rows
+        data: rows?.[0]
     })
 })
 

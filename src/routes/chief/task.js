@@ -453,8 +453,6 @@ router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
 
     const {rows} = await db.query(query, [req.currentUserId, ...values]);
 
-    console.log(rows, 'rows')
-
     res.status(200).json({
         success: true,
         message: 'Tasks fetched successfully',
