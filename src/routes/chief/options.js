@@ -52,7 +52,7 @@ router.get('/employees/:project_id', checkAuth, userPermission, async (req, res)
                                           ) AS position
                                    FROM project_members pm
                                    LEFT JOIN employees e ON pm.employee_id = e.id and e.is_active = true
-                                   where role_id = 1 and pm.project_id = $1 AND pm.status = 1 AND e.id IS NOT NULL`, [projectId])
+                                   where pm.project_id = $1 AND pm.status = 1 AND e.id IS NOT NULL`, [projectId])
 
     res.json({
         success: true,
