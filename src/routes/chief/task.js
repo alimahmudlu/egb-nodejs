@@ -404,7 +404,7 @@ router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
                             task_activities
                     ) t_a ON t.id = t_a.task_id AND t_a.rn = 1
                                 
-                                WHERE t.assigned_employee_id = $1 AND deleted_at IS NULL AND
+                                WHERE t.reporter_employee_id = $1 AND deleted_at IS NULL AND
                                     EXISTS (
                                         SELECT 1
                                         FROM project_members pm1
