@@ -357,6 +357,37 @@ router.delete('/:id', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
+    const {status, score_min, score_max, deadline_min, deadline_max} = req.query;
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+    if (status) {
+        filters.push(`ta.status = $${idx}`);
+        values.push(status)
+        idx++
+    }
+    if (score_min) {
+        filters.push(`t.points >= $${idx}`);
+        values.push(score_min)
+        idx++
+    }
+    if (score_max) {
+        filters.push(`t.points <= $${idx}`);
+        values.push(score_max)
+        idx++
+    }
+    if (deadline_min) {
+        filters.push(`t.deadline >= $${idx}`);
+        values.push(moment(deadline_min).format())
+        idx++
+    }
+    if (deadline_max) {
+        filters.push(`t.deadline <= $${idx}`);
+        values.push(moment(deadline_max).format())
+        idx++
+    }
+
     const query = `
                     SELECT
                         t.*,
@@ -411,10 +442,11 @@ router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
                                         WHERE pm1.employee_id = $1
                                         AND pm1.status = 1
                                     )
+                        ${filters.length > 0 ? `AND ${filters.join(' AND ')}` : ''}
                     ORDER BY
                          current_status_id, t.created_at DESC;`
 
-    const {rows} = await db.query(query, [req.currentUserId]);
+    const {rows} = await db.query(query, [req.currentUserId, ...values]);
 
     console.log(rows, 'rows')
 
