@@ -88,7 +88,7 @@ router.get('/list/active', checkAuth, userPermission, async (req, res) => {
                                        SELECT 1
                                        FROM task_activities ta
                                        WHERE ta.task_id = t.id
-                                      AND ta.status_id = 5
+                                      AND ta.status_id = 7
                                        )`, [req.currentUserId]);
 
 
@@ -127,7 +127,7 @@ router.get('/list/check', checkAuth, userPermission, async (req, res) => {
                                            
                                        LEFT JOIN task_statuses ts ON ts.id = COALESCE(last_ta.status_id, 1)
                                    WHERE project_id IN (SELECT project_id FROM project_members WHERE employee_id = $1) AND deleted_at IS NULL
-                                     AND COALESCE(last_ta.status_id, 1) IN (3, 4);`, [req.currentUserId]);
+                                     AND COALESCE(last_ta.status_id, 1) IN (2, 3, 4, 5, 6, 8);`, [req.currentUserId]);
 
 
 
@@ -403,10 +403,18 @@ router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
                         FROM
                             task_activities
                     ) t_a ON t.id = t_a.task_id AND t_a.rn = 1
+                                
+                                WHERE t.assigned_employee_id = $1 AND deleted_at IS NULL AND
+                                    EXISTS (
+                                        SELECT 1
+                                        FROM project_members pm1
+                                        WHERE pm1.employee_id = $1
+                                        AND pm1.status = 1
+                                    )
                     ORDER BY
                          current_status_id, t.created_at DESC;`
 
-    const {rows} = await db.query(query);
+    const {rows} = await db.query(query, [req.currentUserId]);
 
     console.log(rows, 'rows')
 
