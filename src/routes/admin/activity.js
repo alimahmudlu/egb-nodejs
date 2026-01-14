@@ -5,10 +5,11 @@ import {getIO, userSocketMap} from "../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
 import moment from "moment";
 import userPermission from "../../middleware/userPermission.js";
+import apiLimiter from "../../middleware/rateLimit.js";
 
 const router = express.Router()
 
-router.post('/checkin', checkAuth, userPermission, async (req, res) => {
+router.post('/checkin', checkAuth, userPermission, apiLimiter, async (req, res) => {
     const {time, timezone, latitude, longitude} = req.body;
     const status = 1;
     const type = 1;
@@ -160,7 +161,7 @@ router.post('/checkin', checkAuth, userPermission, async (req, res) => {
     }
 })
 
-router.post('/overtime', checkAuth, userPermission, async (req, res) => {
+router.post('/overtime', checkAuth, userPermission, apiLimiter, async (req, res) => {
     const {time, timezone, latitude, longitude} = req.body;
     const status = 1;
     const type = 3;
@@ -340,7 +341,7 @@ router.post('/overtime', checkAuth, userPermission, async (req, res) => {
     }
 })
 
-router.post('/overtimeout', checkAuth, userPermission, async (req, res) => {
+router.post('/overtimeout', checkAuth, userPermission, apiLimiter, async (req, res) => {
     const {time, timezone, latitude, longitude, activity_id} = req.body;
     const status = 1;
     const type = 4;
@@ -499,7 +500,7 @@ router.post('/overtimeout', checkAuth, userPermission, async (req, res) => {
 /*
 * CHECKOUT: with Timekeeper control
 * */
-router.post('/checkout', checkAuth, userPermission, async (req, res) => {
+router.post('/checkout', checkAuth, userPermission, apiLimiter, async (req, res) => {
     const {time, timezone, latitude, longitude, activity_id} = req.body;
     const status = 1;
     const type = 2;
