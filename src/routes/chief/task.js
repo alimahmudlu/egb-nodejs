@@ -363,7 +363,12 @@ router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
     let idx = 2;
 
     if (status) {
-        filters.push(`t_a.status_id = $${idx}`);
+        if (status === 1) {
+            filters.push(`(t_a.status_id = $${idx} OR t_a.status_id IS NULL)`);
+        }
+        else {
+            filters.push(`(t_a.status_id = $${idx})`);
+        }
         values.push(status)
         idx++
     }
