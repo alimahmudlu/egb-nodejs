@@ -183,6 +183,8 @@ router.get('/list/item', checkAuth, userPermission, async (req, res) => {
                        checkin_status.turn
                    ORDER BY e.id DESC ${limits ? limits : ''}`
 
+    console.log(query, [])
+
     const {rows} = await db.query(query, [])
 
     res.json({
