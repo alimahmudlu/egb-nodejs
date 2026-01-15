@@ -73,7 +73,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/list/item', checkAuth, userPermission, async (req, res) => {
-    const {name, employee_id, position_id, role_id, staff_status, checkin_status, project, dontShowSubcontractors, showSubcontractors, status, turn, checkType, start_date, end_date, today, id} = req.query
+    const {name, employee_id, position_id, role_id, staff_status, checkin_status, project, dontShowSubcontractors, showSubcontractors, status, turn, checkType, start_date, end_date, today, id, page, limit} = req.query
     const filters = [];
 
     if (name) {
@@ -109,10 +109,18 @@ router.get('/list/item', checkAuth, userPermission, async (req, res) => {
         filters.push(`a.subcontract = true`);
     }
 
+    let limits = '';
+    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
+
+    if (page && limit) {
+        limits = ` LIMIT ${limit} OFFSET ${offset} `;
+    }
+
     const whereClause = filters.length ? ` AND ${filters.join(' AND ')}` : '';
 
 
     const query = `SELECT
+                       COUNT(*) OVER() AS total_count,
                        e.id AS employee_id,
                        e.full_name,
                        e.full_name_russian,
@@ -173,14 +181,19 @@ router.get('/list/item', checkAuth, userPermission, async (req, res) => {
                        ps.status,
                        checkin_status.employee_id,
                        checkin_status.turn
-                   ORDER BY e.id;`
+                   ORDER BY e.id DESC ${limits ? limits : ''}`
 
     const {rows} = await db.query(query, [])
 
     res.json({
         success: true,
         message: 'Projects fetched successfully',
-        data: rows
+
+        data: {
+            total: rows?.[0]?.total_count || 0,
+            page: page,
+            data: rows
+        }
     })
 })
 
