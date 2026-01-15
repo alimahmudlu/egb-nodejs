@@ -74,6 +74,8 @@ router.get('/list/item', checkAuth, userPermission, async (req, res) => {
     const {name, employee_id, position_id, role_id, staff_status, checkin_status, project, dontShowSubcontractors, showSubcontractors, status, turn, checkType, start_date, end_date, today, id} = req.query
     const filters = [];
 
+    console.log({name, employee_id, position_id, role_id, staff_status, checkin_status, project, dontShowSubcontractors, showSubcontractors, status, turn, checkType, start_date, end_date, today, id})
+
     if (name) {
         filters.push(
             `(LOWER(e.full_name) LIKE LOWER(%${name}%) OR LOWER(e.full_name_russian) LIKE LOWER(%${name}%))`
