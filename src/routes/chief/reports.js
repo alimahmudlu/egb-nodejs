@@ -13,7 +13,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     const filters = [];
     const filters2 = [];
 
-    console.log(project, Array.isArray(project))
+    console.log(project, req.query, Array.isArray(project))
 
     if (project && Array.isArray(project) && (project || []).length > 0) {
         filters.push(`p.id IN (${project.join(',')})`);
