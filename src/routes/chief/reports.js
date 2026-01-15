@@ -13,6 +13,8 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     const filters = [];
     const filters2 = [];
 
+    console.log(project, Array.isArray(project))
+
     if (project && Array.isArray(project) && (project || []).length > 0) {
         filters.push(`p.id IN (${project.join(',')})`);
     }
@@ -73,8 +75,6 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
 router.get('/list/item', checkAuth, userPermission, async (req, res) => {
     const {name, employee_id, position_id, role_id, staff_status, checkin_status, project, dontShowSubcontractors, showSubcontractors, status, turn, checkType, start_date, end_date, today, id} = req.query
     const filters = [];
-
-    console.log({name, employee_id, position_id, role_id, staff_status, checkin_status, project, dontShowSubcontractors, showSubcontractors, status, turn, checkType, start_date, end_date, today, id})
 
     if (name) {
         filters.push(
