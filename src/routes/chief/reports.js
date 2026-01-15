@@ -99,8 +99,8 @@ router.get('/list/item', checkAuth, userPermission, async (req, res) => {
     if (checkin_status === '2') {
         filters.push(`checkin_status.employee_id IS NULL`);
     }
-    if (project && project.length > 0) {
-        filters.push(`p.id IN (${project.join(',')})`);
+    if (req.query?.['project[]'] && req.query?.['project[]'].length > 0) {
+        filters.push(`p.id IN (${req.query?.['project[]'].join(',')})`);
     }
     if (dontShowSubcontractors) {
         filters.push(`a.subcontract = false`);
@@ -191,8 +191,8 @@ router.get('/statistics', checkAuth, userPermission, async (req, res) => {
     const filters3 = [];
 
 
-    if (project && Array.isArray(project) && (project || []).length > 0) {
-        filters.push(`pm.project_id IN (${project.join(',')})`);
+    if (req.query?.['project[]'] && Array.isArray(req.query?.['project[]']) && (req.query?.['project[]'] || []).length > 0) {
+        filters.push(`pm.project_id IN (${req.query?.['project[]'].join(',')})`);
     }
     if (project && !Array.isArray(project)) {
         filters.push(`pm.project_id = ${project}`);
