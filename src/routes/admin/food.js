@@ -272,7 +272,7 @@ router.get('/report/today', checkAuth, userPermission, async (req, res) => {
         SELECT fr.*
         FROM food_reports_p fr
         WHERE date = $1
-    `, [moment().format('YYYY-MM-DD')]);
+    `, [moment().tz("Europe/Moscow").add(1, 'days').format('YYYY-MM-DD')]);
 
     const {rows: employees} = await db.query(`
             SELECT COUNT(DISTINCT ea.employee_id) AS total_employees,
@@ -280,7 +280,7 @@ router.get('/report/today', checkAuth, userPermission, async (req, res) => {
                 COUNT(DISTINCT ea.employee_id) FILTER (WHERE ea.turn = 2) AS turn2employees
             FROM employee_activities ea 
             WHERE ea.type = 1 AND ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.review_time) = $1
-    `, [moment().tz("Europe/Moscow").add(-1, 'days').format('YYYY-MM-DD')]);
+    `, [moment().tz("Europe/Moscow").format('YYYY-MM-DD')]);
 
     return res.status(200).json({
         success: true,
@@ -328,7 +328,7 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             p.id;
     `
 
-    const {rows: employees} = await db.query(query, [moment().tz("Europe/Moscow").add(-1, 'days').tz("Europe/Moscow").format('YYYY-MM-DD'), moment().tz("Europe/Moscow").format('YYYY-MM-DD')]);
+    const {rows: employees} = await db.query(query, [moment().tz("Europe/Moscow").format('YYYY-MM-DD'), moment().tz("Europe/Moscow").add(1, 'days').format('YYYY-MM-DD')]);
 
     return res.status(200).json({
         success: true,
@@ -375,7 +375,7 @@ router.get('/projects/:id', checkAuth, userPermission, async (req, res) => {
             p.id;
     `
 
-    const {rows: employees} = await db.query(query, [moment().tz("Europe/Moscow").format('YYYY-MM-DD'), moment().tz("Europe/Moscow").format('YYYY-MM-DD'), req.params.id]);
+    const {rows: employees} = await db.query(query, [moment().tz("Europe/Moscow").add(1, 'days').format('YYYY-MM-DD'), moment().tz("Europe/Moscow").add(1, 'days').format('YYYY-MM-DD'), req.params.id]);
 
     return res.status(200).json({
         success: true,
