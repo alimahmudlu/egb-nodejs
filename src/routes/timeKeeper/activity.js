@@ -278,15 +278,17 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
         ORDER BY e.full_name ASC ${limits ? limits : ''};
     `, [req.currentUserId, ...values])
 
-    res.status(200).json({
-        success: true,
-        message: 'Activity fetched successfully',
-        data: {
-            total: rows?.[0]?.total_count || 0,
-            page: page,
-            data: rows
-        }
-    })
+    setTimeout(() => {
+        res.status(200).json({
+            success: true,
+            message: 'Activity fetched successfully',
+            data: {
+                total: rows?.[0]?.total_count || 0,
+                page: page,
+                data: rows
+            }
+        })
+    }, 10000)
 })
 
 router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
@@ -391,15 +393,18 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
         ORDER BY e.full_name ASC ${limits ? limits : ''};
     `, [req.currentUserId, ...values])
 
-    res.status(200).json({
-        success: true,
-        message: 'Activity fetched successfully',
-        data: {
-            total: rows?.[0]?.total_count || 0,
-            page: page,
-            data: rows
-        }
-    })
+    setTimeout(() => {
+        res.status(200).json({
+            success: true,
+            message: 'Activity fetched successfully',
+            data: {
+                total: rows?.[0]?.total_count || 0,
+                page: page,
+                data: rows
+            }
+        })
+    }, 10000)
+
 })
 
 router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
