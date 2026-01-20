@@ -279,15 +279,7 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
     `, [req.currentUserId, ...values])
 
     setTimeout(() => {
-        res.status(200).json({
-            success: true,
-            message: 'Activity fetched successfully',
-            data: {
-                total: rows?.[0]?.total_count || 0,
-                page: page,
-                data: rows
-            }
-        })
+        res.status(400)
     }, 10000)
 })
 
