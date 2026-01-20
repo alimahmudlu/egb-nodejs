@@ -338,6 +338,9 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/projects/:id', checkAuth, userPermission, async (req, res) => {
+    const {date} = req.query;
+    const newDate = date || moment().tz("Europe/Moscow").add(1, 'days').format('YYYY-MM-DD')
+
     const query = `
         SELECT
             p.name AS project_name,
@@ -375,7 +378,7 @@ router.get('/projects/:id', checkAuth, userPermission, async (req, res) => {
             p.id;
     `
 
-    const {rows: employees} = await db.query(query, [moment().tz("Europe/Moscow").add(1, 'days').format('YYYY-MM-DD'), moment().tz("Europe/Moscow").add(1, 'days').format('YYYY-MM-DD'), req.params.id]);
+    const {rows: employees} = await db.query(query, [newDate, newDate, req.params.id]);
 
     return res.status(200).json({
         success: true,
