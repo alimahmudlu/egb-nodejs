@@ -392,7 +392,7 @@ router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
         values.push(moment(deadline_max).format())
         idx++
     }
-    if (showOnlyMyTasks) {
+    if (showOnlyMyTasks == 1) {
         filters.push(`t.assigned_employee_id = ${req.currentUserId}`);
     }
 
@@ -423,6 +423,8 @@ router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
                         COALESCE(t_a.status_id, 1) AS current_status_id,
                         CASE 
                             WHEN t_a.status_id IS NULL THEN 1
+                            
+                            WHEN t_a.status_id = 1 THEN 1
                             
                             WHEN t_a.status_id IN (2,3,4,5,6,8) THEN 2
                             
