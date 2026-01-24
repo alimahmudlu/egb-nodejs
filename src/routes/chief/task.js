@@ -182,14 +182,14 @@ router.get('/list/user/:user_id', checkAuth, userPermission, async (req, res) =>
         WHERE ta.task_id = t.id
         ORDER BY ta.created_at DESC
         LIMIT 1
-    ), 1) < 5` : type === 'completed' ? `
+    ), 1) != 7` : type === 'completed' ? `
                                         AND COALESCE((
         SELECT ta.status_id
         FROM task_activities ta
         WHERE ta.task_id = t.id
         ORDER BY ta.created_at DESC
         LIMIT 1
-    ), 1) = 5` : '';
+    ), 1) = 7` : '';
 
     const {rows} = await db.query(`SELECT
                                         t.*,
