@@ -159,7 +159,7 @@ router.get('/list/completed', checkAuth, userPermission, async (req, res) => {
                                        SELECT 1
                                        FROM task_activities ta
                                        WHERE ta.task_id = t.id
-                                      AND ta.status_id = 5
+                                      AND ta.status_id = 7
                                        )`, [req.currentUserId]);
 
 
@@ -171,7 +171,7 @@ router.get('/list/completed', checkAuth, userPermission, async (req, res) => {
     })
 })
 
-router.get('/list/:user_id', checkAuth, userPermission, async (req, res) => {
+router.get('/list/user/:user_id', checkAuth, userPermission, async (req, res) => {
     const {user_id} = req.params;
     const {type} = req.query;
 
@@ -357,7 +357,7 @@ router.delete('/:id', checkAuth, userPermission, async (req, res) => {
 })
 
 router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
-    const {status, score_min, score_max, deadline_min, deadline_max} = req.query;
+    const {status, score_min, score_max, deadline_min, deadline_max, showOnlyMyTasks} = req.query;
     const filters = [];
     const values = [];
     let idx = 2;
@@ -391,6 +391,9 @@ router.get('/clickup/list', checkAuth, userPermission, async (req, res) => {
         filters.push(`t.deadline <= $${idx}`);
         values.push(moment(deadline_max).format())
         idx++
+    }
+    if (showOnlyMyTasks) {
+        filters.push(`t.assigned_employee_id = ${req.currentUserId}`);
     }
 
     const query = `

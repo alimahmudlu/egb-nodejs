@@ -518,8 +518,6 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
     const {activity_id, employee_id, type, confirm_time, timezone, confirm_type} = req.body
     const turn = moment(confirm_time).isBetween(moment("01:00", "HH:mm"), moment("16:00", "HH:mm")) ? 1 : 2;
 
-    console.log(turn, confirm_time, moment("01:00", "HH:mm"), moment("16:00", "HH:mm"))
-
     // const returnedRow = await timeKeeperActivityAccept({...req.body, currentUserId: req.currentUserId}, res)
 
     const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
@@ -1935,11 +1933,12 @@ router.post('/checkout', checkAuth, userPermission, apiLimiter, async (req, res)
                             completed_status,
                             reject_reason,
                             work_time,
-                         is_manual
+                         is_manual,
+                         confirm_type
                         )
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *
                 `,
-                [activity_id, req.currentUserId, timezone, time, type, longitude, latitude, req.currentUserId, timezone, time, 2, 1, null, null, false])
+                [activity_id, req.currentUserId, timezone, time, type, longitude, latitude, req.currentUserId, timezone, time, 2, 1, null, null, false, confirm_type])
 
         if (rows.length > 0) {
             const {rows: thisInsertedRow} = await db.query(`
