@@ -214,7 +214,7 @@ router.get('/item/:id/tasks/item/:task_id', checkAuth, userPermission, async (re
 
 router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, async (req, res) => {
     const {task_id, id} = req.params;
-    const {date, status, files} = req.body;
+    const {date, status, files, comment} = req.body;
 
     const {rows} = await db.query(`
                 INSERT INTO task_activities
