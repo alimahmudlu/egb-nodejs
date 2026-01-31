@@ -180,6 +180,24 @@ router.get('/item/:id/tasks/item/:task_id', checkAuth, userPermission, async (re
          JOIN uploads eu ON eu.id = tf.upload_id
          WHERE tf.task_id = t.id
        ) AS files,
+       (
+    SELECT COALESCE(
+        jsonb_agg(
+            jsonb_build_object(
+                'id', ta.id,
+                'comment', ta.comment,
+                'created_at', ta.created_at,
+                'status', json_build_object(
+                    'id', ts.id,
+                    'name', ts.name
+                )
+            ) ORDER BY ta.created_at DESC
+        ), '[]'::jsonb
+    )
+    FROM task_activities ta
+    LEFT JOIN task_statuses ts ON ts.id = ta.status_id
+    WHERE ta.task_id = t.id
+) AS activities,
         (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
             FROM employees e WHERE id = t.assigned_employee_id LIMIT 1) as assigned_employee,
         (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
@@ -204,11 +222,12 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, a
                     task_id,
                     status_id,
                     created_at,
-                    created_employee_id
+                    created_employee_id,
+                    comment
                 )
-                VALUES ($1, $2, $3, $4) RETURNING *
+                VALUES ($1, $2, $3, $4, $5) RETURNING *
         `,
-        [task_id, status, date, req.currentUserId])
+        [task_id, status, date, req.currentUserId, comment || ''])
 
 
     if (files?.length > 0) {
