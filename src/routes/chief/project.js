@@ -1,12 +1,12 @@
-import express from 'express'
-import db from '../../helper/db.js'
-import checkAuth from '../../middleware/checkAuth.js'
+import express from 'express';
+import db from '../../helper/db.js';
+import checkAuth from '../../middleware/checkAuth.js';
 import {getIO, userSocketMap} from "../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
 import userPermission from "../../middleware/userPermission.js";
 import moment from "moment";
 
-const router = express.Router()
+const router = express.Router();
 
 router.get('/list', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT
@@ -44,7 +44,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         message: 'Projects fetched successfully',
         data: rows
     })
-})
+});
 
 router.get('/item/:id', checkAuth, userPermission, async (req, res) => {
     const {id} = req.params;
@@ -80,7 +80,7 @@ router.get('/item/:id', checkAuth, userPermission, async (req, res) => {
         message: 'Project fetched successfully by ID',
         data: rows?.[0] || {}
     })
-})
+});
 
 router.get('/item/:id/tasks', checkAuth, userPermission, async (req, res) => {
     const {id} = req.params;
@@ -116,7 +116,7 @@ router.get('/item/:id/tasks', checkAuth, userPermission, async (req, res) => {
         message: 'Project tasks fetched successfully by ID',
         data: rows || []
     })
-})
+});
 
 router.get('/item/:id/tasks/item/:task_id', checkAuth, userPermission, async (req, res) => {
     const {id, task_id} = req.params;
@@ -195,11 +195,11 @@ router.get('/item/:id/tasks/item/:task_id', checkAuth, userPermission, async (re
         message: 'Project task fetched successfully by ID and task ID',
         data: rows?.[0] || {}
     })
-})
+});
 
 router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, async (req, res) => {
     const {task_id, id} = req.params;
-    const {date, status, files, comment} = req.body;
+    const {date, status, files, comment, finalPoint} = req.body;
 
     const {rows} = await db.query(`
                 INSERT INTO task_activities
@@ -214,6 +214,7 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, a
         `,
         [task_id, status, date, req.currentUserId, comment || ''])
 
+    const {rows: updateTask} = await db.query(`UPDATE tasks SET update_at = $1, status = $2, finalPoints = $3 WHERE id = $4 RETURNING *`, [date, status, finalPoint, task_id])
 
 
     if (files?.length > 0) {
@@ -317,10 +318,6 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, a
         message: 'Project task status change successful',
         data: returnedTask?.[0] || {}
     })
-})
+});
 
-
-
-
-
-export default router
+export default router;
