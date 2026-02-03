@@ -550,4 +550,78 @@ router.get('/statistics/checkin', checkAuth, userPermission, async (req, res) =>
     })
 })
 
+router.get('/statistics/at_work', checkAuth, userPermission, async (req, res) => {
+    const {project, start_date, end_date} = req.query
+
+    const filters = [];
+
+    if (req.query?.['project[]'] && Array.isArray(req.query?.['project[]']) && (req.query?.['project[]'] || []).length > 0) {
+        filters.push(`EXISTS (
+            SELECT 1 FROM project_members pm
+            WHERE pm.employee_id = ea.employee_id
+            AND pm.project_id IN (${req.query?.['project[]'].join(',')})
+            AND pm.status = 1
+        )`);
+    }
+    if (project && !Array.isArray(project)) {
+        filters.push(`EXISTS (
+            SELECT 1 FROM project_members pm
+            WHERE pm.employee_id = ea.employee_id
+            AND pm.project_id = ${project}
+            AND pm.status = 1
+        )`);
+    }
+    if (start_date) {
+        filters.push(`DATE(ea.review_time) >= '${start_date}'`);
+    }
+    if (end_date) {
+        filters.push(`DATE(ea.review_time) <= '${end_date}'`);
+    }
+
+    const whereClause = filters.length
+        ? `AND ${filters.join(' AND ')}`
+        : 'AND 1=1';
+
+
+
+    const query = `
+        WITH CheckedInEmployees AS (
+            SELECT DISTINCT
+                ea.employee_id,
+                ea.turn,
+                ea.type
+            FROM employee_activities ea
+                     JOIN employees e ON e.id = ea.employee_id
+                     JOIN project_members pm ON pm.employee_id = e.id AND pm.status = 1
+            WHERE (ea.type = 1 OR ea.type = 3)
+              AND ea.status = 2
+            ${whereClause}
+            )
+        SELECT
+            -- Total currently at work
+            COUNT(DISTINCT employee_id) AS total_at_work,
+
+            -- Day shift employees (turn = 1)
+            COUNT(DISTINCT CASE WHEN turn = 1 THEN employee_id END) AS day_shift_count,
+
+            -- Night shift employees (turn = 2)
+            COUNT(DISTINCT CASE WHEN turn = 2 THEN employee_id END) AS night_shift_count,
+
+            -- Normal check-in employees (type = 1)
+            COUNT(DISTINCT CASE WHEN type = 1 THEN employee_id END) AS normal_checkin_count,
+
+            -- Overtime employees (type = 3)
+            COUNT(DISTINCT CASE WHEN type = 3 THEN employee_id END) AS overtime_count
+        FROM CheckedInEmployees;
+    `;
+
+    const {rows} = await db.query(query, [])
+
+    res.json({
+        success: true,
+        message: 'Projects fetched successfully',
+        data: rows?.[0]
+    })
+})
+
 export default router
