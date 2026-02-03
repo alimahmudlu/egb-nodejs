@@ -293,4 +293,261 @@ router.get('/statistics', checkAuth, userPermission, async (req, res) => {
     })
 })
 
+router.get('/statistics/working_hours', checkAuth, userPermission, async (req, res) => {
+    const {project, start_date, end_date} = req.query
+
+    const filters = [];
+
+    if (req.query?.['project[]'] && Array.isArray(req.query?.['project[]']) && (req.query?.['project[]'] || []).length > 0) {
+        filters.push(`EXISTS (
+            SELECT 1 FROM project_members pm
+            WHERE pm.employee_id = ea.employee_id
+            AND pm.project_id IN (${req.query?.['project[]'].join(',')})
+            AND pm.status = 1
+        )`);
+    }
+    if (project && !Array.isArray(project)) {
+        filters.push(`EXISTS (
+            SELECT 1 FROM project_members pm
+            WHERE pm.employee_id = ea.employee_id
+            AND pm.project_id = ${project}
+            AND pm.status = 1
+        )`);
+    }
+    if (start_date) {
+        filters.push(`DATE(ea.review_time) >= '${start_date}'`);
+    }
+    if (end_date) {
+        filters.push(`DATE(ea.review_time) <= '${end_date}'`);
+    }
+
+    const whereClause = filters.length
+        ? ` AND ${filters.join(' AND ')}`
+        : ' AND 1=1';
+
+    const query = `
+        SELECT
+            -- Total Working Hours (Normal + Overtime)
+            COALESCE(
+                (SELECT
+                    (SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) / 3600)::int || ':' ||
+                    LPAD(((SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) % 3600) / 60)::int::text, 2, '0')
+                FROM employee_activities ea
+                WHERE (ea.type = 1 OR ea.type = 3)
+                AND ea.status = 2
+                AND ea.completed_status = 1
+                AND ea.work_time IS NOT NULL
+                ${whereClause}),
+                '00:00'
+            ) AS total_working_hours,
+
+            -- Day Shift Working Hours (turn = 1)
+            COALESCE(
+                (SELECT
+                    (SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) / 3600)::int || ':' ||
+                    LPAD(((SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) % 3600) / 60)::int::text, 2, '0')
+                FROM employee_activities ea
+                WHERE (ea.type = 1 OR ea.type = 3)
+                AND ea.status = 2
+                AND ea.completed_status = 1
+                AND ea.work_time IS NOT NULL
+                AND ea.turn = 1
+                ${whereClause}),
+                '00:00'
+            ) AS day_shift_hours,
+
+            -- Night Shift Working Hours (turn = 2)
+            COALESCE(
+                (SELECT
+                    (SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) / 3600)::int || ':' ||
+                    LPAD(((SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) % 3600) / 60)::int::text, 2, '0')
+                FROM employee_activities ea
+                WHERE (ea.type = 1 OR ea.type = 3)
+                AND ea.status = 2
+                AND ea.completed_status = 1
+                AND ea.work_time IS NOT NULL
+                AND ea.turn = 2
+                ${whereClause}),
+                '00:00'
+            ) AS night_shift_hours,
+
+            -- Indirect Working Hours (position status = 2)
+            COALESCE(
+                (SELECT
+                    (SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) / 3600)::int || ':' ||
+                    LPAD(((SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) % 3600) / 60)::int::text, 2, '0')
+                FROM employee_activities ea
+                JOIN employees e ON e.id = ea.employee_id
+                JOIN positions p ON p.id = e.position
+                WHERE (ea.type = 1 OR ea.type = 3)
+                AND ea.status = 2
+                AND ea.completed_status = 1
+                AND ea.work_time IS NOT NULL
+                AND p.status = 2
+                ${whereClause}),
+                '00:00'
+            ) AS indirect_hours,
+
+            -- Direct Working Hours (position status = 1)
+            COALESCE(
+                (SELECT
+                    (SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) / 3600)::int || ':' ||
+                    LPAD(((SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) % 3600) / 60)::int::text, 2, '0')
+                FROM employee_activities ea
+                JOIN employees e ON e.id = ea.employee_id
+                JOIN positions p ON p.id = e.position
+                WHERE (ea.type = 1 OR ea.type = 3)
+                AND ea.status = 2
+                AND ea.completed_status = 1
+                AND ea.work_time IS NOT NULL
+                AND p.status = 1
+                ${whereClause}),
+                '00:00'
+            ) AS direct_hours,
+
+            -- Normal Working Hours (type = 1)
+            COALESCE(
+                (SELECT
+                    (SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) / 3600)::int || ':' ||
+                    LPAD(((SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) % 3600) / 60)::int::text, 2, '0')
+                FROM employee_activities ea
+                WHERE ea.type = 1
+                AND ea.status = 2
+                AND ea.completed_status = 1
+                AND ea.work_time IS NOT NULL
+                ${whereClause}),
+                '00:00'
+            ) AS normal_hours,
+
+            -- Overtime Working Hours (type = 3)
+            COALESCE(
+                (SELECT
+                    (SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) / 3600)::int || ':' ||
+                    LPAD(((SUM(
+                        COALESCE(split_part(ea.work_time, ':', 1)::int, 0) * 3600 +
+                        COALESCE(split_part(ea.work_time, ':', 2)::int, 0) * 60
+                    ) % 3600) / 60)::int::text, 2, '0')
+                FROM employee_activities ea
+                WHERE ea.type = 3
+                AND ea.status = 2
+                AND ea.completed_status = 1
+                AND ea.work_time IS NOT NULL
+                ${whereClause}),
+                '00:00'
+            ) AS overtime_hours;
+    `;
+
+    const {rows} = await db.query(query, [])
+
+    res.json({
+        success: true,
+        message: 'Projects fetched successfully',
+        data: rows?.[0]
+    })
+})
+
+router.get('/statistics/checkin', checkAuth, userPermission, async (req, res) => {
+    const {project, start_date, end_date} = req.query
+
+    const filters = [];
+
+    if (req.query?.['project[]'] && Array.isArray(req.query?.['project[]']) && (req.query?.['project[]'] || []).length > 0) {
+        filters.push(`EXISTS (
+            SELECT 1 FROM project_members pm
+            WHERE pm.employee_id = ea.employee_id
+            AND pm.project_id IN (${req.query?.['project[]'].join(',')})
+            AND pm.status = 1
+        )`);
+    }
+    if (project && !Array.isArray(project)) {
+        filters.push(`EXISTS (
+            SELECT 1 FROM project_members pm
+            WHERE pm.employee_id = ea.employee_id
+            AND pm.project_id = ${project}
+            AND pm.status = 1
+        )`);
+    }
+    if (start_date) {
+        filters.push(`DATE(ea.review_time) >= '${start_date}'`);
+    }
+    if (end_date) {
+        filters.push(`DATE(ea.review_time) <= '${end_date}'`);
+    }
+
+    const whereClause = filters.length
+        ? ` AND ${filters.join(' AND ')}`
+        : ' AND 1=1';
+
+
+    const query = `
+        SELECT
+            -- Manual check-ins (approved)
+            COUNT(CASE WHEN (ea.type = 1 OR ea.type = 3) AND ea.status = 2 AND ea.is_manual = true THEN 1 END) AS manual_checkins,
+
+            -- Auto check-ins (approved, not manual)
+            COUNT(CASE WHEN (ea.type = 1 OR ea.type = 3) AND ea.status = 2 AND (ea.is_manual = false OR ea.is_manual IS NULL) THEN 1 END) AS auto_checkins,
+
+            -- Rejected check-ins
+            COUNT(CASE WHEN (ea.type = 1 OR ea.type = 3) AND ea.status = 3 THEN 1 END) AS rejected_checkins,
+
+            -- Total approved check-ins
+            COUNT(CASE WHEN (ea.type = 1 OR ea.type = 3) AND ea.status = 2 THEN 1 END) AS total_approved,
+
+            -- Day shift check-ins (turn = 1, approved)
+            COUNT(CASE WHEN (ea.type = 1 OR ea.type = 3) AND ea.status = 2 AND ea.turn = 1 THEN 1 END) AS day_shift_checkins,
+
+            -- Night shift check-ins (turn = 2, approved)
+            COUNT(CASE WHEN (ea.type = 1 OR ea.type = 3) AND ea.status = 2 AND ea.turn = 2 THEN 1 END) AS night_shift_checkins
+        FROM employee_activities ea
+        ${whereClause};
+    `;
+
+    const {rows} = await db.query(query, [])
+
+    res.json({
+        success: true,
+        message: 'Projects fetched successfully',
+        data: rows?.[0]
+    })
+})
+
 export default router
