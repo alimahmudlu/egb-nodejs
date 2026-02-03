@@ -514,8 +514,8 @@ router.get('/statistics/checkin', checkAuth, userPermission, async (req, res) =>
     }
 
     const whereClause = filters.length
-        ? ` AND ${filters.join(' AND ')}`
-        : ' AND 1=1';
+        ? `WHERE ${filters.join(' AND ')}`
+        : 'WHERE 1=1';
 
 
     const query = `
