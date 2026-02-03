@@ -20,7 +20,7 @@ router.get('/', checkAuth, async (req, res) => {
                     (SELECT jsonb_build_object(
                                     'points', sum(t.points),
                                     'finalPoints', sum(t.finalPoints)
-                            ) FROM tasks t WHERE (assigned_employee_id = e.id OR reporter_employee_id = e.id) AND EXISTS (
+                            ) FROM tasks t WHERE (assigned_employee_id = e.id) AND EXISTS (
                 SELECT 1
                 FROM task_activities ta
                 WHERE ta.task_id = t.id
@@ -87,7 +87,7 @@ router.get('/rating', checkAuth, async (req, res) => {
                     (SELECT jsonb_build_object(
                                     'points', sum(t.points),
                                     'finalPoints', sum(t.finalPoints)
-                            ) FROM tasks t WHERE (assigned_employee_id = e.id OR reporter_employee_id = e.id) AND EXISTS (
+                            ) FROM tasks t WHERE (assigned_employee_id = e.id) AND EXISTS (
                 SELECT 1
                 FROM task_activities ta
                 WHERE ta.task_id = t.id
