@@ -75,6 +75,7 @@ router.get('/history/:employee_id/checkin', checkAuth, userPermission, async (re
         SELECT ea.*, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian,
                 'email', e.email,
                 'role', json_build_object(
                         'id', er.id,
@@ -102,6 +103,7 @@ router.get('/history/:employee_id/checkout', checkAuth, userPermission, async (r
         SELECT ea.*, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian,
                 'email', e.email,
                 'role', json_build_object(
                         'id', er.id,

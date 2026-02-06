@@ -52,6 +52,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         SELECT ea.*, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian,
                 'email', e.email,
                 'manual', e.dont_have_phone,
                 'role', json_build_object(
@@ -154,6 +155,7 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
             json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian,
                 'manual', e.dont_have_phone,
                 'role', json_build_object(
                         'id', er.id,
@@ -262,6 +264,7 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
             json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian,
                 'manual', e.dont_have_phone,
                 'role', json_build_object(
                         'id', er.id,

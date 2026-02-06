@@ -48,6 +48,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         SELECT ea.*, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian,
 --                 'email', e.email,
                 'role', json_build_object(
 --                         'id', er.id,
@@ -248,6 +249,7 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
                COUNT(*) OVER() AS total_count, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian,
                 'role', json_build_object(
                         'name', r.name
                         )
@@ -361,6 +363,7 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
                COUNT(*) OVER() AS total_count, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian,
                 'role', json_build_object(
                         'name', r.name
                         )
@@ -473,6 +476,7 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
                COUNT(*) OVER() AS total_count, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian,
                 'role', json_build_object(
                         'name', r.name
                         )
@@ -923,6 +927,7 @@ router.get('/checkin', checkAuth, userPermission, async (req, res) => {
             ) AS project, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian,
 --                 'email', e.email,
                 'role', json_build_object(
 --                         'id', er.id,
@@ -997,6 +1002,7 @@ router.get('/checkout', checkAuth, userPermission, async (req, res) => {
             ) AS project, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian,
 --                 'email', e.email,
                 'role', json_build_object(
 --                         'id', er.id,
@@ -2027,7 +2033,8 @@ router.get('/', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`SELECT *, (
         SELECT json_build_object(
                        'id', e.id,
-                       'full_name', e.full_name
+                       'full_name', e.full_name,
+                       'full_name_russian', e.full_name_russian,
                )
         FROM employees e
         WHERE e.id = ea.reviewer_employee_id

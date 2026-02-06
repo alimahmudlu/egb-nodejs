@@ -34,6 +34,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                                jsonb_build_object(
                                        'id', e1.id,
                                        'full_name', e1.full_name,
+                                        'full_name_russian', e1.full_name_russian,
                                        'phone_number', e1.phone_number,
                                        'role', jsonb_build_object(
                                                'id', r.id,
@@ -71,6 +72,7 @@ router.get('/item/:id', checkAuth, userPermission, async (req, res) => {
                                           jsonb_build_object(
                                                   'id', e1.id,
                                                   'full_name', e1.full_name,
+                                                  'full_name_russian', e1.full_name_russian,
                                                   'phone_number', e1.phone_number,
                                                   'role', jsonb_build_object(
                                                           'id', r.id,
@@ -112,9 +114,11 @@ router.get('/item/:id/tasks', checkAuth, userPermission, async (req, res) => {
            ), 1)
           LIMIT 1
         ) as status,
-       (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
+       (SELECT json_build_object('id', e.id, 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian)
         FROM employees e WHERE id = t.assigned_employee_id LIMIT 1) as assigned_employee,
-       (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
+       (SELECT json_build_object('id', e.id, 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian)
         FROM employees e WHERE id = t.reporter_employee_id LIMIT 1) as reporter_employee
                                    FROM tasks t WHERE t.project_id = $1 AND t.assigned_employee_id = $2 AND deleted_at IS NULL`, [id, req?.currentUserId])
 
@@ -139,9 +143,11 @@ router.get('/tasks', checkAuth, userPermission, async (req, res) => {
            ), 1)
           LIMIT 1
         ) as status,
-       (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
+       (SELECT json_build_object('id', e.id, 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian)
         FROM employees e WHERE id = t.assigned_employee_id LIMIT 1) as assigned_employee,
-       (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
+       (SELECT json_build_object('id', e.id, 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian)
         FROM employees e WHERE id = t.reporter_employee_id LIMIT 1) as reporter_employee
                                    FROM tasks t WHERE t.assigned_employee_id = $1 AND deleted_at IS NULL AND
                                        EXISTS (
@@ -195,9 +201,11 @@ router.get('/item/:id/tasks/item/:task_id', checkAuth, userPermission, async (re
          JOIN uploads eu ON eu.id = tf.upload_id
          WHERE tf.task_id = t.id
        ) AS files,
-        (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
+        (SELECT json_build_object('id', e.id, 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian)
             FROM employees e WHERE id = t.assigned_employee_id LIMIT 1) as assigned_employee,
-        (SELECT json_build_object('id', e.id, 'full_name', e.full_name)
+        (SELECT json_build_object('id', e.id, 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian)
             FROM employees e WHERE id = t.reporter_employee_id LIMIT 1) as reporter_employee
         FROM tasks t WHERE t.project_id = $1 AND t.assigned_employee_id = $2 AND t.id = $3`, [id, req?.currentUserId, task_id])
 
@@ -281,8 +289,10 @@ router.post('/item/:id/tasks/item/:task_id/status', checkAuth, userPermission, a
          JOIN uploads eu ON eu.id = tf.upload_id
          WHERE tf.task_id = t.id
        ) AS files,
-       (SELECT json_build_object('id', e.id, 'full_name', e.full_name) FROM employees e WHERE assigned_employee_id = e.id LIMIT 1) as assigned_employee,
-       (SELECT json_build_object('id', e.id, 'full_name', e.full_name) FROM employees e WHERE reporter_employee_id = e.id LIMIT 1) as reporter_employee
+       (SELECT json_build_object('id', e.id, 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian) FROM employees e WHERE assigned_employee_id = e.id LIMIT 1) as assigned_employee,
+       (SELECT json_build_object('id', e.id, 'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian) FROM employees e WHERE reporter_employee_id = e.id LIMIT 1) as reporter_employee
         FROM tasks t
         WHERE t.project_id = $1 AND t.id = $2
     `, [id, task_id])
