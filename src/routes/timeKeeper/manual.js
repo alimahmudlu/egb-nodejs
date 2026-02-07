@@ -366,43 +366,8 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
         const endHourMinute = end.format("HH:mm");
 
         if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
-            duration.asHours() < 24 &&
-            confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() !== 7
-        ) {
-            diff = {
-                hours: 10,
-                minutes: 0
-            };
-        }
-        else if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
-            duration.asHours() < 24 &&
-            confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() === 7
-        ) {
-            diff = {
-                hours: 8,
-                minutes: 0
-            };
-        }
-        else if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
-            duration.asHours() < 24 &&
-            confirm_type === 4 &&
-            moment().tz("Europe/Moscow").weekday() === 7
-        ) {
-            diff = {
-                hours: 10,
-                minutes: 0
-            };
-        }
-        else if (
             // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() !== 7
@@ -414,17 +379,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
         }
         else if (
             // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
-            duration.asHours() < 24 &&
-            confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() === 7
-        ) {
-            diff = {
-                hours: 8,
-                minutes: 0
-            };
-        }
-        else if (
-            // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 4 &&
             moment().tz("Europe/Moscow").weekday() === 7
@@ -435,27 +390,28 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
             };
         }
         else if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("12:59", "HH:mm"), moment("14:01", "HH:mm")) &&
+            // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+            // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
-            confirm_type === 2
+            confirm_type === 1 &&
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
-                hours: 5,
+                hours: 8,
                 minutes: 0
             };
         }
-        else if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBefore(moment("14:01", "HH:mm")) &&
-            duration.asHours() < 24 &&
-            confirm_type === 2
-        ) {
-            diff = {
-                hours: Math.floor(duration.asHours() - 1),
-                minutes: duration.minutes()
-            }
-        }
+            /*else if (
+                // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
+                // moment(endHourMinute, "HH:mm").isBefore(moment("14:01", "HH:mm")) &&
+                duration.asHours() < 24 &&
+                confirm_type === 2
+            ) {
+                diff = {
+                    hours: Math.floor(duration.asHours() - 1),
+                    minutes: duration.minutes()
+                }
+            }*/
         /*else if (
             moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             moment(endHourMinute, "HH:mm").isBetween(moment("19:59", "HH:mm"), moment("20:31", "HH:mm")) &&
@@ -476,64 +432,6 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
                 minutes: 0
             };
         }*/
-        else if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
-            duration.asHours() < 24 &&
-            confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() !== 7
-        ) {
-            diff = {
-                hours: 10,
-                minutes: 0
-            };
-        }
-        else if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
-            duration.asHours() < 24 &&
-            confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() === 7
-        ) {
-            diff = {
-                hours: 8,
-                minutes: 0
-            };
-        }
-        else if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("06:59", "HH:mm"), moment("07:31", "HH:mm")) &&
-            duration.asHours() < 24 &&
-            confirm_type === 4 &&
-            moment().tz("Europe/Moscow").weekday() === 7
-        ) {
-            diff = {
-                hours: 10,
-                minutes: 0
-            };
-        }
-        else if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBetween(moment("00:59", "HH:mm"), moment("02:01", "HH:mm")) &&
-            duration.asHours() < 24 &&
-            confirm_type === 2
-        ) {
-            diff = {
-                hours: 5,
-                minutes: 0
-            };
-        }
-        else if (
-            moment(startHourMinute, "HH:mm").isBetween(moment("19:29", "HH:mm"), moment("20:01", "HH:mm")) &&
-            moment(endHourMinute, "HH:mm").isBefore(moment("02:01", "HH:mm")) &&
-            duration.asHours() < 24 &&
-            confirm_type === 2
-        ) {
-            diff = {
-                hours: Math.floor(duration.asHours() - 1),
-                minutes: duration.minutes()
-            }
-        }
         else if (
             confirm_type === 3
         ) {
