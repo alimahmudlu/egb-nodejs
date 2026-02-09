@@ -546,6 +546,8 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
         const end = moment(confirm_time, 'YYYY-MM-DD HH:mm').endOf('minute');
 
+        console.log(confirm_type === 1, confirm_type, moment().tz("Europe/Moscow").weekday() === 1, moment().tz("Europe/Moscow").weekday(), 'testing')
+
         const duration = moment.duration(end.diff(start));
 
         diff = {
