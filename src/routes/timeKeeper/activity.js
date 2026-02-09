@@ -546,7 +546,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
         const end = moment(confirm_time, 'YYYY-MM-DD HH:mm').endOf('minute');
 
-        console.log(confirm_type === 1, confirm_type, moment().tz("Europe/Moscow").weekday() === 1, moment().tz("Europe/Moscow").weekday(), 'testing')
+        console.log(confirm_type === 1, confirm_type, moment().tz("Europe/Moscow").weekday() === 7, moment().tz("Europe/Moscow").weekday(), 'testing ---___--- confirm time ')
 
         const duration = moment.duration(end.diff(start));
 
@@ -563,7 +563,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() !== 1
+            moment().tz("Europe/Moscow").weekday() !== 7
         ) {
             diff = {
                 hours: 10,
@@ -575,7 +575,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 4 &&
-            moment().tz("Europe/Moscow").weekday() === 1
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 10,
@@ -587,7 +587,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() === 1
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 8,
@@ -1590,7 +1590,7 @@ router.post('/checkout', checkAuth, userPermission, apiLimiter, async (req, res)
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() !== 1
+            moment().tz("Europe/Moscow").weekday() !== 7
         ) {
             diff = {
                 hours: 10,
@@ -1602,7 +1602,7 @@ router.post('/checkout', checkAuth, userPermission, apiLimiter, async (req, res)
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 4 &&
-            moment().tz("Europe/Moscow").weekday() === 1
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 10,
@@ -1614,7 +1614,7 @@ router.post('/checkout', checkAuth, userPermission, apiLimiter, async (req, res)
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() === 1
+            moment().tz("Europe/Moscow").weekday() === 7
         ) {
             diff = {
                 hours: 8,
