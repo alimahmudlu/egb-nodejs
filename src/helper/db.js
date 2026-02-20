@@ -7,7 +7,7 @@ const db = new Pool({
     user: process.env.PGUSER,
     password: process.env.PGPASSWORD,
     database: process.env.PGDATABASE,
-    port: 5432,
+    port: 6432,
     ssl: { rejectUnauthorized: false }
     // ssl: true
 });
