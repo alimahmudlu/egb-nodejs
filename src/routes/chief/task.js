@@ -5,6 +5,7 @@ import {getIO, userSocketMap} from "../../socketManager.js";
 import sendPushNotification from "../../helper/sendPushNotification.js";
 import moment from "moment";
 import userPermission from "../../middleware/userPermission.js";
+import apiLimiter from "../../middleware/rateLimit.js";
 
 const router = express.Router()
 
@@ -216,7 +217,7 @@ router.get('/list/user/:user_id', checkAuth, userPermission, async (req, res) =>
     })
 })
 
-router.post('/create', checkAuth, userPermission, async (req, res) => {
+router.post('/create', checkAuth, userPermission, apiLimiter, async (req, res) => {
     const {title, deadline, point, description, assigned_employee_id, project_id, files} = req.body;
 
     const {rows: createdRows} = await db.query(`INSERT INTO tasks 
