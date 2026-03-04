@@ -20,7 +20,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                                          AND au2.id > au.id
                                    )
                                        ${status === '2' ?
-        `au.date_of_expiry IS NOT NULL
+        `AND au.date_of_expiry IS NOT NULL
             AND (
                 (au.type = 'registration_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '7 days')
                 OR (au.type = 'metro_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '5 days')
@@ -30,11 +30,11 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         : ''
     }
                                        ${status === '3' ?
-        `au.date_of_expiry IS NOT NULL AND au.date_of_expiry < CURRENT_DATE`
+        `AND au.date_of_expiry IS NOT NULL AND au.date_of_expiry < CURRENT_DATE`
         : ''
     }
                                        ${status === '1' ?
-        `au.date_of_expiry IS NOT NULL
+        `AND au.date_of_expiry IS NOT NULL
             AND au.type != 'migration_card'
             AND (
                 (au.type = 'registration_card' AND au.date_of_expiry > CURRENT_DATE + INTERVAL '7 days')
@@ -61,7 +61,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                                          AND au2.id > au.id
                                    )
                                        ${status === '2' ?
-                                               `au.date_of_expiry IS NOT NULL
+                                               `AND au.date_of_expiry IS NOT NULL
             AND (
                 (au.type = 'registration_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '7 days')
                 OR (au.type = 'metro_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '5 days')
@@ -71,11 +71,11 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                                                : ''
                                        }
                                        ${status === '3' ?
-                                               `au.date_of_expiry IS NOT NULL AND au.date_of_expiry < CURRENT_DATE`
+                                               `AND au.date_of_expiry IS NOT NULL AND au.date_of_expiry < CURRENT_DATE`
                                                : ''
                                        }
                                        ${status === '1' ?
-                                               `au.date_of_expiry IS NOT NULL
+                                               `AND au.date_of_expiry IS NOT NULL
             AND au.type != 'migration_card'
             AND (
                 (au.type = 'registration_card' AND au.date_of_expiry > CURRENT_DATE + INTERVAL '7 days')
