@@ -63,25 +63,27 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                                        ${status === '2' ?
                                                `AND au.date_of_expiry IS NOT NULL
             AND (
-                (au.type = 'registration_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '7 days')
-                OR (au.type = 'metro_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '5 days')
-                OR (au.type != 'registration_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '30 days')
+                (au.type = 'registration_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '7 days' AND au.date_of_expiry > CURRENT_DATE)
+                OR (au.type = 'metro_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '5 days' AND au.date_of_expiry > CURRENT_DATE)
+                OR (au.type != 'registration_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '30 days' AND au.date_of_expiry > CURRENT_DATE)
             )
             AND au.date_of_expiry > CURRENT_DATE`
                                                : ''
                                        }
                                        ${status === '3' ?
-                                               `AND au.date_of_expiry IS NOT NULL AND au.date_of_expiry < CURRENT_DATE`
+                                               `AND au.date_of_expiry IS NOT NULL AND (
+                (a.amina_user = true AND au.type != 'registration_card' AND au.date_of_expiry < CURRENT_DATE) OR ((a.amina_user = false OR a.amina_user is null) AND au.date_of_expiry < CURRENT_DATE)
+            )`
                                                : ''
                                        }
                                        ${status === '1' ?
-                                               `AND au.date_of_expiry IS NOT NULL
-            AND au.type != 'migration_card'
+                                               `AND (au.date_of_expiry IS NULL OR
+            (au.type != 'migration_card'
             AND (
                 (au.type = 'registration_card' AND au.date_of_expiry > CURRENT_DATE + INTERVAL '7 days')
                 OR (au.type = 'metro_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '5 days')
                 OR (au.type != 'registration_card' AND au.date_of_expiry > CURRENT_DATE + INTERVAL '30 days')
-            )`
+            )))`
                                                : ''
                                        }
                                      AND au.deleted_at IS NULL AND au.status = 1 AND NOT (
