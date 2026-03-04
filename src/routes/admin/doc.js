@@ -88,7 +88,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                                        }
                                      AND au.deleted_at IS NULL AND au.status = 1 AND NOT (
                                        a.country_id = 219 AND au.type = 'contract'
-                                       );
+                                       ) AND au.type NOT IN ('medical_certification', 'work_authorization');
     `, [req.currentUserId])
 
 
