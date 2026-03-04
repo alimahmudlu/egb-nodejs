@@ -46,7 +46,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                                      AND au.deleted_at IS NULL AND au.status = 1 AND NOT (
                                        a.country_id = 219 AND au.type = 'contract'
                                        );
-    `)
+    `, status, status === 1, status === '1', typeof status)
 
 
     const {rows} = await db.query(`SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, au.id, au.type, au.employee_id
