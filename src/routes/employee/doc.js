@@ -8,6 +8,45 @@ const router = express.Router()
 router.get('/list', checkAuth, userPermission, async (req, res) => {
     const {status} = req.query
 
+    console.log(`SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, au.id, au.type, au.employee_id
+                                   FROM application_uploads au
+                                            JOIN uploads u ON u.id = au.upload_id
+                                            JOIN applications a ON a.id IN (SELECT application_id FROM employees WHERE id = $1)
+                                   WHERE au.application_id IN (SELECT application_id FROM employees WHERE id = $1) and NOT EXISTS (
+                                       SELECT 1
+                                       FROM application_uploads au2
+                                       WHERE au2.application_id = au.application_id
+                                         AND au2.type = au.type
+                                         AND au2.id > au.id
+                                   )
+                                       ${status === '2' ?
+        `au.date_of_expiry IS NOT NULL
+            AND (
+                (au.type = 'registration_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '7 days')
+                OR (au.type = 'metro_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '5 days')
+                OR (au.type != 'registration_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '30 days')
+            )
+            AND au.date_of_expiry > CURRENT_DATE`
+        : ''
+    }
+                                       ${status === '3' ?
+        `au.date_of_expiry IS NOT NULL AND au.date_of_expiry < CURRENT_DATE`
+        : ''
+    }
+                                       ${status === '1' ?
+        `au.date_of_expiry IS NOT NULL
+            AND au.type != 'migration_card'
+            AND (
+                (au.type = 'registration_card' AND au.date_of_expiry > CURRENT_DATE + INTERVAL '7 days')
+                OR (au.type = 'metro_card' AND au.date_of_expiry <= CURRENT_DATE + INTERVAL '5 days')
+                OR (au.type != 'registration_card' AND au.date_of_expiry > CURRENT_DATE + INTERVAL '30 days')
+            )`
+        : ''
+    }
+                                     AND au.deleted_at IS NULL AND au.status = 1 AND NOT (
+                                       a.country_id = 219 AND au.type = 'contract'
+                                       );
+    `, [req.currentUserId])
 
     const {rows} = await db.query(`SELECT au.date_of_expiry, au.date_of_issue, u.filesize, u.mimetype, u.filepath, u.filename, au.id, au.type, au.employee_id
                                    FROM application_uploads au
