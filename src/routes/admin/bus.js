@@ -278,7 +278,6 @@ router.get('/projects/history', checkAuth, userPermission, async (req, res) => {
     })
 })
 
-
 router.get('/types', checkAuth, userPermission, async (req, res) => {
     const query = `
         SELECT
