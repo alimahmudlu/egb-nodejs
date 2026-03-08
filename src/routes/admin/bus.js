@@ -286,7 +286,7 @@ router.get('/types', checkAuth, userPermission, async (req, res) => {
         FROM bus_types bt
     
         ORDER BY
-            bt.id DESC;
+            bt.id ASC;
     `
     const {rows: employees} = await db.query(query, []);
 
