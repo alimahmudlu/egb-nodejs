@@ -279,4 +279,23 @@ router.get('/projects/history', checkAuth, userPermission, async (req, res) => {
 })
 
 
+router.get('/types', checkAuth, userPermission, async (req, res) => {
+    const query = `
+        SELECT
+            bt.*
+        FROM bus_types bt
+    
+        ORDER BY
+            bt.id DESC;
+    `
+    const {rows: employees} = await db.query(query, []);
+
+    return res.status(200).json({
+        success: true,
+        message: 'Food reports fetched successfully',
+        data: employees
+    })
+})
+
+
 export default router
