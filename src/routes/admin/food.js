@@ -46,7 +46,7 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
 
     const {breakfast, lunch, dinner} = turn1;
     const {lunch: nightLunch} = turn2;
-    const {bread, kefir, sugar, tea, spoon, cup, salt, pepper} = turnextras;
+    const {bread, kefir, sugar, tea, spoon, cup, salt, pepper, suhur, iftar} = turnextras;
 
     const {rows: controls} = await db.query(`SELECT * FROM food_reports_p WHERE project_id = $1 AND date = $2`, [project_id, date]);
 
@@ -220,12 +220,12 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
     }
 
     if (controls.length > 0 && controls.some(control => control.type === 11 && control.turn === 1)) {
-        const thisItem = controls.find(control => control.type === 10 && control.turn === 1)
+        const thisItem = controls.find(control => control.type === 11 && control.turn === 1)
         const {rows: cupRows} = await db.query(`
         UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3, missing=$6, rest=$7
             WHERE project_id = $4 AND date = $5 AND type = 11 AND turn = 1
         RETURNING *
-    `, [cup?.order || 0, Number(turn1employees) + Number(turn2employees), cup?.note || '', project_id, newDate, Number(cup?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : (Number(cup?.order) - Number((thisItem?.real || 0))) * -1, Number(cup?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(cup?.order) - Number((thisItem?.real || 0))]);
+    `, [salt?.order || 0, Number(turn1employees) + Number(turn2employees), salt?.note || '', project_id, newDate, Number(salt?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : (Number(salt?.order) - Number((thisItem?.real || 0))) * -1, Number(salt?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(salt?.order) - Number((thisItem?.real || 0))]);
 
     }
     else {
@@ -233,7 +233,58 @@ router.post('/report/add', checkAuth, userPermission, async (req, res) => {
         INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
-    `, [newDate, project_id, 11, 1, cup?.order || 0, Number(turn1employees) + Number(turn2employees), cup?.note || '']);
+    `, [newDate, project_id, 11, 1, salt?.order || 0, Number(turn1employees) + Number(turn2employees), salt?.note || '']);
+    }
+
+    if (controls.length > 0 && controls.some(control => control.type === 12 && control.turn === 1)) {
+        const thisItem = controls.find(control => control.type === 12 && control.turn === 1)
+        const {rows: cupRows} = await db.query(`
+        UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3, missing=$6, rest=$7
+            WHERE project_id = $4 AND date = $5 AND type = 12 AND turn = 1
+        RETURNING *
+    `, [pepper?.order || 0, Number(turn1employees) + Number(turn2employees), pepper?.note || '', project_id, newDate, Number(pepper?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : (Number(pepper?.order) - Number((thisItem?.real || 0))) * -1, Number(pepper?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(pepper?.order) - Number((thisItem?.real || 0))]);
+
+    }
+    else {
+        const {rows: cupRows} = await db.query(`
+        INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+    `, [newDate, project_id, 12, 1, pepper?.order || 0, Number(turn1employees) + Number(turn2employees), pepper?.note || '']);
+    }
+
+    if (controls.length > 0 && controls.some(control => control.type === 13 && control.turn === 1)) {
+        const thisItem = controls.find(control => control.type === 13 && control.turn === 1)
+        const {rows: cupRows} = await db.query(`
+        UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3, missing=$6, rest=$7
+            WHERE project_id = $4 AND date = $5 AND type = 13 AND turn = 1
+        RETURNING *
+    `, [suhur?.order || 0, Number(turn1employees) + Number(turn2employees), suhur?.note || '', project_id, newDate, Number(suhur?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : (Number(suhur?.order) - Number((thisItem?.real || 0))) * -1, Number(suhur?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(suhur?.order) - Number((thisItem?.real || 0))]);
+
+    }
+    else {
+        const {rows: cupRows} = await db.query(`
+        INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+    `, [newDate, project_id, 13, 1, suhur?.order || 0, Number(turn1employees) + Number(turn2employees), suhur?.note || '']);
+    }
+
+    if (controls.length > 0 && controls.some(control => control.type === 14 && control.turn === 1)) {
+        const thisItem = controls.find(control => control.type === 14 && control.turn === 1)
+        const {rows: cupRows} = await db.query(`
+        UPDATE food_reports_p SET "order"=$1, employees=$2, note=$3, missing=$6, rest=$7
+            WHERE project_id = $4 AND date = $5 AND type = 14 AND turn = 1
+        RETURNING *
+    `, [iftar?.order || 0, Number(turn1employees) + Number(turn2employees), iftar?.note || '', project_id, newDate, Number(iftar?.order) - Number((thisItem?.real || 0)) > 0 ? 0 : (Number(iftar?.order) - Number((thisItem?.real || 0))) * -1, Number(iftar?.order) - Number((thisItem?.real || 0)) < 0 ? 0 : Number(iftar?.order) - Number((thisItem?.real || 0))]);
+
+    }
+    else {
+        const {rows: cupRows} = await db.query(`
+        INSERT INTO food_reports_p (date, project_id, type, turn, "order", employees, note)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+    `, [newDate, project_id, 14, 1, iftar?.order || 0, Number(turn1employees) + Number(turn2employees), iftar?.note || '']);
     }
 
 
@@ -369,7 +420,9 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 9 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS spoon,
             (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 10 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS cup,
             (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 11 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS salt,
-            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 12 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS pepper
+            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 12 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS pepper,
+            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 13 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS suhur,
+            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 14 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS iftar
         FROM projects AS p
             LEFT JOIN project_members AS pm ON p.id = pm.project_id
             AND pm.status = 1 
@@ -423,7 +476,9 @@ router.get('/projects/:id', checkAuth, userPermission, async (req, res) => {
             (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 9 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS spoon,
             (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 10 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS cup,
             (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 11 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS salt,
-            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 12 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS pepper
+            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 12 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS pepper,
+            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 13 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS suhur,
+            (SELECT to_jsonb(br_fr.*) FROM food_reports_p br_fr WHERE br_fr.project_id = p.id AND Date(br_fr.date) = $2 AND type = 14 AND turn = 1 ORDER BY br_fr.id DESC LIMIT 1) AS iftar
         FROM projects AS p
             LEFT JOIN project_members AS pm ON p.id = pm.project_id
             AND pm.status = 1 
