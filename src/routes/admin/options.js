@@ -7,7 +7,7 @@ const router = express.Router()
 
 // OPTIONS
 router.get('/projects', checkAuth, userPermission, async (req, res) => {
-    const {rows} = await db.query(`SELECT
+    /*const {rows} = await db.query(`SELECT
                                        p.*,
                                         (
                                             SELECT COALESCE(
@@ -31,6 +31,10 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
                                             LEFT JOIN roles r ON r.id = er.role
                                             WHERE pm1.project_id = p.id
                                         ) AS members
+                                   FROM projects p`, []);*/
+
+    const {rows} = await db.query(`SELECT
+                                       p.*
                                    FROM projects p`, [])
 
     console.log(rows, req.currentUserId, 'admin options bus projects')
