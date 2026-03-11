@@ -33,6 +33,8 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
                                         ) AS members
                                    FROM projects p`, [])
 
+    console.log(rows, req.currentUserId, 'admin options bus projects')
+
     res.json({
         success: true,
         message: 'Option Projects fetched successfully',
