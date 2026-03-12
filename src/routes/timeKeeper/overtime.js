@@ -413,8 +413,8 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         minutes: 0
     }
 
-    if (checkInControlRow?.[0]?.review_time && type === 4) {
-        const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
+    if (checkInControlRow?.[0]?.request_time && type === 4) {
+        const start = moment(checkInControlRow?.[0].request_time, 'YYYY-MM-DD HH:mm');
         const end = moment(confirm_time, 'YYYY-MM-DD HH:mm').endOf('minute');
 
         const duration = moment.duration(end.diff(start));
@@ -593,12 +593,12 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
     let idx = 2;
 
     if (start_date) {
-        filters.push(`review_time >= $${idx}`);
+        filters.push(`request_time >= $${idx}`);
         values.push(start_date)
         idx++
     }
     if (end_date) {
-        filters.push(`review_time <= $${idx}`);
+        filters.push(`request_time <= $${idx}`);
         values.push(end_date)
         idx++
     }
@@ -657,12 +657,12 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
     let idx = 2;
 
     if (start_date) {
-        filters.push(`review_time >= $${idx}`);
+        filters.push(`request_time >= $${idx}`);
         values.push(start_date)
         idx++
     }
     if (end_date) {
-        filters.push(`review_time <= $${idx}`);
+        filters.push(`request_time <= $${idx}`);
         values.push(end_date)
         idx++
     }
@@ -982,8 +982,8 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
         minutes: 0
     }
 
-    if (checkInControlRow?.[0]?.review_time && type === 2) {
-        const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
+    if (checkInControlRow?.[0]?.request_time && type === 2) {
+        const start = moment(checkInControlRow?.[0].request_time, 'YYYY-MM-DD HH:mm');
         const end = moment(time, 'YYYY-MM-DD HH:mm');
 
         const duration = moment.duration(end.diff(start));

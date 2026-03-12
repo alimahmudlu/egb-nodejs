@@ -22,10 +22,10 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
         filters.push(`p.id = ${project}`);
     }
     if (start_date) {
-        filters2.push(`DATE(ea.review_time) >= '${start_date}'`);
+        filters2.push(`DATE(ea.request_time) >= '${start_date}'`);
     }
     if (end_date) {
-        filters2.push(`DATE(ea.review_time) <= '${end_date}'`);
+        filters2.push(`DATE(ea.request_time) <= '${end_date}'`);
     }
 
     const whereClause = filters.length
@@ -158,9 +158,9 @@ router.get('/list/item', checkAuth, userPermission, async (req, res) => {
                            ${turn ? ` AND ea.turn = ${turn}` : ''}
                            ${start_date && end_date ?
                                    `
-                            AND DATE(ea.review_time) >= '${start_date}'
-                            AND DATE(ea.review_time) <= '${end_date}'
-                            ` : ` AND DATE(ea.review_time) = '${today}'`}
+                            AND DATE(ea.request_time) >= '${start_date}'
+                            AND DATE(ea.request_time) <= '${end_date}'
+                            ` : ` AND DATE(ea.request_time) = '${today}'`}
 
 
                        GROUP BY ea.employee_id
@@ -214,10 +214,10 @@ router.get('/statistics', checkAuth, userPermission, async (req, res) => {
         filters.push(`pm.project_id = ${project}`);
     }
     if (start_date) {
-        filters2.push(`DATE(ea.review_time) >= '${start_date}'`);
+        filters2.push(`DATE(ea.request_time) >= '${start_date}'`);
     }
     if (end_date) {
-        filters2.push(`DATE(ea.review_time) <= '${end_date}'`);
+        filters2.push(`DATE(ea.request_time) <= '${end_date}'`);
         filters3.push(`DATE(a.employees_non_official_start_date) <= '${end_date}'`);
     }
 
@@ -315,10 +315,10 @@ router.get('/statistics/working_hours', checkAuth, userPermission, async (req, r
         )`);
     }
     if (start_date) {
-        filters.push(`DATE(ea.review_time) >= '${start_date}'`);
+        filters.push(`DATE(ea.request_time) >= '${start_date}'`);
     }
     if (end_date) {
-        filters.push(`DATE(ea.review_time) <= '${end_date}'`);
+        filters.push(`DATE(ea.request_time) <= '${end_date}'`);
     }
 
     const whereClause = filters.length
@@ -507,10 +507,10 @@ router.get('/statistics/checkin', checkAuth, userPermission, async (req, res) =>
         )`);
     }
     if (start_date) {
-        filters.push(`DATE(ea.review_time) >= '${start_date}'`);
+        filters.push(`DATE(ea.request_time) >= '${start_date}'`);
     }
     if (end_date) {
-        filters.push(`DATE(ea.review_time) <= '${end_date}'`);
+        filters.push(`DATE(ea.request_time) <= '${end_date}'`);
     }
 
     const whereClause = filters.length
@@ -572,10 +572,10 @@ router.get('/statistics/at_work', checkAuth, userPermission, async (req, res) =>
         )`);
     }
     if (start_date) {
-        filters.push(`DATE(ea.review_time) >= '${start_date}'`);
+        filters.push(`DATE(ea.request_time) >= '${start_date}'`);
     }
     if (end_date) {
-        filters.push(`DATE(ea.review_time) <= '${end_date}'`);
+        filters.push(`DATE(ea.request_time) <= '${end_date}'`);
     }
 
     const whereClause = filters.length

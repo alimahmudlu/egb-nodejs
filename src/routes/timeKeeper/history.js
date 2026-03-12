@@ -13,12 +13,12 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
     let idx = 2;
 
     if (start_date) {
-        filters.push(`review_time >= $${idx}`);
+        filters.push(`request_time >= $${idx}`);
         values.push(moment(start_date).format())
         idx++
     }
     if (end_date) {
-        filters.push(`review_time <= $${idx}`);
+        filters.push(`request_time <= $${idx}`);
         values.push(moment(end_date).format())
         idx++
     }
@@ -72,7 +72,7 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
               AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
         )
                                    ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
-        ORDER BY e.full_name ASC, ea.review_time DESC ${limits ? limits : ''}
+        ORDER BY e.full_name ASC, ea.request_time DESC ${limits ? limits : ''}
         `, [req.currentUserId, ...values])
 
     res.status(200).json({
@@ -89,12 +89,12 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
     let idx = 2;
 
     if (start_date) {
-        filters.push(`review_time >= $${idx}`);
+        filters.push(`request_time >= $${idx}`);
         values.push(moment(start_date).format())
         idx++
     }
     if (end_date) {
-        filters.push(`review_time <= $${idx}`);
+        filters.push(`request_time <= $${idx}`);
         values.push(moment(end_date).format())
         idx++
     }
@@ -177,7 +177,7 @@ router.get('/list/checkin', checkAuth, userPermission, async (req, res) => {
                                    ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         AND (ea.type = 1 OR ea.type = 3)
 
-        ORDER BY e.full_name ASC, ea.review_time DESC ${limits ? limits : ''}
+        ORDER BY e.full_name ASC, ea.request_time DESC ${limits ? limits : ''}
         `, [req.currentUserId, ...values])
 
     res.status(200).json({
@@ -198,12 +198,12 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
     let idx = 2;
 
     if (start_date) {
-        filters.push(`review_time >= $${idx}`);
+        filters.push(`request_time >= $${idx}`);
         values.push(moment(start_date).format())
         idx++
     }
     if (end_date) {
-        filters.push(`review_time <= $${idx}`);
+        filters.push(`request_time <= $${idx}`);
         values.push(moment(end_date).format())
         idx++
     }
@@ -285,7 +285,7 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
         )
                                    ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         AND (ea.type = 2 OR ea.type = 4)
-        ORDER BY e.full_name ASC, ea.review_time DESC ${limits ? limits : ''}
+        ORDER BY e.full_name ASC, ea.request_time DESC ${limits ? limits : ''}
         `, [req.currentUserId, ...values])
 
     res.status(200).json({

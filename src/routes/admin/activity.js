@@ -15,9 +15,6 @@ router.post('/checkin', checkAuth, userPermission, apiLimiter, async (req, res) 
     const type = 1;
     const turn = moment(time).isBetween(moment("01:00", "HH:mm"), moment("16:00", "HH:mm")) ? 1 : 2;
 
-    console.log(turn, time, moment("01:00", "HH:mm"), moment("16:00", "HH:mm"))
-
-
     const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
 
     const {rows: checkedInRows} =
@@ -190,7 +187,7 @@ router.post('/overtime', checkAuth, userPermission, apiLimiter, async (req, res)
     const {rows: normalCheckedInRows2} =
         await db.query(`
             SELECT * FROM employee_activities
-            WHERE employee_id = $1 AND status = 2 AND type IN (1, 2) AND completed_status = 1 AND DATE(review_time) = DATE(NOW())
+            WHERE employee_id = $1 AND status = 2 AND type IN (1, 2) AND completed_status = 1 AND DATE(request_time) = DATE(NOW())
             ORDER BY id DESC
                 LIMIT 1
         `, [req.currentUserId])
@@ -679,9 +676,9 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
         minutes: 0
     }
 
-    if (checkInControlRow?.[0]?.review_time && type === 2) {
+    if (checkInControlRow?.[0]?.request_time && type === 2) {
 
-        const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
+        const start = moment(checkInControlRow?.[0].request_time, 'YYYY-MM-DD HH:mm');
         const end = moment(time, 'YYYY-MM-DD HH:mm');
 
         const duration = moment.duration(end.diff(start));

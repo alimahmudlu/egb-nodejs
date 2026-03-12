@@ -105,12 +105,12 @@ router.get('/list/count', checkAuth, userPermission, async (req, res) => {
     let idx = 2;
 
     if (start_date) {
-        filters.push(`ea.review_time >= $${idx}`);
+        filters.push(`ea.request_time >= $${idx}`);
         values.push(start_date)
         idx++
     }
     if (end_date) {
-        filters.push(`ea.review_time <= $${idx}`);
+        filters.push(`ea.request_time <= $${idx}`);
         values.push(end_date)
         idx++
     }
@@ -542,8 +542,8 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         minutes: 0
     }
 
-    if (checkInControlRow?.[0]?.review_time && type === 2) {
-        const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
+    if (checkInControlRow?.[0]?.request_time && type === 2) {
+        const start = moment(checkInControlRow?.[0].request_time, 'YYYY-MM-DD HH:mm');
         const end = moment(confirm_time, 'YYYY-MM-DD HH:mm').endOf('minute');
 
         console.log(confirm_type === 1, confirm_type, moment().tz("Europe/Moscow").weekday() === 7, moment().tz("Europe/Moscow").weekday(), 'testing ---___--- confirm time ')
@@ -635,9 +635,9 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
         }
     }
 
-    // if (checkInControlRow?.[0]?.review_time && type === 2) {
+    // if (checkInControlRow?.[0]?.request_time && type === 2) {
     //
-    //     const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
+    //     const start = moment(checkInControlRow?.[0].request_time, 'YYYY-MM-DD HH:mm');
     //     const end = moment(confirm_time, 'YYYY-MM-DD HH:mm');
     //
     //     const duration = moment.duration(end.diff(start));
@@ -787,12 +787,12 @@ router.get('/checkin', checkAuth, userPermission, async (req, res) => {
     let idx = 2;
 
     if (start_date) {
-        filters.push(`review_time >= $${idx}`);
+        filters.push(`request_time >= $${idx}`);
         values.push(start_date)
         idx++
     }
     if (end_date) {
-        filters.push(`review_time <= $${idx}`);
+        filters.push(`request_time <= $${idx}`);
         values.push(end_date)
         idx++
     }
@@ -862,12 +862,12 @@ router.get('/checkout', checkAuth, userPermission, async (req, res) => {
     let idx = 2;
 
     if (start_date) {
-        filters.push(`review_time >= $${idx}`);
+        filters.push(`request_time >= $${idx}`);
         values.push(start_date)
         idx++
     }
     if (end_date) {
-        filters.push(`review_time <= $${idx}`);
+        filters.push(`request_time <= $${idx}`);
         values.push(end_date)
         idx++
     }
@@ -1099,7 +1099,7 @@ router.post('/overtime', checkAuth, userPermission, apiLimiter, async (req, res)
     const {rows: normalCheckedInRows2} =
         await db.query(`
             SELECT * FROM employee_activities
-            WHERE employee_id = $1 AND status = 2 AND type IN (1, 2) AND completed_status = 1 AND DATE(review_time) = DATE(NOW())
+            WHERE employee_id = $1 AND status = 2 AND type IN (1, 2) AND completed_status = 1 AND DATE(request_time) = DATE(NOW())
             ORDER BY id DESC
                 LIMIT 1
         `, [req.currentUserId])
@@ -1571,8 +1571,8 @@ router.post('/checkout', checkAuth, userPermission, apiLimiter, async (req, res)
         minutes: 0
     }
 
-    if (checkInControlRow?.[0]?.review_time && type === 2) {
-        const start = moment(checkInControlRow?.[0].review_time, 'YYYY-MM-DD HH:mm');
+    if (checkInControlRow?.[0]?.request_time && type === 2) {
+        const start = moment(checkInControlRow?.[0].request_time, 'YYYY-MM-DD HH:mm');
         const end = moment(time, 'YYYY-MM-DD HH:mm').endOf('minute');
 
         const duration = moment.duration(end.diff(start));

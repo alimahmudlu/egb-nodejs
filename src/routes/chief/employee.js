@@ -43,13 +43,13 @@ router.get('/details/:employee_id', checkAuth, userPermission, async (req, res) 
             AND entry.type = 1 AND exit.type = 2
             AND entry.status = 2 AND entry.completed_status = 1
             AND exit.status = 2 AND exit.completed_status = 1
-            AND entry.review_time < exit.review_time
+            AND entry.request_time < exit.request_time
         WHERE NOT EXISTS (
             SELECT 1 FROM employee_activities e2
             WHERE e2.employee_id = entry.employee_id
           AND e2.type = 1
-          AND e2.review_time > entry.review_time
-          AND e2.review_time < exit.review_time
+          AND e2.request_time > entry.request_time
+          AND e2.request_time < exit.request_time
             )
         GROUP BY entry.employee_id
             )

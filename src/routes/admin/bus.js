@@ -25,7 +25,7 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             AND ea.status = 2
             AND ea.completed_status = 0
             AND ea.type = 1
-            AND DATE(ea.review_time) = $1
+            AND DATE(ea.request_time) = $1
 
         GROUP BY
             p.id, p.name

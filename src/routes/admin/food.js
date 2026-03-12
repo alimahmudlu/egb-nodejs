@@ -382,7 +382,7 @@ router.get('/report/today', checkAuth, userPermission, async (req, res) => {
                    COUNT(DISTINCT ea.employee_id) FILTER (WHERE ea.turn = 1) AS turn1employees,
                 COUNT(DISTINCT ea.employee_id) FILTER (WHERE ea.turn = 2) AS turn2employees
             FROM employee_activities ea 
-            WHERE ea.type = 1 AND ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.review_time) = $1
+            WHERE ea.type = 1 AND ea.status = 2 AND ea.completed_status = 1 AND DATE(ea.request_time) = $1
     `, [moment().tz("Europe/Moscow").format('YYYY-MM-DD')]);
 
     return res.status(200).json({
@@ -430,7 +430,7 @@ router.get('/projects', checkAuth, userPermission, async (req, res) => {
             LEFT JOIN employee_activities AS ea ON ea.employee_id = e.id
             AND ea.status = 2
             AND ea.type = 1
-            AND DATE(ea.review_time) = $1
+            AND DATE(ea.request_time) = $1
 
         GROUP BY
             p.id, p.name
@@ -487,7 +487,7 @@ router.get('/projects/:id', checkAuth, userPermission, async (req, res) => {
             AND ea.status = 2
             AND ea.completed_status = 1
             AND ea.type = 1
-            AND DATE(ea.review_time) = $1
+            AND DATE(ea.request_time) = $1
         WHERE p.id = $3
         GROUP BY
             p.id, p.name
