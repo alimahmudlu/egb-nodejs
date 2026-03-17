@@ -476,6 +476,9 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
 
     const {rows} = await db.query(`
         SELECT ea.*,
+               (SELECT json_build_object(
+                               'request_time', cid.request_time
+                       ) FROM employee_activities cid WHERE id = ea.activity_id) AS check_in_data,
                COUNT(*) OVER() AS total_count, json_build_object(
                 'id', e.id,
                 'full_name', e.full_name,
