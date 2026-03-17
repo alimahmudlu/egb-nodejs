@@ -522,7 +522,7 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
 })
 
 router.post('/accept', checkAuth, userPermission, async (req, res) => {
-    const {activity_id, employee_id, type, confirm_time, timezone, confirm_type} = req.body
+    const {activity_id, employee_id, type, confirm_time, timezone, confirm_type, work_time} = req.body
     const turn = moment(confirm_time).isBetween(moment("01:00", "HH:mm"), moment("16:00", "HH:mm")) ? 1 : 2;
 
     // const returnedRow = await timeKeeperActivityAccept({...req.body, currentUserId: req.currentUserId}, res)
@@ -548,8 +548,6 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
     if (checkInControlRow?.[0]?.request_time && type === 2) {
         const start = moment(checkInControlRow?.[0].request_time, 'YYYY-MM-DD HH:mm');
         const end = moment(confirm_time, 'YYYY-MM-DD HH:mm').endOf('minute');
-
-        console.log(confirm_type === 1, confirm_type, moment().tz("Europe/Moscow").weekday() === 7, moment().tz("Europe/Moscow").weekday(), 'testing ---___--- confirm time ')
 
         const duration = moment.duration(end.diff(start));
 
@@ -595,6 +593,15 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             diff = {
                 hours: 8,
                 minutes: 0
+            };
+        }
+        else if (
+            confirm_type === 2 &&
+            work_time
+        ) {
+            diff = {
+                hours: work_time.split(':')[0],
+                minutes: work_time.split(':')[1]
             };
         }
         /*else if (
@@ -1561,7 +1568,7 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
 * CHECKOUT: without Timekeeper control
 * */
 router.post('/checkout', checkAuth, userPermission, apiLimiter, async (req, res) => {
-    const {time, timezone, latitude, longitude, activity_id, confirm_type} = req.body;
+    const {time, timezone, latitude, longitude, activity_id, confirm_type, work_time} = req.body;
     const status = 1;
     const type = 2;
 
@@ -1622,6 +1629,15 @@ router.post('/checkout', checkAuth, userPermission, apiLimiter, async (req, res)
             diff = {
                 hours: 8,
                 minutes: 0
+            };
+        }
+        else if (
+            confirm_type === 2 &&
+            work_time
+        ) {
+            diff = {
+                hours: work_time.split(':')[0],
+                minutes: work_time.split(':')[1]
             };
         }
             /*else if (
