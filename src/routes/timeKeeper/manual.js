@@ -201,6 +201,11 @@ router.get('/list', checkAuth, userPermission, async (req, res) => {
                 FROM employee_activities ea
                 WHERE ea.employee_id = e.id AND (ea.type = 1 OR ea.type = 3) AND ea.completed_status = 0
             )
+            AND NOT EXISTS(
+                SELECT 1
+                FROM employee_activities ea
+                WHERE ea.employee_id = e.id AND ea.type = 5 AND DATE(ea.request_time) = now()::date
+            )
             AND e.id != $1
             ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
         ORDER BY e.full_name ASC
@@ -775,6 +780,35 @@ router.post('/overtime_checkin', checkAuth, userPermission, async (req, res) => 
             data: null
         })
     }
+})
+
+router.post('/sick', checkAuth, userPermission, async (req, res) => {
+    const { employee_id, reason, confirm_time, timezone } = req.body;
+
+    const {rows: checkInRow} = await db.query(`
+        INSERT INTO employee_activities 
+        (
+         employee_id,
+         employee_timezone,
+         request_time,
+         type,
+         reviewer_employee_id,
+         reviewer_timezone,
+         review_time,
+         status,
+         completed_status,
+         work_time,
+         is_manual,
+         turn
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *
+    `, [employee_id, timezone, confirm_time, 5, req.currentUserId, timezone, confirm_time, 2, 1, '05:00', true, 0])
+
+    return res.status(201).json({
+        success: true,
+        message: 'Activity created successfully',
+        data: checkInRow?.[0]
+    })
 })
 
 export default router
