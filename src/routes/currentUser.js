@@ -467,7 +467,7 @@ router.get('/activities/work_hours', checkAuth, async (req, res) => {
                 NULL                    AS exit_time,
                 NULL                    AS exit_latitude,
                 NULL                    AS exit_longitude,
-                NULL                    AS work_duration,
+                entry.work_time         AS work_duration,
                 'Sick'        AS activity_status,
                 'activitySick' AS activity_status_id
             FROM employee_activities entry
