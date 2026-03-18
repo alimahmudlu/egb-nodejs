@@ -446,6 +446,37 @@ router.get('/activities/work_hours', checkAuth, async (req, res) => {
               AND entry.employee_id = $1
                 ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
 
+            UNION ALL
+
+            SELECT
+                (SELECT full_name FROM employees e WHERE e.id = entry.reviewer_employee_id) AS check_in_timekeeper,
+                NULL                                    AS check_out_timekeeper,
+                entry.employee_id,
+                entry.review_time       AS entry_time,
+                entry.latitude          AS entry_latitude,
+                entry.longitude         AS entry_longitude,
+                entry.status            AS entry_status,
+                NULL                    AS exit_status,
+                entry.reject_reason     AS entry_reject_reason,
+                NULL                    AS exit_reject_reason,
+
+                entry.is_manual         AS entry_manual,
+                NULL::BOOLEAN           AS exit_manual,
+                entry.type              AS entry_type,
+                NULL                    AS exit_type,
+                NULL                    AS exit_time,
+                NULL                    AS exit_latitude,
+                NULL                    AS exit_longitude,
+                NULL                    AS work_duration,
+                'Sick'        AS activity_status,
+                'activitySick' AS activity_status_id
+            FROM employee_activities entry
+            WHERE entry.type = 5
+              AND entry.status = 2
+              AND entry.completed_status = 1
+              AND entry.employee_id = $1
+                ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+
             ORDER BY entry_time DESC;
         `, [req.currentUserId, ...values])
 

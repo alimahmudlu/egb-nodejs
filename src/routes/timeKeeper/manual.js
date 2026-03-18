@@ -785,8 +785,6 @@ router.post('/overtime_checkin', checkAuth, userPermission, async (req, res) => 
 router.post('/sick', checkAuth, userPermission, async (req, res) => {
     const { employee_id, reason, confirm_time, timezone } = req.body;
 
-    console.log(req.body)
-
     const {rows: checkInRow} = await db.query(`
         INSERT INTO employee_activities 
         (
@@ -804,7 +802,7 @@ router.post('/sick', checkAuth, userPermission, async (req, res) => {
          turn
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *
-    `, [employee_id, timezone, confirm_time, 5, req.currentUserId, timezone, confirm_time, 3, 1, '05:00', true, 0])
+    `, [employee_id, timezone, confirm_time, 5, req.currentUserId, timezone, confirm_time, 2, 1, '05:00', true, 0])
 
     return res.status(201).json({
         success: true,
