@@ -785,6 +785,8 @@ router.post('/overtime_checkin', checkAuth, userPermission, async (req, res) => 
 router.post('/sick', checkAuth, userPermission, async (req, res) => {
     const { employee_id, reason, confirm_time, timezone } = req.body;
 
+    console.log(req.body)
+
     const {rows: checkInRow} = await db.query(`
         INSERT INTO employee_activities 
         (
