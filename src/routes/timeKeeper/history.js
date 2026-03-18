@@ -299,4 +299,112 @@ router.get('/list/checkout', checkAuth, userPermission, async (req, res) => {
     })
 })
 
+router.get('/list/sick', checkAuth, userPermission, async (req, res) => {
+    const {start_date, end_date, full_name, project, checkStatus, checkType, subcontractors, page, limit} = req.query;
+    const filters = [];
+    const values = [];
+    let idx = 2;
+
+    if (start_date) {
+        filters.push(`request_time >= $${idx}`);
+        values.push(moment(start_date).format())
+        idx++
+    }
+    if (end_date) {
+        filters.push(`request_time <= $${idx}`);
+        values.push(moment(end_date).format())
+        idx++
+    }
+    if (project) {
+        filters.push(`EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id AND pm1.status = 1 AND pm2.status = 1
+            AND pm1.project_id = $${idx}
+        )`);
+        values.push(project)
+        idx++
+    }
+    if (checkStatus) {
+        filters.push(`ea.is_manual = $${idx}`);
+        values.push(Number(checkStatus) === 1 ? true : (Number(checkStatus) === 2 ? false : null));
+        idx++
+    }
+    if (checkType) {
+        filters.push(`ea.type = $${idx}`);
+        values.push(Number(checkType) === 1 ? 2 : (Number(checkType) === 3 ? 4 : null));
+        idx++
+    }
+    if (full_name) {
+        filters.push(`(LOWER(e.full_name) LIKE LOWER($${idx}) OR LOWER(e.full_name_russian) LIKE LOWER($${idx}))`);
+        values.push(`%${full_name}%`);
+        idx++
+    }
+    if (subcontractors && Number(subcontractors)) {
+        filters.push(`a.subcontract = $${idx}`);
+        values.push(!!Number(subcontractors));
+        idx++
+    }
+
+
+    let limits = '';
+    const offset = (page - 1) * limit < 0 ? 0 : (page - 1) * limit;
+
+    if (page && limit) {
+        limits = ` LIMIT ${limit} OFFSET ${offset} `;
+    }
+
+    const {rows} = await db.query(`
+        SELECT
+            COUNT(*) OVER() AS total_count,
+            ea.*,
+            (
+                SELECT json_build_object(
+                               'id', p.id,
+                               'name', p.name
+                       )
+                FROM project_members pm
+                         LEFT JOIN projects p ON p.id = pm.project_id
+                WHERE e.id = pm.employee_id AND pm.status = 1
+                LIMIT 1
+            ) AS project,
+            json_build_object(
+                'id', e.id,
+                'full_name', e.full_name,
+                'full_name_russian', e.full_name_russian,
+                'manual', e.dont_have_phone,
+                'role', json_build_object(
+                        'id', er.id,
+                        'name', r.name
+                        )
+                     ) as employee FROM employee_activities ea
+                                            LEFT JOIN employees e ON e.id = ea.employee_id
+                                            LEFT JOIN applications a ON a.id = e.application_id
+                                            LEFT JOIN employee_roles er ON e.id = er.employee_id
+                                            LEFT JOIN roles r ON r.id = er.role
+
+        WHERE EXISTS (
+            SELECT 1
+            FROM project_members pm1
+                     JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.employee_id = ea.employee_id
+              AND pm2.employee_id = $1 AND pm1.status = 1 AND pm2.status = 1
+        )
+                                   ${filters.length > 0 ? ` AND ${filters.join(' AND ')}` : ''}
+        AND (ea.type = 5)
+        ORDER BY e.full_name ASC, ea.request_time DESC ${limits ? limits : ''}
+        `, [req.currentUserId, ...values])
+
+    res.status(200).json({
+        success: true,
+        message: 'Activity fetched successfully',
+        data: {
+            total: rows?.[0]?.total_count || 0,
+            page: page,
+            data: rows
+        }
+    })
+})
+
 export default router
