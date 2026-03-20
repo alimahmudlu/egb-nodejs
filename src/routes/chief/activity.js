@@ -99,6 +99,26 @@ router.post('/checkin', checkAuth, userPermission, apiLimiter, async (req, res) 
                 LIMIT 1
         `, [req.currentUserId])
 
+    const {rows: sickRows} =
+        await db.query(`
+            SELECT id FROM employee_activities
+            WHERE employee_id = $1 AND status = 2 AND type = 5 AND completed_status = 1 AND DATE(ea.request_time) = now()::date
+            ORDER BY id DESC
+                LIMIT 1
+        `, [req.currentUserId])
+
+    if (sickRows.length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: {
+                en: 'You cannot check in today because you are sick.',
+                ru: 'Вы не можете зарегистрироваться сегодня, потому что вы больны.',
+                uz: "Kasal bo'lganingiz uchun bugun ro'yxatdan o'tolmaysiz.",
+            },
+            data: null
+        })
+    }
+
 
     if (overCheckedInRows.length > 0) {
         return res.status(400).json({
@@ -241,6 +261,26 @@ router.post('/overtime', checkAuth, userPermission, apiLimiter, async (req, res)
                 en: 'You have already checked in for normal work.',
                 ru: 'Вы уже зарегистрировались для выполнения обычной работы.',
                 uz: "Siz allaqachon odatiy ish uchun ro'yxatdan o'tgansiz.",
+            },
+            data: null
+        })
+    }
+
+    const {rows: sickRows} =
+        await db.query(`
+            SELECT id FROM employee_activities
+            WHERE employee_id = $1 AND status = 2 AND type = 5 AND completed_status = 1 AND DATE(ea.request_time) = now()::date
+            ORDER BY id DESC
+                LIMIT 1
+        `, [req.currentUserId])
+
+    if (sickRows.length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: {
+                en: 'You cannot check in today because you are sick.',
+                ru: 'Вы не можете зарегистрироваться сегодня, потому что вы больны.',
+                uz: "Kasal bo'lganingiz uchun bugun ro'yxatdan o'tolmaysiz.",
             },
             data: null
         })
