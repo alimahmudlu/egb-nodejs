@@ -967,7 +967,7 @@ router.post('/checkin', checkAuth, userPermission, apiLimiter, async (req, res) 
     const {rows: sickRows} =
         await db.query(`
             SELECT id FROM employee_activities
-            WHERE employee_id = $1 AND status = 2 AND type = 5 AND completed_status = 1 AND DATE(ea.request_time) = now()::date
+            WHERE employee_id = $1 AND status = 2 AND type = 5 AND completed_status = 1 AND DATE(request_time) = now()::date
             ORDER BY id DESC
                 LIMIT 1
         `, [req.currentUserId])
@@ -1130,7 +1130,7 @@ router.post('/overtime', checkAuth, userPermission, apiLimiter, async (req, res)
     const {rows: sickRows} =
         await db.query(`
             SELECT id FROM employee_activities
-            WHERE employee_id = $1 AND status = 2 AND type = 5 AND completed_status = 1 AND DATE(ea.request_time) = now()::date
+            WHERE employee_id = $1 AND status = 2 AND type = 5 AND completed_status = 1 AND DATE(request_time) = now()::date
             ORDER BY id DESC
                 LIMIT 1
         `, [req.currentUserId])
