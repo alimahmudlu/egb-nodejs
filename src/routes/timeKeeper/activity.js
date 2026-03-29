@@ -529,6 +529,8 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
     const turn = moment(confirm_time).isBetween(moment("01:00", "HH:mm"), moment("16:00", "HH:mm")) ? 1 : 2;
 
     // const returnedRow = await timeKeeperActivityAccept({...req.body, currentUserId: req.currentUserId}, res)
+    console.log(moment().tz("Europe/Moscow").weekday() === 7, moment().tz("Europe/Moscow").weekday() === 0, moment().tz("Europe/Moscow").weekday(), 'weekday')
+
 
     const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
     if (!activity_id || !employee_id || !type) {
