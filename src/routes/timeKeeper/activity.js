@@ -1613,6 +1613,8 @@ router.post('/checkout', checkAuth, userPermission, apiLimiter, async (req, res)
     const status = 1;
     const type = 2;
 
+    console.log(moment().tz("Europe/Moscow").weekday() === 7, moment().tz("Europe/Moscow").weekday() === 0, moment().tz("Europe/Moscow").weekday(), 'weekday')
+
     const {rows: checkInControlRow} = await db.query(`
         SELECT * FROM employee_activities ea WHERE employee_id = $1 and status = $2 and completed_status = $3 and type = $4
     `, [req.currentUserId, 2, 0, 1])
