@@ -394,7 +394,7 @@ router.get('/list/atwork', checkAuth, userPermission, async (req, res) => {
 })
 
 router.post('/accept', checkAuth, userPermission, async (req, res) => {
-    const {activity_id, employee_id, type, confirm_time, timezone, confirm_type} = req.body
+    const {activity_id, employee_id, type, confirm_time, timezone, confirm_type = 1} = req.body
 
     if (!activity_id || !employee_id || !type) {
         return res.status(400).json({

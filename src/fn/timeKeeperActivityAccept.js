@@ -40,7 +40,7 @@ export default async function timeKeeperActivityAccept(req, res) {
         if (
             // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
-            duration.asHours() < 24 &&
+            // duration.asHours() < 24 &&
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() !== 0
         ) {
@@ -52,7 +52,7 @@ export default async function timeKeeperActivityAccept(req, res) {
         else if (
             // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
-            duration.asHours() < 24 &&
+            // duration.asHours() < 24 &&
             confirm_type === 4 &&
             moment().tz("Europe/Moscow").weekday() === 0
         ) {
@@ -64,7 +64,7 @@ export default async function timeKeeperActivityAccept(req, res) {
         else if (
             // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
-            duration.asHours() < 24 &&
+            // duration.asHours() < 24 &&
             confirm_type === 1 &&
             moment().tz("Europe/Moscow").weekday() === 0
         ) {
