@@ -406,6 +406,15 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
                 minutes: 0
             };
         }
+        else if (
+            confirm_type === 2 &&
+            work_time
+        ) {
+            diff = {
+                hours: work_time.split(':')[0],
+                minutes: work_time.split(':')[1]
+            };
+        }
             /*else if (
                 // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
                 // moment(endHourMinute, "HH:mm").isBefore(moment("14:01", "HH:mm")) &&
