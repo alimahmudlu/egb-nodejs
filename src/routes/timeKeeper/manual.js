@@ -370,6 +370,8 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
         const startHourMinute = start.format("HH:mm");
         const endHourMinute = end.format("HH:mm");
 
+        console.log(work_time)
+
         if (
             // moment(startHourMinute, "HH:mm").isBetween(moment("07:29", "HH:mm"), moment("08:31", "HH:mm")) &&
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
