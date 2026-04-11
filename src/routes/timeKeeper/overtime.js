@@ -534,7 +534,7 @@ router.post('/reject', checkAuth, userPermission, async (req, res) => {
     const {rows} = await db.query(`
                 UPDATE employee_activities
                 SET reviewer_employee_id = $1, reviewer_timezone = $2, review_time = $3, status = $4, completed_status = $5, reject_reason = $6
-                WHERE id = $7 and employee_id = $8 and status = $9
+                WHERE id = $7 and employee_id = $8 and status = $9 and completed_status = 0
                     RETURNING *;
         `,
         [req.currentUserId, timezone, confirm_time, 3, 1, reject_reason, activity_id, employee_id, 1])

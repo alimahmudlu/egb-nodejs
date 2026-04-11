@@ -344,12 +344,14 @@ router.post('/checkout', checkAuth, userPermission, async (req, res) => {
     const { activity_id, employee_id, employee_timezone, request_time, longitude, latitude, work_time, confirm_type } = req.body;
 
     const {rows: checkInControlRow} = await db.query(`
-        SELECT * FROM employee_activities ea WHERE employee_id = $1 and status = $2 and completed_status = $3 and type = $4
-    `, [employee_id, 2, 0, 1])
+        SELECT * FROM employee_activities ea WHERE (employee_id = $1 and status = $2 and completed_status = $3 and type = $4) OR
+                                                   (id = $5 and status = $6 and completed_status = $7 and type = $8)
+    `, [employee_id, 2, 0, 1, activity_id, 2, 1, 2])
 
     const {rows: checkOutControlRow} = await db.query(`
-        SELECT * FROM employee_activities ea WHERE employee_id = $1 and status = $2 and completed_status = $3 and type = $4
-    `, [employee_id, 1, 0, 2])
+        SELECT * FROM employee_activities ea WHERE (employee_id = $1 and status = $2 and completed_status = $3 and type = $4) OR 
+                                                   (activity_id = $5 and status = $6 and completed_status = $7 and type = $8) 
+    `, [employee_id, 1, 0, 2, activity_id, 2, 1, 2])
 
     let diff = {
         hours: 0,
