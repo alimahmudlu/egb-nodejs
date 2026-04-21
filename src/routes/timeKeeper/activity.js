@@ -529,7 +529,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
     const turn = moment(confirm_time).isBetween(moment("01:00", "HH:mm"), moment("16:00", "HH:mm")) ? 1 : 2;
 
     // const returnedRow = await timeKeeperActivityAccept({...req.body, currentUserId: req.currentUserId}, res)
-    // console.log(moment().tz("Europe/Moscow").weekday() === 0, moment().tz("Europe/Moscow").weekday() === 0, moment().tz("Europe/Moscow").weekday(), 'weekday')
+    // console.log(moment().tz("Europe/Moscow").weekday() === 2, moment().tz("Europe/Moscow").weekday() === 2, moment().tz("Europe/Moscow").weekday(), 'weekday')
 
 
     const {rows: empData} = await db.query(`SELECT full_name FROM employees WHERE id = $1`, [req.currentUserId]);
@@ -569,7 +569,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             // duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() !== 0
+            moment().tz("Europe/Moscow").weekday() !== 2
         ) {
             diff = {
                 hours: 10,
@@ -581,7 +581,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             // duration.asHours() < 24 &&
             confirm_type === 4 &&
-            moment().tz("Europe/Moscow").weekday() === 0
+            moment().tz("Europe/Moscow").weekday() === 2
         ) {
             diff = {
                 hours: 10,
@@ -593,7 +593,7 @@ router.post('/accept', checkAuth, userPermission, async (req, res) => {
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             // duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() === 0
+            moment().tz("Europe/Moscow").weekday() === 2
         ) {
             diff = {
                 hours: 8,
@@ -1615,7 +1615,7 @@ router.post('/checkout', checkAuth, userPermission, apiLimiter, async (req, res)
     const status = 1;
     const type = 2;
 
-    // console.log(moment().tz("Europe/Moscow").weekday() === 0, moment().tz("Europe/Moscow").weekday() === 0, moment().tz("Europe/Moscow").weekday(), 'weekday')
+    // console.log(moment().tz("Europe/Moscow").weekday() === 2, moment().tz("Europe/Moscow").weekday() === 2, moment().tz("Europe/Moscow").weekday(), 'weekday')
 
     const {rows: checkInControlRow} = await db.query(`
         SELECT * FROM employee_activities ea WHERE employee_id = $1 and status = $2 and completed_status = $3 and type = $4
@@ -1645,7 +1645,7 @@ router.post('/checkout', checkAuth, userPermission, apiLimiter, async (req, res)
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             // duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() !== 0
+            moment().tz("Europe/Moscow").weekday() !== 2
         ) {
             diff = {
                 hours: 10,
@@ -1657,7 +1657,7 @@ router.post('/checkout', checkAuth, userPermission, apiLimiter, async (req, res)
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             // duration.asHours() < 24 &&
             confirm_type === 4 &&
-            moment().tz("Europe/Moscow").weekday() === 0
+            moment().tz("Europe/Moscow").weekday() === 2
         ) {
             diff = {
                 hours: 10,
@@ -1669,7 +1669,7 @@ router.post('/checkout', checkAuth, userPermission, apiLimiter, async (req, res)
             // moment(endHourMinute, "HH:mm").isBetween(moment("18:59", "HH:mm"), moment("20:01", "HH:mm")) &&
             // duration.asHours() < 24 &&
             confirm_type === 1 &&
-            moment().tz("Europe/Moscow").weekday() === 0
+            moment().tz("Europe/Moscow").weekday() === 2
         ) {
             diff = {
                 hours: 8,
